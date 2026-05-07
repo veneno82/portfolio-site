@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>notes — Mauro Brito</title>
+  <script>
+    try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
+  </script>
+  <style>
+    :root {
+      --fg: #141414;
+      --fg2: #4a4a50;
+      --border: rgba(0, 0, 0, 0.10);
+      --surface: rgba(0, 0, 0, 0.04);
+      --nav-bg: rgba(255, 255, 255, 0.78);
+      --paper: #fdfdfb;
+    }
+
+    [data-theme="dark"] {
+      --fg: #f0f0f2;
+      --fg2: #b8b8bc;
+      --border: rgba(255, 255, 255, 0.10);
+      --surface: rgba(255, 255, 255, 0.04);
+      --nav-bg: rgba(5, 5, 5, 0.80);
+      --paper: #0e0e10;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--fg);
+      font-size: 15px;
+      line-height: 1.65;
+      background: var(--paper);
+      transition: background 0.35s, color 0.35s;
+      min-height: 100vh;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 36px;
+      height: 52px;
+      background: var(--nav-bg);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.35s, border-color 0.35s;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      justify-content: center;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .nav-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+
+    .nav-links-group a {
+      font-size: 13px;
+      color: var(--fg2);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.15s;
+    }
+
+    .nav-links-group a:hover {
+      color: var(--fg);
+    }
+
+    .saved-indicator {
+      font-size: 11px;
+      color: var(--fg2);
+      letter-spacing: 0.04em;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+
+    .saved-indicator.flash {
+      opacity: 1;
+      color: var(--fg);
+    }
+
+    .pill-toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.25s, border-color 0.25s;
+      flex-shrink: 0;
+    }
+
+    .pill-toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--fg2);
+      top: 3px;
+      left: 3px;
+      transition: transform 0.25s, background 0.25s;
+    }
+
+    [data-theme="dark"] .pill-toggle::after {
+      transform: translateX(24px);
+      background: var(--fg);
+    }
+
+    .pill-toggle:hover::after {
+      background: var(--fg);
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 100px 44px 120px;
+    }
+
+    .doc-shell {
+      display: flex;
+      gap: 56px;
+      align-items: flex-start;
+    }
+
+    .doc-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .todo-col {
+      flex: 0 0 260px;
+      position: sticky;
+      top: 84px;
+    }
+
+    .doc-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+
+    .doc-title {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 38px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+      line-height: 1.05;
+      text-transform: lowercase;
+    }
+
+    .doc-meta {
+      font-size: 12px;
+      color: var(--fg2);
+      letter-spacing: 0.02em;
+    }
+
+    .doc-rule {
+      height: 1px;
+      background: var(--border);
+      margin: 22px 0 30px;
+    }
+
+    .doc {
+      min-height: calc(100vh - 280px);
+      outline: none;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--fg);
+      caret-color: var(--fg);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .doc:empty::before {
+      content: attr(data-placeholder);
+      color: var(--fg2);
+      opacity: 0.55;
+      font-style: italic;
+      pointer-events: none;
+    }
+
+    .doc h1, .doc h2, .doc h3 {
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      margin: 1.2em 0 0.4em;
+    }
+
+    .doc h1 { font-size: 22px; }
+    .doc h2 { font-size: 18px; }
+    .doc h3 { font-size: 16px; }
+
+    .doc p { margin: 0 0 0.7em; }
+
+    .doc ul, .doc ol {
+      padding-left: 22px;
+      margin: 0 0 0.7em;
+    }
+
+    .doc li { margin: 0.15em 0; }
+
+    .doc a {
+      color: var(--fg);
+      text-decoration: underline;
+      text-decoration-color: var(--fg2);
+      text-underline-offset: 3px;
+    }
+
+    .doc code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    .doc blockquote {
+      border-left: 2px solid var(--border);
+      padding-left: 14px;
+      color: var(--fg2);
+      margin: 0.6em 0;
+    }
+
+    .doc-footer {
+      margin-top: 40px;
+      font-size: 11px;
+      color: var(--fg2);
+      opacity: 0.6;
+      letter-spacing: 0.04em;
+    }
+
+    /* todo sidebar */
+    .todo-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 18px 18px 12px;
+    }
+
+    .todo-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .todo-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg2);
+    }
+
+    .todo-count {
+      font-size: 11px;
+      color: var(--fg2);
+      font-variant-numeric: tabular-nums;
+      opacity: 0.7;
+    }
+
+    .todo-add {
+      margin-bottom: 12px;
+    }
+
+    .todo-add input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 2px 8px;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .todo-add input::placeholder {
+      color: var(--fg2);
+      opacity: 0.65;
+    }
+
+    .todo-add input:focus {
+      border-bottom-color: var(--fg2);
+    }
+
+    .todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 2px;
+      font-size: 13px;
+      line-height: 1.45;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .todo-item:last-child {
+      border-bottom: none;
+    }
+
+    .todo-check {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--fg2);
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 2px;
+      position: relative;
+      transition: background 0.15s, border-color 0.15s;
+      background: transparent;
+      padding: 0;
+    }
+
+    .todo-check:hover {
+      border-color: var(--fg);
+    }
+
+    .todo-check::after {
+      content: '';
+      position: absolute;
+      top: 1px; left: 4px;
+      width: 4px; height: 8px;
+      border: solid var(--paper);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      transform-origin: center;
+      transition: transform 0.15s;
+    }
+
+    .todo-item.done .todo-check {
+      background: var(--fg);
+      border-color: var(--fg);
+    }
+
+    .todo-item.done .todo-check::after {
+      transform: rotate(45deg) scale(1);
+    }
+
+    .todo-text {
+      flex: 1;
+      color: var(--fg);
+      word-break: break-word;
+      cursor: pointer;
+    }
+
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      color: var(--fg2);
+    }
+
+    .todo-x {
+      opacity: 0;
+      cursor: pointer;
+      color: var(--fg2);
+      font-size: 13px;
+      flex-shrink: 0;
+      padding: 0 2px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      transition: opacity 0.15s, color 0.15s;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .todo-item:hover .todo-x { opacity: 1; }
+    .todo-x:hover { color: var(--fg); }
+
+    .todo-empty {
+      font-size: 12px;
+      color: var(--fg2);
+      font-style: italic;
+      padding: 10px 2px;
+      opacity: 0.65;
+    }
+
+    @media (max-width: 880px) {
+      .doc-shell {
+        flex-direction: column;
+      }
+      .todo-col {
+        position: static;
+        flex: none;
+        width: 100%;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 0 16px; }
+      main { padding: 84px 22px 80px; }
+      .doc-title { font-size: 32px; }
+    }
+
+    @media (max-width: 520px) {
+      /* hide ← back link — tapping the name or browser back works fine */
+      .nav-links-group { display: none; }
+      main { padding: 76px 16px 60px; }
+      .doc-title { font-size: 26px; }
+      /* hide keyboard shortcut tip — not relevant on touch */
+      .doc-footer { display: none; }
+    }
+
+    /* always show delete button on touch devices (no hover state) */
+    @media (hover: none) {
+      .todo-x { opacity: 1 !important; }
+      .todo-item { padding: 10px 2px; }
+    }
+
+    html, body { overflow-x: hidden; }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-name" href="portfolio.html">mauro brito</a>
+    </div>
+    <div class="nav-center">
+      <div class="nav-links-group">
+        <a href="portfolio.html">← back</a>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="saved-indicator" id="savedIndicator">saved</span>
+      <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="doc-shell">
+      <div class="doc-col">
+        <div class="doc-head">
+          <h1 class="doc-title">notes</h1>
+          <span class="doc-meta" id="docMeta"></span>
+        </div>
+        <div class="doc-rule"></div>
+
+        <div
+          id="doc"
+          class="doc"
+          contenteditable="true"
+          spellcheck="true"
+          data-placeholder="start writing — autosaves as you type"
+        ></div>
+
+        <div class="doc-footer">cmd/ctrl+b · cmd/ctrl+i · cmd/ctrl+u — autosaves locally to this browser</div>
+      </div>
+
+      <aside class="todo-col">
+        <div class="todo-card">
+          <div class="todo-head">
+            <span class="todo-title">todo</span>
+            <span class="todo-count" id="todoCount">0</span>
+          </div>
+          <form class="todo-add" id="todoForm">
+            <input id="todoInput" type="text" placeholder="add a task — enter to add" autocomplete="off">
+          </form>
+          <ul class="todo-list" id="todoList"></ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const DOC_KEY = 'mb_notes_doc';
+      const LEGACY_KEY = 'mb_notes_v2';
+      const META_KEY = 'mb_notes_doc_meta';
+      const THEME_KEY = 'mb_theme';
+
+      const root = document.documentElement;
+      const doc = document.getElementById('doc');
+      const meta = document.getElementById('docMeta');
+      const saved = document.getElementById('savedIndicator');
+      const toggle = document.getElementById('themeToggle');
+
+      // ── theme ─────────────────────────────────────────────────────
+      const storedTheme = localStorage.getItem(THEME_KEY);
+      if (storedTheme === 'dark') root.setAttribute('data-theme', 'dark');
+      toggle.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+      });
+
+      // ── load ──────────────────────────────────────────────────────
+      let initial = localStorage.getItem(DOC_KEY);
+
+      // one-time migration from old list-style notes
+      if (!initial) {
+        try {
+          const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
+          if (Array.isArray(legacy) && legacy.length) {
+            initial = legacy.map(it => {
+              const prefix = it.type === 'task' ? (it.done ? '[x] ' : '[ ] ') : '— ';
+              return prefix + (it.text || '');
+            }).join('\n');
+          }
+        } catch (_) {}
+      }
+
+      if (initial) doc.innerHTML = initial;
+
+      // ── meta line (last edited) ───────────────────────────────────
+      function fmtDate(ts) {
+        const d = new Date(ts);
+        const today = new Date();
+        const sameDay = d.toDateString() === today.toDateString();
+        const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
+        if (sameDay) return 'today, ' + time;
+        const opts = { month: 'short', day: 'numeric' };
+        if (d.getFullYear() !== today.getFullYear()) opts.year = 'numeric';
+        return d.toLocaleDateString([], opts) + ', ' + time;
+      }
+      function refreshMeta() {
+        const ts = Number(localStorage.getItem(META_KEY)) || Date.now();
+        meta.textContent = 'last edited ' + fmtDate(ts);
+      }
+      refreshMeta();
+
+      // ── save (debounced) ──────────────────────────────────────────
+      let timer = null;
+      let flashTimer = null;
+      function flashSaved() {
+        saved.textContent = 'saved';
+        saved.classList.add('flash');
+        clearTimeout(flashTimer);
+        flashTimer = setTimeout(() => saved.classList.remove('flash'), 600);
+      }
+      function persist() {
+        try {
+          localStorage.setItem(DOC_KEY, doc.innerHTML);
+          localStorage.setItem(META_KEY, String(Date.now()));
+          flashSaved();
+          refreshMeta();
+        } catch (_) {
+          saved.textContent = 'save failed';
+        }
+      }
+      function schedule() {
+        saved.textContent = 'saving…';
+        clearTimeout(timer);
+        timer = setTimeout(persist, 350);
+      }
+
+      doc.addEventListener('input', schedule);
+      window.addEventListener('beforeunload', () => {
+        if (timer) { clearTimeout(timer); persist(); }
+      });
+
+      // ── paste as plain text ───────────────────────────────────────
+      doc.addEventListener('paste', e => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, text);
+      });
+
+      // ── focus on load ─────────────────────────────────────────────
+      setTimeout(() => {
+        doc.focus();
+        const range = document.createRange();
+        range.selectNodeContents(doc);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }, 0);
+    })();
+
+    // ── Todo list ──────────────────────────────────────────────────
+    (function () {
+      const TODO_KEY = 'mb_notes_todos';
+      const list = document.getElementById('todoList');
+      const form = document.getElementById('todoForm');
+      const input = document.getElementById('todoInput');
+      const count = document.getElementById('todoCount');
+
+      function load() {
+        try { return JSON.parse(localStorage.getItem(TODO_KEY) || '[]'); } catch (_) { return []; }
+      }
+      function save(items) {
+        try { localStorage.setItem(TODO_KEY, JSON.stringify(items)); } catch (_) {}
+      }
+
+      function render() {
+        const items = load();
+        const remaining = items.filter(t => !t.done).length;
+        count.textContent = items.length ? `${remaining}/${items.length}` : '0';
+        list.innerHTML = '';
+        if (!items.length) {
+          const empty = document.createElement('li');
+          empty.className = 'todo-empty';
+          empty.textContent = 'nothing yet — add one above';
+          list.appendChild(empty);
+          return;
+        }
+        items.forEach((it, i) => {
+          const li = document.createElement('li');
+          li.className = 'todo-item' + (it.done ? ' done' : '');
+
+          const check = document.createElement('button');
+          check.type = 'button';
+          check.className = 'todo-check';
+          check.setAttribute('aria-label', it.done ? 'mark incomplete' : 'mark complete');
+          check.addEventListener('click', () => {
+            const cur = load();
+            cur[i].done = !cur[i].done;
+            save(cur);
+            render();
+          });
+
+          const text = document.createElement('span');
+          text.className = 'todo-text';
+          text.textContent = it.text;
+          text.title = 'click to toggle';
+          text.addEventListener('click', () => check.click());
+
+          const x = document.createElement('button');
+          x.type = 'button';
+          x.className = 'todo-x';
+          x.textContent = '×';
+          x.title = 'delete';
+          x.addEventListener('click', () => {
+            const cur = load();
+            cur.splice(i, 1);
+            save(cur);
+            render();
+          });
+
+          li.append(check, text, x);
+          list.appendChild(li);
+        });
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        const items = load();
+        items.push({ text, done: false, ts: Date.now() });
+        save(items);
+        input.value = '';
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+
+</html>

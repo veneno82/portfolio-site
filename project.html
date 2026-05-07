@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>project — Mauro Brito</title>
+  <script>
+    try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
+  </script>
+  <style>
+    :root {
+      --fg: #141414;
+      --fg2: #4a4a50;
+      --border: rgba(0, 0, 0, 0.10);
+      --surface: rgba(0, 0, 0, 0.04);
+      --nav-bg: rgba(255, 255, 255, 0.78);
+      --paper: #fdfdfb;
+    }
+
+    [data-theme="dark"] {
+      --fg: #f0f0f2;
+      --fg2: #b8b8bc;
+      --border: rgba(255, 255, 255, 0.10);
+      --surface: rgba(255, 255, 255, 0.04);
+      --nav-bg: rgba(5, 5, 5, 0.80);
+      --paper: #0e0e10;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--fg);
+      background: var(--paper);
+      font-size: 15px;
+      line-height: 1.65;
+      transition: background 0.35s, color 0.35s;
+      min-height: 100vh;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 36px;
+      height: 52px;
+      background: var(--nav-bg);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.35s, border-color 0.35s;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-center { display: flex; align-items: center; gap: 22px; justify-content: center; }
+    .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+
+    .nav-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: var(--fg2);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--fg); }
+
+    .pill-toggle {
+      position: relative;
+      width: 52px; height: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.25s, border-color 0.25s;
+      flex-shrink: 0;
+    }
+    .pill-toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--fg2);
+      top: 3px; left: 3px;
+      transition: transform 0.25s, background 0.25s;
+    }
+    [data-theme="dark"] .pill-toggle::after {
+      transform: translateX(24px);
+      background: var(--fg);
+    }
+    .pill-toggle:hover::after { background: var(--fg); }
+
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 96px 44px 100px;
+    }
+
+    .breadcrumb {
+      font-size: 12px;
+      color: var(--fg2);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .breadcrumb a {
+      color: var(--fg2);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .breadcrumb a:hover { color: var(--fg); border-color: var(--fg2); }
+
+    .proj-title {
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .proj-meta {
+      font-size: 13px;
+      color: var(--fg2);
+      margin-bottom: 4px;
+    }
+    .proj-desc {
+      font-size: 15px;
+      color: var(--fg);
+      max-width: 640px;
+      margin: 14px 0 28px;
+      line-height: 1.7;
+    }
+
+    .viewer-wrap {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .viewer-hint {
+      position: absolute;
+      top: 12px; left: 14px;
+      font-size: 11px;
+      color: var(--fg2);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      pointer-events: none;
+      opacity: 0.7;
+      background: var(--paper);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .pcb-stage {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    .pcb-stage:active { cursor: grabbing; }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg2);
+      margin: 56px 0 14px;
+      font-weight: 500;
+    }
+
+    .about-block p {
+      font-size: 15px;
+      color: var(--fg);
+      line-height: 1.75;
+      margin-bottom: 14px;
+      max-width: 680px;
+    }
+
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .file-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .file-card:hover {
+      border-color: var(--fg2);
+      transform: translateY(-2px);
+    }
+    .file-card .file-type {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--fg2);
+    }
+    .file-card .file-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .file-card .file-caption {
+      font-size: 12px;
+      color: var(--fg2);
+      line-height: 1.5;
+    }
+    .file-card.placeholder {
+      border-style: dashed;
+      cursor: default;
+    }
+    .file-card.placeholder:hover {
+      transform: none;
+      border-color: var(--border);
+    }
+
+    .files-empty {
+      font-size: 13px;
+      color: var(--fg2);
+      font-style: italic;
+      padding: 18px 4px;
+    }
+
+    .not-found {
+      text-align: center;
+      padding: 80px 0;
+    }
+    .not-found h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .not-found p {
+      color: var(--fg2);
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 13px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .back-btn:hover {
+      border-color: var(--fg2);
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 0 16px; }
+      main { padding: 84px 22px 80px; }
+      .viewer-wrap { height: 340px; }
+      .proj-title { font-size: 24px; }
+    }
+
+    @media (max-width: 520px) {
+      main { padding: 76px 16px 60px; }
+      .viewer-wrap { height: 260px; }
+      .proj-title { font-size: 20px; }
+      .section-label { margin: 36px 0 10px; }
+      .about-block p { font-size: 14px; }
+    }
+
+    html, body { overflow-x: hidden; }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-name" href="portfolio.html">mauro brito</a>
+    </div>
+    <div class="nav-center">
+      <a class="nav-link" href="portfolio.html#projects">&larr; all projects</a>
+    </div>
+    <div class="nav-right">
+      <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </nav>
+
+  <main id="main"></main>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="pcb.js"></script>
+  <script src="projects-data.js"></script>
+  <script>
+    // theme: persist + follow notes' key so toggling stays consistent across pages
+    (function () {
+      const root = document.documentElement;
+      const stored = localStorage.getItem('mb_theme');
+      if (stored === 'dark') root.setAttribute('data-theme', 'dark');
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('mb_theme', next); } catch (_) {}
+      });
+    })();
+
+    // render project from ?id=
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const main = document.getElementById('main');
+      const proj = id && window.PROJECTS && window.PROJECTS[id];
+
+      if (!proj) {
+        main.innerHTML =
+          '<div class="not-found">' +
+            '<h1>project not found</h1>' +
+            '<p>that link doesn’t map to any project i’ve built (yet).</p>' +
+            '<a class="back-btn" href="portfolio.html#projects">back to projects</a>' +
+          '</div>';
+        document.title = 'not found — Mauro Brito';
+        return;
+      }
+
+      document.title = proj.name + ' — Mauro Brito';
+
+      // ---- header ----
+      const head = document.createElement('div');
+      head.innerHTML =
+        '<div class="breadcrumb"><a href="portfolio.html#projects">projects</a> &nbsp;/&nbsp; <span></span></div>' +
+        '<h1 class="proj-title"></h1>' +
+        '<div class="proj-meta"></div>' +
+        '<p class="proj-desc"></p>';
+      head.querySelector('.breadcrumb span').textContent = proj.name;
+      head.querySelector('.proj-title').textContent = proj.name;
+      head.querySelector('.proj-meta').textContent = proj.meta;
+      head.querySelector('.proj-desc').textContent = proj.desc;
+      main.appendChild(head);
+
+      // ---- interactive viewer ----
+      const viewerWrap = document.createElement('div');
+      viewerWrap.className = 'viewer-wrap';
+      const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+      viewerWrap.innerHTML =
+        '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
+        '<div class="pcb-stage" id="projectStage"></div>';
+      main.appendChild(viewerWrap);
+      initPCBViewer('projectStage', proj.pcb, { interactive: true, camDist: 4.6, camHeight: 3.4 });
+
+      // ---- about ----
+      const aboutLabel = document.createElement('div');
+      aboutLabel.className = 'section-label';
+      aboutLabel.textContent = 'About';
+      main.appendChild(aboutLabel);
+
+      const aboutBlock = document.createElement('div');
+      aboutBlock.className = 'about-block';
+      const longDesc = Array.isArray(proj.longDesc) ? proj.longDesc : [proj.longDesc || proj.desc];
+      longDesc.forEach(p => {
+        const el = document.createElement('p');
+        el.textContent = p;
+        aboutBlock.appendChild(el);
+      });
+      main.appendChild(aboutBlock);
+
+      // ---- files & media ----
+      const filesLabel = document.createElement('div');
+      filesLabel.className = 'section-label';
+      filesLabel.textContent = 'Files & media';
+      main.appendChild(filesLabel);
+
+      const filesGrid = document.createElement('div');
+      filesGrid.className = 'files-grid';
+
+      const media = Array.isArray(proj.media) ? proj.media : [];
+      if (media.length) {
+        media.forEach(m => {
+          const card = document.createElement('a');
+          card.className = 'file-card';
+          card.href = m.url || '#';
+          if (m.url && /^https?:/i.test(m.url)) {
+            card.target = '_blank';
+            card.rel = 'noopener';
+          }
+          card.innerHTML =
+            '<span class="file-type"></span>' +
+            '<span class="file-name"></span>' +
+            '<span class="file-caption"></span>';
+          card.querySelector('.file-type').textContent = m.type || 'file';
+          card.querySelector('.file-name').textContent = m.name || '(untitled)';
+          card.querySelector('.file-caption').textContent = m.caption || '';
+          filesGrid.appendChild(card);
+        });
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'files-empty';
+        empty.textContent = 'no files uploaded yet — schematics, photos, and demo clips coming soon.';
+        main.appendChild(empty);
+      }
+      if (media.length) main.appendChild(filesGrid);
+    })();
+  </script>
+</body>
+
+</html>
