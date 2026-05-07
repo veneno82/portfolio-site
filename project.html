@@ -5,7 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>project — Mauro Brito</title>
-  <link rel="icon" href="asterikgif.gif" type="image/gif">
+  <base href="/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <script>
     try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
   </script>
@@ -180,12 +182,14 @@
     .pcb-stage:active { cursor: grabbing; }
 
     .section-label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--fg2);
-      margin: 56px 0 14px;
-      font-weight: 500;
+      font-family: 'Caveat', cursive;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--fg);
+      margin: 50px 0 12px;
+      line-height: 1;
     }
 
     .about-block p {
@@ -299,10 +303,10 @@
 
   <nav>
     <div class="nav-left">
-      <a class="nav-name" href="index.html">mauro brito</a>
+      <a class="nav-name" href="/">mauro brito</a>
     </div>
     <div class="nav-center">
-      <a class="nav-link" href="index.html#projects">&larr; all projects</a>
+      <a class="nav-link" href="/#projects">&larr; all projects</a>
     </div>
     <div class="nav-right">
       <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
@@ -329,10 +333,18 @@
       });
     })();
 
-    // render project from ?id=
+    // render project from /project/:id (preferred) or legacy ?id= query
     (function () {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
+      function getProjectId() {
+        const params = new URLSearchParams(window.location.search);
+        let id = params.get('id');
+        if (!id) {
+          const m = window.location.pathname.match(/^\/project\/([^\/?#]+)/);
+          if (m) id = decodeURIComponent(m[1]);
+        }
+        return id;
+      }
+      const id = getProjectId();
       const main = document.getElementById('main');
       const proj = id && window.PROJECTS && window.PROJECTS[id];
 
@@ -341,7 +353,7 @@
           '<div class="not-found">' +
             '<h1>project not found</h1>' +
             '<p>that link doesn’t map to any project i’ve built (yet).</p>' +
-            '<a class="back-btn" href="index.html#projects">back to projects</a>' +
+            '<a class="back-btn" href="/#projects">back to projects</a>' +
           '</div>';
         document.title = 'not found — Mauro Brito';
         return;
@@ -352,7 +364,7 @@
       // ---- header ----
       const head = document.createElement('div');
       head.innerHTML =
-        '<div class="breadcrumb"><a href="index.html#projects">projects</a> &nbsp;/&nbsp; <span></span></div>' +
+        '<div class="breadcrumb"><a href="/#projects">projects</a> &nbsp;/&nbsp; <span></span></div>' +
         '<h1 class="proj-title"></h1>' +
         '<div class="proj-meta"></div>' +
         '<p class="proj-desc"></p>';
@@ -425,27 +437,7 @@
       if (media.length) main.appendChild(filesGrid);
     })();
   </script>
-  <script>
-    (function () {
-      var favLink = document.createElement('link');
-      favLink.rel = 'icon';
-      document.head.appendChild(favLink);
-      var favImg = document.createElement('img');
-      favImg.src = 'asterikgif.gif';
-      favImg.style.cssText = 'position:fixed;left:-999px;top:-999px;width:1px;height:1px;pointer-events:none;';
-      document.body.appendChild(favImg);
-      var favCanvas = document.createElement('canvas');
-      favCanvas.width = 64; favCanvas.height = 64;
-      var favCtx = favCanvas.getContext('2d');
-      favImg.onload = function () {
-        setInterval(function () {
-          favCtx.clearRect(0, 0, 64, 64);
-          favCtx.drawImage(favImg, 0, 0, 64, 64);
-          try { favLink.href = favCanvas.toDataURL('image/png'); } catch (e) {}
-        }, 80);
-      };
-    })();
-  </script>
+  <script src="/site.js"></script>
 </body>
 
 </html>

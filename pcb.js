@@ -114,11 +114,20 @@
     const W = container.clientWidth || 640;
     const H = container.clientHeight || 260;
 
+    var resolvedGlbPath = (interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath);
+
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setClearColor(0x000000, 0);
-    renderer.shadowMap.enabled = true;
+    // Procedural boards keep shadows; GLB models render without shadow maps —
+    // self-shadowing on detailed meshes was producing the striped/banded artifacts.
+    renderer.shadowMap.enabled = !resolvedGlbPath;
+    if (resolvedGlbPath) {
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+    }
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -126,13 +135,11 @@
     camera.position.set(0, camHeight, camDist);
     camera.lookAt(0, 0, 0);
 
-    // Lighting — GLB models get sRGB output + brighter rig; procedural boards use the original setup
-    var resolvedGlbPath = (interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath);
     if (resolvedGlbPath) {
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.4));
+      // No shadow casting — avoids stripe/banding artifacts on the model itself.
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x404044, 1.5));
       var sunG = new THREE.DirectionalLight(0xffffff, 2.2);
-      sunG.position.set(3, 6, 4); sunG.castShadow = true;
+      sunG.position.set(3, 6, 4);
       scene.add(sunG);
       var fillG = new THREE.DirectionalLight(0xffffff, 1.0);
       fillG.position.set(-4, 2, -3);
@@ -158,16 +165,42 @@
     group.rotation.x = -0.28;
     group.rotation.y = 0.40;
 
+    // ── Loading overlay (only on the interactive dedicated page) ────────────
+    var loaderEl = null;
+    if (interactive && resolvedGlbPath) {
+      injectLoaderStyles();
+      loaderEl = document.createElement('div');
+      loaderEl.className = 'pcb-loader';
+      loaderEl.innerHTML =
+        '<div class="pcb-loader-ast">' +
+          '<span class="pcb-loader-arm"></span><span class="pcb-loader-arm"></span>' +
+          '<span class="pcb-loader-arm"></span>' +
+        '</div>' +
+        '<div class="pcb-loader-text">loading 3d model<span class="pcb-loader-dots"></span></div>' +
+        '<div class="pcb-loader-pct" data-pct="0">0%</div>';
+      container.appendChild(loaderEl);
+    }
+    function setLoaderPct(pct) {
+      if (!loaderEl) return;
+      const el = loaderEl.querySelector('.pcb-loader-pct');
+      if (el) el.textContent = pct + '%';
+    }
+    function hideLoader() {
+      if (!loaderEl) return;
+      loaderEl.classList.add('hidden');
+      setTimeout(() => { if (loaderEl && loaderEl.parentNode) loaderEl.parentNode.removeChild(loaderEl); }, 450);
+    }
+
     // ── GLB model path ────────────────────────────────────────────────────
     if (resolvedGlbPath) {
       function loadGLB() {
         if (typeof THREE.GLTFLoader === 'undefined') {
           console.warn('THREE.GLTFLoader not available, falling back to procedural board');
           buildBoard(group, cfg);
+          hideLoader();
           return;
         }
         const loader = new THREE.GLTFLoader();
-        // Wire up Draco decoder for compressed GLBs
         if (typeof THREE.DRACOLoader !== 'undefined') {
           const draco = new THREE.DRACOLoader();
           draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
@@ -181,28 +214,104 @@
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            // Scale to fit, then shift model up slightly so it's well-centered visually
             model.scale.setScalar(2.2 / maxDim);
             model.position.sub(center.multiplyScalar(2.2 / maxDim));
             model.position.y += 0.25;
-            model.traverse(function (child) {
-              if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-              }
-            });
+            // No shadow casting on GLB meshes — produced banding artifacts.
             group.add(model);
+            setLoaderPct(100);
+            hideLoader();
           },
-          undefined,
+          function (xhr) {
+            if (xhr && xhr.lengthComputable && xhr.total) {
+              setLoaderPct(Math.round((xhr.loaded / xhr.total) * 100));
+            }
+          },
           function (err) {
             console.warn('GLB load error', err);
             buildBoard(group, cfg);
+            hideLoader();
           }
         );
       }
       loadGLB();
     } else {
       buildBoard(group, cfg);
+    }
+
+    function injectLoaderStyles() {
+      if (document.getElementById('pcb-loader-styles')) return;
+      const s = document.createElement('style');
+      s.id = 'pcb-loader-styles';
+      s.textContent = `
+        .pcb-loader {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          background: var(--surface, rgba(0,0,0,0.04));
+          color: var(--fg, #141414);
+          z-index: 5;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+          user-select: none;
+        }
+        .pcb-loader.hidden { opacity: 0; }
+        .pcb-loader-ast {
+          position: relative;
+          width: 44px;
+          height: 44px;
+          animation: pcb-spin 1.6s cubic-bezier(.5,0,.5,1) infinite;
+        }
+        .pcb-loader-arm {
+          position: absolute;
+          left: 50%; top: 50%;
+          width: 4px;
+          height: 44px;
+          margin-left: -2px;
+          margin-top: -22px;
+          background: currentColor;
+          border-radius: 2px;
+        }
+        .pcb-loader-arm:nth-child(1) { transform: rotate(0deg); }
+        .pcb-loader-arm:nth-child(2) { transform: rotate(60deg); }
+        .pcb-loader-arm:nth-child(3) { transform: rotate(120deg); }
+        @keyframes pcb-spin {
+          0%   { transform: rotate(0deg)   scale(1); }
+          50%  { transform: rotate(180deg) scale(1.18); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        .pcb-loader-text {
+          font-size: 12px;
+          letter-spacing: 0.06em;
+          color: var(--fg2, #4a4a50);
+        }
+        .pcb-loader-dots::after {
+          content: '';
+          display: inline-block;
+          width: 18px;
+          text-align: left;
+          animation: pcb-dots 1.4s steps(4) infinite;
+        }
+        @keyframes pcb-dots {
+          0%   { content: ''; }
+          25%  { content: '.'; }
+          50%  { content: '..'; }
+          75%  { content: '...'; }
+          100% { content: ''; }
+        }
+        .pcb-loader-pct {
+          font-size: 11px;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: 0.04em;
+          color: var(--fg2, #4a4a50);
+          opacity: 0.75;
+        }
+      `;
+      document.head.appendChild(s);
     }
 
 
