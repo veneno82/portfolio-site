@@ -601,7 +601,9 @@
       }
 
       doc.addEventListener('input', schedule);
-      window.addEventListener('beforeunload', () => {
+      // pagehide instead of beforeunload — keeps the page bfcache-eligible so
+      // back-navigation restores instantly without a network round-trip.
+      window.addEventListener('pagehide', () => {
         if (timer) { clearTimeout(timer); persist(); }
       });
 
