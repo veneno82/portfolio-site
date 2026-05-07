@@ -14,7 +14,7 @@ window.PROJECTS = {
     media: [],
     pcb: {
       glbPath: 'dime_preview.glb',
-      glbPathFull: 'dime3dmodeluncompressed.glb',
+      glbPathFull: 'dime3dmodel40mb.glb',
       w: 3.0, h: 2.0,
       traces: [
         { x1: -0.1, z1: -0.1, x2: -0.8, z2: -0.2 }, { x1: -0.1, z1: -0.1, x2: 0.5, z2: 0.15 },

@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>notes — Mauro Brito</title>
+  <link rel="icon" href="asterikgif.gif" type="image/gif">
   <script>
     try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
   </script>
@@ -470,11 +471,11 @@
 
   <nav>
     <div class="nav-left">
-      <a class="nav-name" href="portfolio.html">mauro brito</a>
+      <a class="nav-name" href="index.html">mauro brito</a>
     </div>
     <div class="nav-center">
       <div class="nav-links-group">
-        <a href="portfolio.html">← back</a>
+        <a href="index.html">← back</a>
       </div>
     </div>
     <div class="nav-right">
@@ -701,6 +702,27 @@
       });
 
       render();
+    })();
+  </script>
+  <script>
+    (function () {
+      var favLink = document.createElement('link');
+      favLink.rel = 'icon';
+      document.head.appendChild(favLink);
+      var favImg = document.createElement('img');
+      favImg.src = 'asterikgif.gif';
+      favImg.style.cssText = 'position:fixed;left:-999px;top:-999px;width:1px;height:1px;pointer-events:none;';
+      document.body.appendChild(favImg);
+      var favCanvas = document.createElement('canvas');
+      favCanvas.width = 64; favCanvas.height = 64;
+      var favCtx = favCanvas.getContext('2d');
+      favImg.onload = function () {
+        setInterval(function () {
+          favCtx.clearRect(0, 0, 64, 64);
+          favCtx.drawImage(favImg, 0, 0, 64, 64);
+          try { favLink.href = favCanvas.toDataURL('image/png'); } catch (e) {}
+        }, 80);
+      };
     })();
   </script>
 </body>

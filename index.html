@@ -8,6 +8,7 @@
   <script>
     try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) { }
   </script>
+  <link rel="icon" href="asterikgif.gif" type="image/gif">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <style>
@@ -1240,6 +1241,7 @@
   <!-- ── Three.js PCB viewers (shared with project detail page) ──────────── -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
   <script src="pcb.js"></script>
   <script src="projects-data.js"></script>
   <script>
@@ -1280,26 +1282,63 @@
       const img = document.getElementById('asteriskAnim');
       const SRC = 'asterikgif.gif';
 
-      const probe = new Image();
-      probe.onload = () => {
-        canvas.width = probe.naturalWidth;
-        canvas.height = probe.naturalHeight;
-        canvas.getContext('2d').drawImage(probe, 0, 0);
-        const aspect = probe.naturalWidth / probe.naturalHeight;
-        const w = 30 * aspect;
-        canvas.style.width = w + 'px';
-        canvas.style.height = '30px';
-        img.style.width = w + 'px';
-        img.style.height = '30px';
-        btn.style.width = Math.ceil(w * 1.35 + 6) + 'px';
-      };
-      probe.onerror = () => { canvas.style.display = 'none'; img.style.opacity = 1; img.src = SRC; };
-      probe.src = SRC;
+      const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
-      btn.addEventListener('mouseenter', () => {
-        // cache-bust to force the gif to restart from frame 0 each hover
-        img.src = SRC + '?h=' + Date.now();
-      });
+      if (isTouch) {
+        // On touch devices: show the gif always, no hover logic needed
+        const probe = new Image();
+        probe.onload = () => {
+          const aspect = probe.naturalWidth / probe.naturalHeight;
+          const w = 30 * aspect;
+          canvas.style.display = 'none';
+          img.style.width = w + 'px';
+          img.style.height = '30px';
+          img.style.opacity = '1';
+          img.src = SRC;
+          btn.style.width = Math.ceil(w * 1.35 + 6) + 'px';
+        };
+        probe.src = SRC;
+      } else {
+        // Desktop: static frame by default, animate only on hover
+        const probe = new Image();
+        probe.onload = () => {
+          canvas.width = probe.naturalWidth;
+          canvas.height = probe.naturalHeight;
+          canvas.getContext('2d').drawImage(probe, 0, 0);
+          const aspect = probe.naturalWidth / probe.naturalHeight;
+          const w = 30 * aspect;
+          canvas.style.width = w + 'px';
+          canvas.style.height = '30px';
+          img.style.width = w + 'px';
+          img.style.height = '30px';
+          btn.style.width = Math.ceil(w * 1.35 + 6) + 'px';
+        };
+        probe.onerror = () => { canvas.style.display = 'none'; img.style.opacity = '1'; img.src = SRC; };
+        probe.src = SRC;
+        btn.addEventListener('mouseenter', () => { img.src = SRC + '?h=' + Date.now(); });
+      }
+    })();
+
+    // ── Animated favicon ──────────────────────────────────────────────────
+    (function () {
+      var favLink = document.createElement('link');
+      favLink.rel = 'icon';
+      document.head.appendChild(favLink);
+      // Put a tiny off-screen img in DOM so Chrome actually animates the GIF
+      var favImg = document.createElement('img');
+      favImg.src = 'asterikgif.gif';
+      favImg.style.cssText = 'position:fixed;left:-999px;top:-999px;width:1px;height:1px;pointer-events:none;';
+      document.body.appendChild(favImg);
+      var favCanvas = document.createElement('canvas');
+      favCanvas.width = 64; favCanvas.height = 64;
+      var favCtx = favCanvas.getContext('2d');
+      favImg.onload = function () {
+        setInterval(function () {
+          favCtx.clearRect(0, 0, 64, 64);
+          favCtx.drawImage(favImg, 0, 0, 64, 64);
+          try { favLink.href = favCanvas.toDataURL('image/png'); } catch (e) {}
+        }, 80);
+      };
     })();
 
     // ── Terminal (command palette) ─────────────────────────────────────────────

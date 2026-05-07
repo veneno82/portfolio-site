@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>project — Mauro Brito</title>
+  <link rel="icon" href="asterikgif.gif" type="image/gif">
   <script>
     try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
   </script>
@@ -298,10 +299,10 @@
 
   <nav>
     <div class="nav-left">
-      <a class="nav-name" href="portfolio.html">mauro brito</a>
+      <a class="nav-name" href="index.html">mauro brito</a>
     </div>
     <div class="nav-center">
-      <a class="nav-link" href="portfolio.html#projects">&larr; all projects</a>
+      <a class="nav-link" href="index.html#projects">&larr; all projects</a>
     </div>
     <div class="nav-right">
       <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
@@ -312,6 +313,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
   <script src="pcb.js"></script>
   <script src="projects-data.js"></script>
   <script>
@@ -339,7 +341,7 @@
           '<div class="not-found">' +
             '<h1>project not found</h1>' +
             '<p>that link doesn’t map to any project i’ve built (yet).</p>' +
-            '<a class="back-btn" href="portfolio.html#projects">back to projects</a>' +
+            '<a class="back-btn" href="index.html#projects">back to projects</a>' +
           '</div>';
         document.title = 'not found — Mauro Brito';
         return;
@@ -350,7 +352,7 @@
       // ---- header ----
       const head = document.createElement('div');
       head.innerHTML =
-        '<div class="breadcrumb"><a href="portfolio.html#projects">projects</a> &nbsp;/&nbsp; <span></span></div>' +
+        '<div class="breadcrumb"><a href="index.html#projects">projects</a> &nbsp;/&nbsp; <span></span></div>' +
         '<h1 class="proj-title"></h1>' +
         '<div class="proj-meta"></div>' +
         '<p class="proj-desc"></p>';
@@ -421,6 +423,27 @@
         main.appendChild(empty);
       }
       if (media.length) main.appendChild(filesGrid);
+    })();
+  </script>
+  <script>
+    (function () {
+      var favLink = document.createElement('link');
+      favLink.rel = 'icon';
+      document.head.appendChild(favLink);
+      var favImg = document.createElement('img');
+      favImg.src = 'asterikgif.gif';
+      favImg.style.cssText = 'position:fixed;left:-999px;top:-999px;width:1px;height:1px;pointer-events:none;';
+      document.body.appendChild(favImg);
+      var favCanvas = document.createElement('canvas');
+      favCanvas.width = 64; favCanvas.height = 64;
+      var favCtx = favCanvas.getContext('2d');
+      favImg.onload = function () {
+        setInterval(function () {
+          favCtx.clearRect(0, 0, 64, 64);
+          favCtx.drawImage(favImg, 0, 0, 64, 64);
+          try { favLink.href = favCanvas.toDataURL('image/png'); } catch (e) {}
+        }, 80);
+      };
     })();
   </script>
 </body>

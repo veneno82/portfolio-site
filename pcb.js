@@ -126,47 +126,65 @@
     camera.position.set(0, camHeight, camDist);
     camera.lookAt(0, 0, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.1);
-    sun.position.set(4, 7, 4); sun.castShadow = true;
-    scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.35);
-    fill.position.set(-3, 2, -4);
-    scene.add(fill);
-    const rim = new THREE.DirectionalLight(0xffffff, 0.2);
-    rim.position.set(0, -4, -6);
-    scene.add(rim);
+    // Lighting — GLB models get sRGB output + brighter rig; procedural boards use the original setup
+    var resolvedGlbPath = (interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath);
+    if (resolvedGlbPath) {
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.4));
+      var sunG = new THREE.DirectionalLight(0xffffff, 2.2);
+      sunG.position.set(3, 6, 4); sunG.castShadow = true;
+      scene.add(sunG);
+      var fillG = new THREE.DirectionalLight(0xffffff, 1.0);
+      fillG.position.set(-4, 2, -3);
+      scene.add(fillG);
+      var rimG = new THREE.DirectionalLight(0xffffff, 0.6);
+      rimG.position.set(0, -3, -5);
+      scene.add(rimG);
+    } else {
+      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+      var sun = new THREE.DirectionalLight(0xffffff, 1.1);
+      sun.position.set(4, 7, 4); sun.castShadow = true;
+      scene.add(sun);
+      var fill = new THREE.DirectionalLight(0xffffff, 0.35);
+      fill.position.set(-3, 2, -4);
+      scene.add(fill);
+      var rim = new THREE.DirectionalLight(0xffffff, 0.2);
+      rim.position.set(0, -4, -6);
+      scene.add(rim);
+    }
 
     const group = new THREE.Group();
     scene.add(group);
     group.rotation.x = -0.28;
     group.rotation.y = 0.40;
 
-    // ── GLB model path: load real model instead of procedural PCB ─────────
-    // interactive mode uses glbPathFull if available, otherwise falls back to glbPath
-    var resolvedGlbPath = (interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath);
+    // ── GLB model path ────────────────────────────────────────────────────
     if (resolvedGlbPath) {
       function loadGLB() {
         if (typeof THREE.GLTFLoader === 'undefined') {
-          // GLTFLoader script not ready yet; fallback to procedural board
           console.warn('THREE.GLTFLoader not available, falling back to procedural board');
           buildBoard(group, cfg);
           return;
         }
         const loader = new THREE.GLTFLoader();
+        // Wire up Draco decoder for compressed GLBs
+        if (typeof THREE.DRACOLoader !== 'undefined') {
+          const draco = new THREE.DRACOLoader();
+          draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+          loader.setDRACOLoader(draco);
+        }
         loader.load(
           resolvedGlbPath,
           function (gltf) {
             const model = gltf.scene;
-            // Center and fit the model
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 2.8 / maxDim;
-            model.position.sub(center);
-            model.scale.setScalar(scale);
-            // Enable shadows on all meshes
+            // Scale to fit, then shift model up slightly so it's well-centered visually
+            model.scale.setScalar(2.2 / maxDim);
+            model.position.sub(center.multiplyScalar(2.2 / maxDim));
+            model.position.y += 0.25;
             model.traverse(function (child) {
               if (child.isMesh) {
                 child.castShadow = true;
