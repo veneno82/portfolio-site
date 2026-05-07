@@ -1,7 +1,11 @@
 {
-  "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/notes", "destination": "/notes.html" },
     { "source": "/project/:id", "destination": "/project.html?id=:id" }
+  ],
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": false },
+    { "source": "/notes.html", "destination": "/notes", "permanent": false }
   ]
 }
