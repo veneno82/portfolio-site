@@ -134,7 +134,11 @@
       width: 26px;
       padding: 0;
       display: inline-block;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
+    .asterisk-btn:focus { outline: none; }
+    .asterisk-btn:focus-visible { outline: none; }
 
     .asterisk-static,
     .asterisk-anim {
@@ -1265,7 +1269,7 @@
       aster.addEventListener('click', () => {
         taps++;
         clearTimeout(tapTimer);
-        tapTimer = setTimeout(() => { taps = 0; }, 1500);
+        tapTimer = setTimeout(() => { taps = 0; }, 500);
         if (taps >= 3) {
           taps = 0;
           primed = true;
