@@ -133,7 +133,7 @@
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 50);
     camera.position.set(0, camHeight, camDist);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 0.3, 0);
 
     if (resolvedGlbPath) {
       // No shadow casting — avoids stripe/banding artifacts on the model itself.
