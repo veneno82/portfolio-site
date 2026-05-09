@@ -97,6 +97,20 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
+      // Super-compressed for the small preview card; full-compressed on the dedicated page.
+      glbPath:     'PiHole%20render%20FINAL-supercompressed%20(.glb',
+      glbPathFull: 'PiHole%20render%20FINAL-compressed.glb',
+
+      // ── Rotation pivot offset ─────────────────────────────────────────────
+      // The scene has both the Pi and a router in it, so the bbox center sits
+      // between them. This vector shifts the rotation pivot toward the Pi.
+      // Units are scaled-world (model is auto-fit to ~2.2 units across).
+      // Tweak these to nudge the orbit center:
+      //   +x → pivot moves right    -x → pivot moves left
+      //   +y → pivot moves up       -y → pivot moves down
+      //   +z → pivot moves toward camera   -z → pivot moves away
+      pivotOffset: { x: 0.0, y: 0.0, z: 0.0 },
+
       w: 2.8, h: 2.2,
       traces: [
         { x1: -0.8, z1: 0, x2: 0.8, z2: 0, w: 0.04 }, { x1: 0, z1: -0.8, x2: 0, z2: 0.8, w: 0.03 },

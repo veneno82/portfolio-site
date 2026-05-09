@@ -9,6 +9,9 @@
   <script>
     try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) {}
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sauce+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --fg: #141414;
@@ -180,12 +183,13 @@
     .pcb-stage:active { cursor: grabbing; }
 
     .section-label {
+      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
       font-size: 11px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--fg2);
       margin: 56px 0 14px;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .about-block p {

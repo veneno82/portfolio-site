@@ -214,8 +214,17 @@
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            model.scale.setScalar(2.2 / maxDim);
-            model.position.sub(center.multiplyScalar(2.2 / maxDim));
+            const scale = 2.2 / maxDim;
+            model.scale.setScalar(scale);
+            // Park the bbox center at world origin first.
+            model.position.sub(center.multiplyScalar(scale));
+            // Then shift by pivotOffset so a chosen point (e.g. the Pi in a
+            // multi-object scene) becomes the rotation pivot. Configured per
+            // project in projects-data.js as `pcb.pivotOffset`.
+            const pv = (cfg && cfg.pivotOffset) || { x: 0, y: 0, z: 0 };
+            model.position.x -= (pv.x || 0);
+            model.position.y -= (pv.y || 0);
+            model.position.z -= (pv.z || 0);
             model.position.y += 0.25;
             // No shadow casting on GLB meshes — produced banding artifacts.
             group.add(model);
