@@ -114,7 +114,16 @@
     const W = container.clientWidth || 640;
     const H = container.clientHeight || 260;
 
-    var resolvedGlbPath = (interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath);
+    // Mobile fallback: large GLBs (10s of MB) blow past phone GPU memory budgets
+    // and crash the page, especially with 6 preview cards each spinning up their
+    // own WebGL context. Per-project opt-in via cfg.mobileSkipGlb — when true on
+    // a touch device, we skip the GLB load entirely and use the procedural board.
+    var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    var skipForMobile = isMobile && cfg && cfg.mobileSkipGlb === true;
+
+    var resolvedGlbPath = skipForMobile
+      ? null
+      : ((interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(W, H);

@@ -101,6 +101,11 @@ window.PROJECTS = {
       glbPath:     'PiHole%20render%20FINAL-supercompressed%20(.glb',
       glbPathFull: 'PiHole%20render%20FINAL-compressed.glb',
 
+      // The pihole scene is heavy (24MB / 40MB) — phone GPUs OOM and crash the
+      // tab. Skip the GLB on mobile and fall back to the procedural board
+      // defined below. Flip to false once a mobile-sized GLB exists.
+      mobileSkipGlb: true,
+
       // ── Rotation pivot offset ─────────────────────────────────────────────
       // The scene has both the Pi and a router in it, so the bbox center sits
       // between them. This vector shifts the rotation pivot toward the Pi.
