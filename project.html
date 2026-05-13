@@ -70,10 +70,11 @@
     .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
 
     .nav-name {
-      font-size: 14px;
-      font-weight: 500;
+      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      font-weight: 800;
       color: var(--fg);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.03em;
       text-decoration: none;
     }
 
@@ -379,7 +380,7 @@
       viewerWrap.className = 'viewer-wrap';
       const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
       viewerWrap.innerHTML =
-        '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
+        '<div class="viewer-hint">drag to rotate · shift+drag to pan · ' + (touchDevice ? 'pinch zoom · 2-finger pan' : 'scroll to zoom') + '</div>' +
         '<div class="pcb-stage" id="projectStage"></div>';
       main.appendChild(viewerWrap);
       initPCBViewer('projectStage', proj.pcb, { interactive: true, camDist: 4.6, camHeight: 3.4 });

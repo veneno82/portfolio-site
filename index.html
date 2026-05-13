@@ -101,10 +101,11 @@
     }
 
     .nav-name {
-      font-size: 14px;
-      font-weight: 500;
+      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      font-weight: 800;
       color: var(--fg);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.03em;
     }
 
     .nav-links-group {
@@ -255,9 +256,10 @@
     }
 
     .palette-title {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       font-size: 10px;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
+      text-transform: lowercase;
       color: var(--fg2);
       margin-bottom: 2px;
     }
@@ -527,6 +529,29 @@
       background: transparent;
       overflow: hidden;
       pointer-events: none;
+      position: relative;
+    }
+
+    .project-card.placeholder-card {
+      border-style: dashed;
+      opacity: 0.6;
+      cursor: default;
+    }
+    .project-card.placeholder-card:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--border);
+    }
+    .placeholder-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: var(--fg2);
+      opacity: 0.5;
     }
 
     .project-info {
@@ -1190,21 +1215,31 @@
       window.PROJECT_ORDER.forEach(id => {
         const p = window.PROJECTS[id];
         if (!p) return;
-        const a = document.createElement('a');
-        a.className = 'project-card';
-        a.href = '/project/' + encodeURIComponent(id);
-        a.innerHTML =
-          '<div class="pcb-viewer" id="pcb-' + id + '"></div>' +
-          '<div class="project-info">' +
-          '<div class="project-name"></div>' +
-          '<div class="project-meta"></div>' +
-          '<div class="project-desc"></div>' +
-          '</div>';
-        a.querySelector('.project-name').textContent = p.name;
-        a.querySelector('.project-meta').textContent = p.meta;
-        a.querySelector('.project-desc').textContent = p.desc;
+        const isPlaceholder = !!p.isPlaceholder;
+        const a = document.createElement(isPlaceholder ? 'div' : 'a');
+        a.className = 'project-card' + (isPlaceholder ? ' placeholder-card' : '');
+        if (!isPlaceholder) a.href = '/project/' + encodeURIComponent(id);
+        if (isPlaceholder) {
+          a.innerHTML =
+            '<div class="placeholder-badge">under construction</div>' +
+            '<div class="project-info">' +
+            '<div class="project-name">' + p.name + '</div>' +
+            '<div class="project-meta">' + p.meta + '</div>' +
+            '</div>';
+        } else {
+          a.innerHTML =
+            '<div class="pcb-viewer" id="pcb-' + id + '"></div>' +
+            '<div class="project-info">' +
+            '<div class="project-name"></div>' +
+            '<div class="project-meta"></div>' +
+            '<div class="project-desc"></div>' +
+            '</div>';
+          a.querySelector('.project-name').textContent = p.name;
+          a.querySelector('.project-meta').textContent = p.meta;
+          a.querySelector('.project-desc').textContent = p.desc;
+          initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
+        }
         grid.appendChild(a);
-        initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
       });
     })();
   </script>
