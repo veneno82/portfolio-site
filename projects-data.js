@@ -101,7 +101,7 @@ window.PROJECTS = {
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
       glbPathFull: 'models%20(pc)/PiHole%20render%20FINAL-compressed.glb',
-      mvMinOrbit: 'auto auto 1m',
+      mvMinOrbit: 'auto auto 2.5m',
       pivotOffset: { x: 0.0, y: 0.0, z: 0.0 },
       w: 2.8, h: 2.2,
       traces: [
