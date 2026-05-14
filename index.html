@@ -1265,7 +1265,31 @@
         a.querySelector('.project-meta').textContent = p.meta;
         a.querySelector('.project-desc').textContent = p.desc;
         grid.appendChild(a);
-        initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
+      });
+
+      // Lazy-init: only load a viewer's GLB when its card enters the viewport,
+      // and pause rendering when it scrolls out — prevents loading all 6 at once.
+      var _viewers = {};
+      var _obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          var id = entry.target.id.slice(4); // 'pcb-{id}' → '{id}'
+          var p = window.PROJECTS[id];
+          if (!p || p.comingSoon) return;
+          if (entry.isIntersecting) {
+            if (!_viewers[id]) {
+              _viewers[id] = initPCBViewer('pcb-' + id, p.pcb, { interactive: false }) || {};
+            } else if (_viewers[id].resume) {
+              _viewers[id].resume();
+            }
+          } else {
+            if (_viewers[id] && _viewers[id].pause) _viewers[id].pause();
+          }
+        });
+      }, { rootMargin: '100px' });
+
+      window.PROJECT_ORDER.forEach(function(id) {
+        var el = document.getElementById('pcb-' + id);
+        if (el) _obs.observe(el);
       });
     })();
   </script>

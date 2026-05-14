@@ -114,12 +114,8 @@
     const W = container.clientWidth || 640;
     const H = container.clientHeight || 260;
 
-    // Mobile fallback: large GLBs (10s of MB) blow past phone GPU memory budgets
-    // and crash the page — 6 preview cards each spinning up their own WebGL
-    // context with multi-MB models is too much for most mobile GPUs. Always skip
-    // GLB loading on touch devices and show the lightweight procedural board.
     var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    var skipForMobile = isMobile;
+    var skipForMobile = false; // IntersectionObserver lazy-init handles load staggering
 
     // Mobile always uses the draco&mobile GLB (preview and dedicated page alike).
     // Desktop dedicated page uses glbPathFull; previews and mobile use glbPath.
@@ -431,8 +427,10 @@
     }
 
     let lastFrame = performance.now();
-    (function loop() {
-      requestAnimationFrame(loop);
+    let _paused = false, _rafId = null;
+    function _loop() {
+      if (_paused) { _rafId = null; return; }
+      _rafId = requestAnimationFrame(_loop);
       const now = performance.now();
       const dt = Math.min(48, now - lastFrame); // clamp big gaps (tab switch)
       lastFrame = now;
@@ -468,7 +466,19 @@
       }
 
       renderer.render(scene, camera);
-    })();
+    }
+    _rafId = requestAnimationFrame(_loop);
+
+    return {
+      pause:  function() { _paused = true; },
+      resume: function() {
+        if (_paused) {
+          _paused = false;
+          lastFrame = performance.now();
+          if (!_rafId) { _rafId = requestAnimationFrame(_loop); }
+        }
+      }
+    };
   }
 
   root.initPCBViewer = initPCBViewer;
