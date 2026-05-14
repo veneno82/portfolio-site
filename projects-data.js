@@ -4,6 +4,7 @@ window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'com
 window.PROJECTS = {
   dime: {
     name: 'Dime — Inverted Pendulum',
+    previewImg: 'project%20media/dimepic.png',
     meta: 'C++, ESP32, KiCad · Summer 2024',
     desc: 'Self-balancing robot on custom PCBs with nested PID controllers.',
     longDesc: [
@@ -45,6 +46,7 @@ window.PROJECTS = {
 
   gd: {
     name: 'Geometry Dash Clone',
+    previewImg: 'project%20media/GD%20pic%202.jpg',
     meta: 'C, MSPM0G3507 · Spring 2026',
     desc: 'Beat-synced platformer. Voted "Best Game" at ECE319K showcase.',
     longDesc: [
@@ -90,6 +92,7 @@ window.PROJECTS = {
 
   pihole: {
     name: 'Pi-hole Adblocker',
+    previewImg: 'project%20media/pihole%20pic.png',
     meta: 'Raspberry Pi, DNS, Linux',
     desc: 'Network-wide DNS sinkhole on a Raspberry Pi.',
     longDesc: [
@@ -122,6 +125,7 @@ window.PROJECTS = {
   },
 
   motor: {
+    previewImg: 'project%20media/bldc%20pic%20png.jpg',
     name: 'Motor Driver Board',
     meta: 'KiCad, H-Bridge, MOSFETs',
     desc: 'Custom H-bridge motor driver with gate drive and current sensing.',
@@ -165,6 +169,7 @@ window.PROJECTS = {
   },
 
   sensor: {
+    previewImg: 'project%20media/can2usb%20pic%20png.png',
     name: 'Sensor Module Board',
     meta: 'KiCad, I²C, STM32',
     desc: 'Compact multi-sensor breakout — IMU, baro, and temp/humidity over I²C.',
@@ -211,6 +216,7 @@ window.PROJECTS = {
   },
 
   heart: {
+    previewImg: 'project%20media/heartpcb%20pic%20png.png',
     name: 'Heart PCB',
     meta: 'KiCad, Charlieplexed LEDs',
     desc: 'Heart-shaped art PCB with animated LED patterns.',

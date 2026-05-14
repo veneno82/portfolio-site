@@ -127,15 +127,9 @@
       ? null
       : ((interactive && !isMobile && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !opts.staticFrame,                // skip MSAA for stills — saves ~4x framebuffer memory
-      alpha: true,
-      preserveDrawingBuffer: !!opts.staticFrame    // required so toDataURL() reads back pixels
-    });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(W, H);
-    // Stills are captured to an <img> and never re-rendered, so 1x DPR is plenty
-    // and dramatically reduces peak GPU memory while the context is alive.
-    renderer.setPixelRatio(opts.staticFrame ? 1 : (window.devicePixelRatio || 1));
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setClearColor(0x000000, 0);
     // Procedural boards keep shadows; GLB models render without shadow maps —
     // self-shadowing on detailed meshes was producing the striped/banded artifacts.
@@ -216,8 +210,6 @@
           console.warn('THREE.GLTFLoader not available, falling back to procedural board');
           buildBoard(group, cfg);
           hideLoader();
-          if (opts.staticFrame) { _captureStill(); return; }
-          if (opts.onReady) opts.onReady();
           return;
         }
         const loader = new THREE.GLTFLoader();
@@ -250,8 +242,6 @@
             group.add(model);
             setLoaderPct(100);
             hideLoader();
-            if (opts.staticFrame) { _captureStill(); return; }
-            if (opts.onReady) opts.onReady();
           },
           function (xhr) {
             if (xhr && xhr.lengthComputable && xhr.total) {
@@ -262,16 +252,12 @@
             console.warn('GLB load error', err);
             buildBoard(group, cfg);
             hideLoader();
-            if (opts.staticFrame) { _captureStill(); return; }
-            if (opts.onReady) opts.onReady();
           }
         );
       }
       loadGLB();
     } else {
       buildBoard(group, cfg);
-      if (opts.staticFrame) { _captureStill(); return; }
-      if (opts.onReady) opts.onReady();
     }
 
     function injectLoaderStyles() {
@@ -443,51 +429,6 @@
         camera.updateProjectionMatrix();
       }).observe(container);
     }
-
-    // Renders one frame, captures it as a transparent PNG, then aggressively
-    // tears down the GL context and every GPU resource the GLB allocated.
-    // Without the deep traverse + context-loss, mobile Safari keeps the GLB's
-    // textures and geometries resident even after renderer.dispose() and OOMs
-    // by the 3rd or 4th card.
-    function _captureStill() {
-      renderer.render(scene, camera);
-      try {
-        var img = document.createElement('img');
-        img.src = renderer.domElement.toDataURL('image/png');
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;background:transparent;';
-        while (container.firstChild) container.removeChild(container.firstChild);
-        container.appendChild(img);
-      } catch (e) {}
-
-      // Walk the scene and dispose every geometry, material, and texture.
-      function _disposeMaterial(m) {
-        if (!m) return;
-        ['map','lightMap','aoMap','emissiveMap','bumpMap','normalMap','displacementMap',
-         'roughnessMap','metalnessMap','alphaMap','envMap','specularMap','gradientMap'
-        ].forEach(function(k) { if (m[k] && m[k].dispose) m[k].dispose(); });
-        if (m.dispose) m.dispose();
-      }
-      scene.traverse(function(node) {
-        if (node.geometry && node.geometry.dispose) node.geometry.dispose();
-        if (node.material) {
-          if (Array.isArray(node.material)) node.material.forEach(_disposeMaterial);
-          else _disposeMaterial(node.material);
-        }
-      });
-      renderer.dispose();
-
-      // Force the WebGL context to be lost — only way to reliably free GPU memory
-      // on iOS Safari. Without this the context stays alive indefinitely.
-      try {
-        var gl = renderer.getContext();
-        var lose = gl && gl.getExtension('WEBGL_lose_context');
-        if (lose) lose.loseContext();
-      } catch (e) {}
-
-      if (opts.onReady) opts.onReady();
-    }
-
-    if (opts.staticFrame) return; // still frame captured in load callback — no RAF needed
 
     let lastFrame = performance.now();
     (function loop() {

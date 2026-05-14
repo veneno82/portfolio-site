@@ -1267,19 +1267,22 @@
         grid.appendChild(a);
       });
 
+      // Mobile: skip Three.js entirely — show a static project photo per card
+      // so there's zero GPU/WebGL load. Desktop keeps the live 3D previews.
       var _mob = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
       if (_mob) {
-        // Mobile: load one GLB at a time; each card captures a still frame then
-        // disposes its WebGL context, so only one GL context is ever alive at once.
-        var _q = window.PROJECT_ORDER.filter(function(id) {
-          return window.PROJECTS[id] && !window.PROJECTS[id].comingSoon;
+        window.PROJECT_ORDER.forEach(function(id) {
+          var p = window.PROJECTS[id];
+          if (!p || p.comingSoon || !p.previewImg) return;
+          var el = document.getElementById('pcb-' + id);
+          if (!el) return;
+          var img = document.createElement('img');
+          img.src = p.previewImg;
+          img.alt = p.name || '';
+          img.loading = 'lazy';
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;background:transparent;';
+          el.appendChild(img);
         });
-        function _next() {
-          if (!_q.length) return;
-          var id = _q.shift();
-          initPCBViewer('pcb-' + id, window.PROJECTS[id].pcb, { interactive: false, staticFrame: true, onReady: _next });
-        }
-        _next();
       } else {
         window.PROJECT_ORDER.forEach(function(id) {
           var p = window.PROJECTS[id];
