@@ -132,7 +132,7 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/final%20bldc%20(blended).glb',
+      glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
       glbPathFull: 'models%20(pc)/final%20bldc%201.glb',
       w: 3.4, h: 2.2,
       traces: [
