@@ -15,6 +15,8 @@ window.PROJECTS = {
     pcb: {
       glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
       glbPathFull: 'models%20(pc)/dime3dmodel40mb.glb',
+      mvCameraOrbit: '45deg 72deg 0.8m',
+      mvMinOrbit: 'auto auto 0.1m',
       w: 3.0, h: 2.0,
       traces: [
         { x1: -0.1, z1: -0.1, x2: -0.8, z2: -0.2 }, { x1: -0.1, z1: -0.1, x2: 0.5, z2: 0.15 },

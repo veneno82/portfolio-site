@@ -629,8 +629,9 @@
       viewerWrap.innerHTML =
         '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
         '<model-viewer id="mv" camera-controls shadow-intensity="0.8" exposure="1.05"' +
-        ' camera-orbit="45deg 72deg auto"' +
+        ' camera-orbit="' + (proj.pcb.mvCameraOrbit || '45deg 72deg auto') + '"' +
         (proj.pcb.mvCameraTarget ? ' camera-target="' + proj.pcb.mvCameraTarget + '"' : '') +
+        (proj.pcb.mvMinOrbit ? ' min-camera-orbit="' + proj.pcb.mvMinOrbit + '"' : '') +
         ' loading="eager"' +
         ' style="width:100%;height:100%;background-color:transparent;">' +
         '<div slot="progress-bar" style="display:none;"></div>' +
