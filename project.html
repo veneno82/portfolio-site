@@ -322,12 +322,18 @@
       background: #000;
     }
 
-    .media-video-frame iframe {
+    .media-video-frame iframe,
+    .media-video-frame video {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       border: 0;
+    }
+
+    .media-video-frame video {
+      object-fit: contain;
+      background: #000;
     }
 
     .media-video .media-meta {
@@ -888,21 +894,24 @@
       const media = Array.isArray(proj.media) ? proj.media : [];
       if (media.length) {
         media.forEach(m => {
-          // YouTube video embed — spans full grid row
-          if (m.type === 'video' && m.youtube) {
+          // Video embed — spans full grid row.
+          // YouTube videos use `youtube: '<id>'`; local mp4s use `url: '...'`.
+          if (m.type === 'video' && (m.youtube || m.url)) {
             const block = document.createElement('div');
             block.className = 'media-video';
+            const frameInner = m.youtube
+              ? '<iframe src="https://www.youtube.com/embed/' + m.youtube + '" ' +
+                'title="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+                'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>'
+              : '<video src="' + m.url + '" controls preload="metadata" playsinline></video>';
             block.innerHTML =
-              '<div class="media-video-frame">' +
-              '<iframe src="https://www.youtube.com/embed/' + m.youtube + '" ' +
-              'title="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
-              'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>' +
-              '</div>' +
+              '<div class="media-video-frame">' + frameInner + '</div>' +
               '<div class="media-meta">' +
               '<span class="file-name"></span>' +
               '<span class="file-caption"></span>' +
               '</div>';
-            block.querySelector('iframe').title = m.name || 'video';
+            const iframe = block.querySelector('iframe');
+            if (iframe) iframe.title = m.name || 'video';
             block.querySelector('.file-name').textContent = m.name || 'video';
             block.querySelector('.file-caption').textContent = m.caption || '';
             filesGrid.appendChild(block);

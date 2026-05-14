@@ -245,6 +245,7 @@ window.PROJECTS = {
       'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
     ],
     media: [
+      { type: 'video', url: 'project%20media/heartpcb%20vid.mp4', name: 'Animations', caption: 'heartbeat pulse, sparkle, and outline-trace patterns' },
       { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', name: 'Assembled board' },
       { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
       { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back' },
