@@ -731,11 +731,6 @@
         display: none;
       }
 
-      /* hide palette customizer — color pickers are awkward on touch */
-      .palette-wrap {
-        display: none;
-      }
-
       /* tighten up projects grid gap */
       .projects-grid {
         gap: 10px;
@@ -789,11 +784,10 @@
       <div class="palette-wrap">
         <button class="palette-btn" id="paletteBtn" aria-label="Customize background colors">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2" />
-            <circle cx="7" cy="3.2" r="1.1" fill="currentColor" />
-            <circle cx="10.7" cy="7" r="1.1" fill="currentColor" />
-            <circle cx="3.3" cy="7" r="1.1" fill="currentColor" />
-            <circle cx="7" cy="10.7" r="1.1" fill="currentColor" />
+            <rect x="1.5" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.9" />
+            <rect x="7.7" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.45" />
+            <rect x="1.5" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.6" />
+            <rect x="7.7" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.75" />
           </svg>
         </button>
         <div class="palette-pop" id="palettePop">

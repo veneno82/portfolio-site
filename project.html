@@ -919,14 +919,12 @@
             card.innerHTML =
               '<img alt="" loading="lazy">' +
               '<div class="media-image-info">' +
-              '<span class="file-type"></span>' +
               '<span class="file-name"></span>' +
               '<span class="file-caption"></span>' +
               '</div>';
             const img = card.querySelector('img');
             img.src = m.url;
             img.alt = m.name || '';
-            card.querySelector('.file-type').textContent = m.subtype || 'image';
             card.querySelector('.file-name').textContent = m.name || '(untitled)';
             card.querySelector('.file-caption').textContent = m.caption || '';
             filesGrid.appendChild(card);

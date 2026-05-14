@@ -144,10 +144,10 @@ window.PROJECTS = {
       'Designed in KiCad, fabbed by JLCPCB. Drives the wheels on the Dime balancing robot.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE%20(back).png', subtype: 'render', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/bldc%20pic%20png.jpg', subtype: 'photo', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/BLDC%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/bldc%20pic%20png.jpg', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/BLDC%20schematic.png', name: 'Schematic' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
@@ -193,10 +193,10 @@ window.PROJECTS = {
       'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE%20(back).png', subtype: 'render', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/can2usb%20pic%20png.png', subtype: 'photo', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/can2usb%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/can2usb%20pic%20png.png', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/can2usb%20schematic.png', name: 'Schematic' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
@@ -245,10 +245,10 @@ window.PROJECTS = {
       'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', subtype: 'render', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', subtype: 'photo', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', name: 'Schematic' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/heartpcb.glb',
