@@ -304,6 +304,101 @@
       padding: 18px 4px;
     }
 
+    /* Video embed — spans full row of the files grid */
+    .media-video {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .media-video-frame {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+    }
+
+    .media-video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .media-video .media-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline;
+      padding: 0 2px;
+    }
+
+    .media-video .media-meta .file-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .media-video .media-meta .file-caption {
+      font-size: 12px;
+      color: var(--fg2);
+    }
+
+    /* Image card — thumbnail on top, metadata below; clicks open full size */
+    .media-image {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+
+    .media-image:hover {
+      border-color: var(--fg2);
+      transform: translateY(-2px);
+    }
+
+    .media-image img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      background: var(--surface);
+    }
+
+    .media-image .media-image-info {
+      padding: 10px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .media-image .file-type {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--fg2);
+    }
+
+    .media-image .file-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .media-image .file-caption {
+      font-size: 12px;
+      color: var(--fg2);
+      line-height: 1.45;
+    }
+
     .not-found {
       text-align: center;
       padding: 80px 0;
@@ -793,6 +888,52 @@
       const media = Array.isArray(proj.media) ? proj.media : [];
       if (media.length) {
         media.forEach(m => {
+          // YouTube video embed — spans full grid row
+          if (m.type === 'video' && m.youtube) {
+            const block = document.createElement('div');
+            block.className = 'media-video';
+            block.innerHTML =
+              '<div class="media-video-frame">' +
+              '<iframe src="https://www.youtube.com/embed/' + m.youtube + '" ' +
+              'title="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+              'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>' +
+              '</div>' +
+              '<div class="media-meta">' +
+              '<span class="file-name"></span>' +
+              '<span class="file-caption"></span>' +
+              '</div>';
+            block.querySelector('iframe').title = m.name || 'video';
+            block.querySelector('.file-name').textContent = m.name || 'video';
+            block.querySelector('.file-caption').textContent = m.caption || '';
+            filesGrid.appendChild(block);
+            return;
+          }
+
+          // Inline image card — thumbnail + caption, click opens full size
+          if (m.type === 'image' && m.url) {
+            const card = document.createElement('a');
+            card.className = 'media-image';
+            card.href = m.url;
+            card.target = '_blank';
+            card.rel = 'noopener';
+            card.innerHTML =
+              '<img alt="" loading="lazy">' +
+              '<div class="media-image-info">' +
+              '<span class="file-type"></span>' +
+              '<span class="file-name"></span>' +
+              '<span class="file-caption"></span>' +
+              '</div>';
+            const img = card.querySelector('img');
+            img.src = m.url;
+            img.alt = m.name || '';
+            card.querySelector('.file-type').textContent = m.subtype || 'image';
+            card.querySelector('.file-name').textContent = m.name || '(untitled)';
+            card.querySelector('.file-caption').textContent = m.caption || '';
+            filesGrid.appendChild(card);
+            return;
+          }
+
+          // Fallback: text-only file card (links, datasheets, etc.)
           const card = document.createElement('a');
           card.className = 'file-card';
           card.href = m.url || '#';

@@ -12,7 +12,10 @@ window.PROJECTS = {
       'The mainboard fuses an MPU-6050 IMU with high-resolution magnetic encoders, runs a complementary filter to estimate tilt, and drives a pair of brushed DC motors through an onboard H-bridge with current sensing. A second daughterboard handles power conversion from a 3S Li-ion pack.',
       'Tuning was the hard part: too much P and it oscillated, too little D and it fell. The final loop runs at 500 Hz on the ESP32, with telemetry streamed to a small browser dashboard for live PID gain tweaking.'
     ],
-    media: [],
+    media: [
+      { type: 'image', url: 'project%20media/dimepic.png', subtype: 'photo', name: 'Robot', caption: 'two-wheel self-balancer at rest' },
+      { type: 'image', url: 'project%20media/dime%20diagram.jpeg', subtype: 'diagram', name: 'Control diagram', caption: 'nested PID + complementary filter' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
       glbPathFull: 'models%20(pc)/dime3dmodel40mb.glb',
@@ -54,7 +57,11 @@ window.PROJECTS = {
       'The render loop pushes pixels to a 320×240 SPI LCD at 60 FPS by double-buffering in SRAM. Collisions are sub-pixel against an obstacle list, and difficulty scales with the BPM of the loaded track.',
       'Won "Best Game" at the UT Austin ECE319K end-of-semester showcase, beating ~70 teams. Source includes the level editor used to author the demo tracks.'
     ],
-    media: [],
+    media: [
+      { type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'running on the MSPM0G3507 at the ECE319K showcase' },
+      { type: 'image', url: 'project%20media/GD%20pic%202.jpg', subtype: 'photo', name: 'Build photo' },
+      { type: 'image', url: 'project%20media/GD%20pic%20png.jpg', subtype: 'photo', name: 'Hardware setup' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
       glbPathFull: 'models%20(pc)/Gd%203D%20model(blended)glb-compressed.glb',
@@ -100,7 +107,9 @@ window.PROJECTS = {
       'Configured with custom blocklists, a static lease in the home router, and a Cloudflare-over-HTTPS upstream. About 28% of all DNS queries on the network get black-holed at the resolver.',
       'The "PCB" here is the actual Raspberry Pi 4 board model — nostalgic rendering of the layout I keep behind the TV.'
     ],
-    media: [],
+    media: [
+      { type: 'image', url: 'project%20media/pihole%20pic.png', subtype: 'photo', name: 'Setup', caption: 'Pi running pi-hole behind the TV' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
       glbPathFull: 'models%20(pc)/PiHole%20render%20FINAL-compressed.glb',
@@ -134,7 +143,12 @@ window.PROJECTS = {
       'Layout uses 2 oz copper power planes for the bridge and a separate signal ground for the gate driver. Bulk electrolytics decouple motor commutation spikes; ceramics sit right at the gate driver pins.',
       'Designed in KiCad, fabbed by JLCPCB. Drives the wheels on the Dime balancing robot.'
     ],
-    media: [],
+    media: [
+      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE%20(back).png', subtype: 'render', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/bldc%20pic%20png.jpg', subtype: 'photo', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/BLDC%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
       glbPathFull: 'models%20(pc)/final%20bldc%201.glb',
@@ -178,7 +192,12 @@ window.PROJECTS = {
       'The G0 runs a Madgwick fusion filter at 200 Hz and time-stamps every packet against a hardware timer so downstream consumers see jitter-free sample intervals. There\'s a tiny SPI flash for firmware updates over DFU.',
       'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
     ],
-    media: [],
+    media: [
+      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE%20(back).png', subtype: 'render', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/can2usb%20pic%20png.png', subtype: 'photo', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/can2usb%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
       glbPathFull: 'models%20(pc)/can2usb(blended).glb',
@@ -225,7 +244,12 @@ window.PROJECTS = {
       'The board outline is drawn directly in KiCad as a custom edge cut, with silkscreen accents echoing the heart shape. Designed as a Valentine\'s Day gift; a few extras live on my desk.',
       'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
     ],
-    media: [],
+    media: [
+      { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', subtype: 'render', name: 'Render — front', caption: 'KiCad 3D render' },
+      { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', subtype: 'render', name: 'Render — back' },
+      { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', subtype: 'photo', name: 'Assembled board' },
+      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', subtype: 'schematic', name: 'Schematic' }
+    ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/heartpcb.glb',
       glbPathFull: 'models%20(pc)/heartpcb.glb',
