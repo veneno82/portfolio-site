@@ -206,6 +206,7 @@
           console.warn('THREE.GLTFLoader not available, falling back to procedural board');
           buildBoard(group, cfg);
           hideLoader();
+          if (opts.onReady) opts.onReady();
           return;
         }
         const loader = new THREE.GLTFLoader();
@@ -238,6 +239,7 @@
             group.add(model);
             setLoaderPct(100);
             hideLoader();
+            if (opts.onReady) opts.onReady();
           },
           function (xhr) {
             if (xhr && xhr.lengthComputable && xhr.total) {
@@ -248,12 +250,14 @@
             console.warn('GLB load error', err);
             buildBoard(group, cfg);
             hideLoader();
+            if (opts.onReady) opts.onReady();
           }
         );
       }
       loadGLB();
     } else {
       buildBoard(group, cfg);
+      if (opts.onReady) opts.onReady();
     }
 
     function injectLoaderStyles() {
