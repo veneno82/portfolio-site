@@ -718,6 +718,53 @@
         });
       }
 
+      // PCB-style rotation inertia: EMA velocity + 0.94 friction (from pcb.js)
+      if (mv) {
+        var _isDrag = false, _pTheta = null, _pPhi = null, _pTime = null;
+        var _vTheta = 0, _vPhi = 0;
+        var _oTheta, _oPhi, _oRad, _iRaf = null;
+
+        function _sync() {
+          try { var o = mv.getCameraOrbit(); _oTheta = o.theta; _oPhi = o.phi; _oRad = o.radius; } catch (_) {}
+        }
+
+        mv.addEventListener('load', _sync);
+
+        mv.addEventListener('pointerdown', function () {
+          _isDrag = true; _vTheta = 0; _vPhi = 0; _pTheta = null;
+          if (_iRaf) { cancelAnimationFrame(_iRaf); _iRaf = null; }
+        });
+
+        mv.addEventListener('camera-change', function () {
+          _sync();
+          if (!_isDrag) return;
+          var now = performance.now();
+          if (_pTheta !== null) {
+            var dt = Math.max(1, now - _pTime);
+            _vTheta = _vTheta * 0.55 + ((_oTheta - _pTheta) / dt) * 0.45;
+            _vPhi   = _vPhi   * 0.55 + ((_oPhi   - _pPhi)   / dt) * 0.45;
+          }
+          _pTheta = _oTheta; _pPhi = _oPhi; _pTime = now;
+        });
+
+        mv.addEventListener('pointerup', function () {
+          _isDrag = false; _sync();
+          var _last = performance.now();
+          (function _tick() {
+            var now = performance.now(), dt = Math.min(48, now - _last); _last = now;
+            var f = Math.pow(0.94, dt / 16);
+            _vTheta *= f; _vPhi *= f;
+            if (Math.abs(_vTheta) < 1e-7) _vTheta = 0;
+            if (Math.abs(_vPhi)   < 1e-7) _vPhi   = 0;
+            if (!_vTheta && !_vPhi) { _iRaf = null; return; }
+            _oTheta += _vTheta * dt;
+            _oPhi    = Math.max(0.01, Math.min(Math.PI - 0.01, _oPhi + _vPhi * dt));
+            try { mv.setAttribute('camera-orbit', _oTheta + 'rad ' + _oPhi + 'rad ' + _oRad + 'm'); } catch (_) {}
+            _iRaf = requestAnimationFrame(_tick);
+          })();
+        });
+      }
+
       // ---- about ----
       const aboutLabel = document.createElement('div');
       aboutLabel.className = 'section-label';
