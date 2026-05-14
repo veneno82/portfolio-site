@@ -115,11 +115,11 @@
     const H = container.clientHeight || 260;
 
     // Mobile fallback: large GLBs (10s of MB) blow past phone GPU memory budgets
-    // and crash the page, especially with 6 preview cards each spinning up their
-    // own WebGL context. Per-project opt-in via cfg.mobileSkipGlb — when true on
-    // a touch device, we skip the GLB load entirely and use the procedural board.
+    // and crash the page — 6 preview cards each spinning up their own WebGL
+    // context with multi-MB models is too much for most mobile GPUs. Always skip
+    // GLB loading on touch devices and show the lightweight procedural board.
     var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    var skipForMobile = isMobile && cfg && cfg.mobileSkipGlb === true;
+    var skipForMobile = isMobile;
 
     // Mobile always uses the draco&mobile GLB (preview and dedicated page alike).
     // Desktop dedicated page uses glbPathFull; previews and mobile use glbPath.
