@@ -114,8 +114,12 @@
     const W = container.clientWidth || 640;
     const H = container.clientHeight || 260;
 
+    // Mobile fallback: large GLBs (10s of MB) blow past phone GPU memory budgets
+    // and crash the page, especially with 6 preview cards each spinning up their
+    // own WebGL context. Per-project opt-in via cfg.mobileSkipGlb — when true on
+    // a touch device, we skip the GLB load entirely and use the procedural board.
     var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    var skipForMobile = false; // IntersectionObserver lazy-init handles load staggering
+    var skipForMobile = isMobile && cfg && cfg.mobileSkipGlb === true;
 
     // Mobile always uses the draco&mobile GLB (preview and dedicated page alike).
     // Desktop dedicated page uses glbPathFull; previews and mobile use glbPath.
@@ -123,14 +127,9 @@
       ? null
       : ((interactive && !isMobile && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !isMobile,
-      alpha: true,
-      powerPreference: 'high-performance'
-    });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: !!opts.staticFrame });
     renderer.setSize(W, H);
-    // Cap DPR at 1.5 on mobile — 3x retina screens render 9× the pixels, crashing the GPU.
-    renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : (window.devicePixelRatio || 1));
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setClearColor(0x000000, 0);
     // Procedural boards keep shadows; GLB models render without shadow maps —
     // self-shadowing on detailed meshes was producing the striped/banded artifacts.
@@ -211,6 +210,7 @@
           console.warn('THREE.GLTFLoader not available, falling back to procedural board');
           buildBoard(group, cfg);
           hideLoader();
+          if (opts.staticFrame) { _captureStill(); return; }
           if (opts.onReady) opts.onReady();
           return;
         }
@@ -244,6 +244,7 @@
             group.add(model);
             setLoaderPct(100);
             hideLoader();
+            if (opts.staticFrame) { _captureStill(); return; }
             if (opts.onReady) opts.onReady();
           },
           function (xhr) {
@@ -255,6 +256,7 @@
             console.warn('GLB load error', err);
             buildBoard(group, cfg);
             hideLoader();
+            if (opts.staticFrame) { _captureStill(); return; }
             if (opts.onReady) opts.onReady();
           }
         );
@@ -262,6 +264,7 @@
       loadGLB();
     } else {
       buildBoard(group, cfg);
+      if (opts.staticFrame) { _captureStill(); return; }
       if (opts.onReady) opts.onReady();
     }
 
@@ -435,11 +438,25 @@
       }).observe(container);
     }
 
+    // Captures one frame as a JPEG, replaces the canvas with an <img>, frees the GL context.
+    function _captureStill() {
+      renderer.render(scene, camera);
+      try {
+        var img = document.createElement('img');
+        img.src = renderer.domElement.toDataURL('image/jpeg', 0.85);
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        while (container.firstChild) container.removeChild(container.firstChild);
+        container.appendChild(img);
+      } catch (e) {}
+      renderer.dispose();
+      if (opts.onReady) opts.onReady();
+    }
+
+    if (opts.staticFrame) return; // still frame captured in load callback — no RAF needed
+
     let lastFrame = performance.now();
-    let _paused = false, _rafId = null;
-    function _loop() {
-      if (_paused) { _rafId = null; return; }
-      _rafId = requestAnimationFrame(_loop);
+    (function loop() {
+      requestAnimationFrame(loop);
       const now = performance.now();
       const dt = Math.min(48, now - lastFrame); // clamp big gaps (tab switch)
       lastFrame = now;
@@ -475,19 +492,7 @@
       }
 
       renderer.render(scene, camera);
-    }
-    _rafId = requestAnimationFrame(_loop);
-
-    return {
-      pause:  function() { _paused = true; },
-      resume: function() {
-        if (_paused) {
-          _paused = false;
-          lastFrame = performance.now();
-          if (!_rafId) { _rafId = requestAnimationFrame(_loop); }
-        }
-      }
-    };
+    })();
   }
 
   root.initPCBViewer = initPCBViewer;

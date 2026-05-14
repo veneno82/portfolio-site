@@ -1267,35 +1267,25 @@
         grid.appendChild(a);
       });
 
-      // Sequential load queue — one GLB at a time, top to bottom.
-      // Next card only starts after current finishes loading (or errors).
-      // Browser HTTP cache means re-navigating back is instant (no re-download).
-      var _viewers = {};
-      var _loadQueue = window.PROJECT_ORDER.filter(function(id) {
-        var p = window.PROJECTS[id]; return p && !p.comingSoon;
-      });
-      function _loadNext() {
-        if (!_loadQueue.length) return;
-        var id = _loadQueue.shift();
-        _viewers[id] = initPCBViewer('pcb-' + id, window.PROJECTS[id].pcb, {
-          interactive: false, onReady: _loadNext
-        }) || {};
-      }
-      _loadNext();
-
-      // Pause rendering for cards scrolled out of view; resume on scroll back.
-      var _obs = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          var v = _viewers[entry.target.id.slice(4)];
-          if (!v) return;
-          if (entry.isIntersecting) { if (v.resume) v.resume(); }
-          else { if (v.pause) v.pause(); }
+      var _mob = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      if (_mob) {
+        // Mobile: load one GLB at a time; each card captures a still frame then
+        // disposes its WebGL context, so only one GL context is ever alive at once.
+        var _q = window.PROJECT_ORDER.filter(function(id) {
+          return window.PROJECTS[id] && !window.PROJECTS[id].comingSoon;
         });
-      }, { rootMargin: '100px' });
-      window.PROJECT_ORDER.forEach(function(id) {
-        var el = document.getElementById('pcb-' + id);
-        if (el) _obs.observe(el);
-      });
+        function _next() {
+          if (!_q.length) return;
+          var id = _q.shift();
+          initPCBViewer('pcb-' + id, window.PROJECTS[id].pcb, { interactive: false, staticFrame: true, onReady: _next });
+        }
+        _next();
+      } else {
+        window.PROJECT_ORDER.forEach(function(id) {
+          var p = window.PROJECTS[id];
+          if (p && !p.comingSoon) initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
+        });
+      }
     })();
   </script>
 
