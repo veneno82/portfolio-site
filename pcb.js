@@ -123,9 +123,14 @@
       ? null
       : ((interactive && !isMobile && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: !isMobile,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    // Cap DPR at 1.5 on mobile — 3x retina screens render 9× the pixels, crashing the GPU.
+    renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : (window.devicePixelRatio || 1));
     renderer.setClearColor(0x000000, 0);
     // Procedural boards keep shadows; GLB models render without shadow maps —
     // self-shadowing on detailed meshes was producing the striped/banded artifacts.
