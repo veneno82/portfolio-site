@@ -1,5 +1,5 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['dime', 'gd', 'pihole', 'motor', 'sensor', 'heart', 'comingsoon'];
+window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
 
 window.PROJECTS = {
   dime: {
@@ -101,6 +101,7 @@ window.PROJECTS = {
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
       glbPathFull: 'models%20(pc)/PiHole%20render%20FINAL-compressed.glb',
+      mvCameraTarget: '-2.38m 3.55m 2.22m',
       pivotOffset: { x: 0.0, y: 0.0, z: 0.0 },
       w: 2.8, h: 2.2,
       traces: [
@@ -132,7 +133,7 @@ window.PROJECTS = {
     media: [],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/final%20bldc%20(blended).glb',
-      glbPathFull: 'models%20(pc)/final%20bldc%20(blended).glb',
+      glbPathFull: 'models%20(pc)/final%20bldc%201.glb',
       w: 3.4, h: 2.2,
       traces: [
         { x1: -0.4, z1: 0.1, x2: 0.6, z2: 0.1, w: 0.048 }, { x1: -0.4, z1: 0.1, x2: -1.0, z2: 0.3, w: 0.035 },
