@@ -784,10 +784,10 @@
       <div class="palette-wrap">
         <button class="palette-btn" id="paletteBtn" aria-label="Customize background colors">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="1.5" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.9" />
-            <rect x="7.7" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.45" />
-            <rect x="1.5" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.6" />
-            <rect x="7.7" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" opacity="0.75" />
+            <rect id="paletteSwatch0" x="1.5" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" />
+            <rect id="paletteSwatch1" x="7.7" y="1.5" width="4.8" height="4.8" rx="1.1" fill="currentColor" />
+            <rect id="paletteSwatch2" x="1.5" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" />
+            <rect id="paletteSwatch3" x="7.7" y="7.7" width="4.8" height="4.8" rx="1.1" fill="currentColor" />
           </svg>
         </button>
         <div class="palette-pop" id="palettePop">
@@ -1125,6 +1125,18 @@
         const t = activeTheme();
         colorInputs.forEach(inp => { inp.value = PAL[t][+inp.dataset.i]; });
       }
+      // Reflect the current 4-color palette in the toolbar icon's swatches.
+      const swatchEls = [0, 1, 2, 3].map(i => document.getElementById('paletteSwatch' + i));
+      function syncIcon() {
+        const t = activeTheme();
+        swatchEls.forEach((el, i) => {
+          if (el && PAL[t][i]) el.setAttribute('fill', PAL[t][i]);
+        });
+      }
+      syncIcon();
+      // Auto-update icon when the theme switches (each theme has its own palette).
+      new MutationObserver(syncIcon).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
       colorInputs.forEach(inp => {
         inp.addEventListener('input', e => {
           const t = activeTheme();
@@ -1132,6 +1144,7 @@
           PAL[t][i] = e.target.value;
           (t === 'dark' ? darkRgb : lightRgb)[i] = hex2rgb(e.target.value);
           saveTheme(t);
+          syncIcon();
         });
       });
       if (paletteReset) {
@@ -1147,6 +1160,7 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
           } catch (_) { }
           syncInputs();
+          syncIcon();
         });
       }
       if (paletteBtn && palettePop) {
