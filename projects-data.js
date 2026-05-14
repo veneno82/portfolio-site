@@ -1,5 +1,5 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['dime', 'gd', 'pihole', 'motor', 'heart', 'sensor'];
+window.PROJECT_ORDER = ['dime', 'gd', 'pihole', 'motor', 'sensor', 'heart', 'comingsoon'];
 
 window.PROJECTS = {
   dime: {
@@ -13,8 +13,8 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'dime_preview.glb',
-      glbPathFull: 'dime3dmodel40mb.glb',
+      glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
+      glbPathFull: 'models%20(pc)/dime3dmodel40mb.glb',
       w: 3.0, h: 2.0,
       traces: [
         { x1: -0.1, z1: -0.1, x2: -0.8, z2: -0.2 }, { x1: -0.1, z1: -0.1, x2: 0.5, z2: 0.15 },
@@ -54,6 +54,8 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
+      glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
+      glbPathFull: 'models%20(pc)/Gd%203D%20model(blended)glb-compressed.glb',
       w: 2.6, h: 3.4,
       traces: [
         { x1: 0, z1: 0, x2: 0, z2: -1.35, w: 0.025 }, { x1: 0, z1: 0, x2: 0, z2: 1.55, w: 0.025 },
@@ -97,25 +99,9 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      // Super-compressed for the small preview card; full-compressed on the dedicated page.
-      glbPath: 'PiHole%20render%20FINAL-supercompressed%20(.glb',
-      glbPathFull: 'PiHole%20render%20FINAL-compressed.glb',
-
-      // The pihole scene is heavy (24MB / 40MB) — phone GPUs OOM and crash the
-      // tab. Skip the GLB on mobile and fall back to the procedural board
-      // defined below. Flip to false once a mobile-sized GLB exists.
-      mobileSkipGlb: true,
-
-      // ── Rotation pivot offset ─────────────────────────────────────────────
-      // The scene has both the Pi and a router in it, so the bbox center sits
-      // between them. This vector shifts the rotation pivot toward the Pi.
-      // Units are scaled-world (model is auto-fit to ~2.2 units across).
-      // Tweak these to nudge the orbit center:
-      //   +x → pivot moves right    -x → pivot moves left
-      //   +y → pivot moves up       -y → pivot moves down
-      //   +z → pivot moves toward camera   -z → pivot moves away
+      glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
+      glbPathFull: 'models%20(pc)/PiHole%20render%20FINAL-compressed.glb',
       pivotOffset: { x: 0.0, y: 0.0, z: 0.0 },
-
       w: 2.8, h: 2.2,
       traces: [
         { x1: -0.8, z1: 0, x2: 0.8, z2: 0, w: 0.04 }, { x1: 0, z1: -0.8, x2: 0, z2: 0.8, w: 0.03 },
@@ -145,6 +131,8 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
+      glbPath: 'models%20(draco%26mobile)/final%20bldc%20(blended).glb',
+      glbPathFull: 'models%20(pc)/final%20bldc%20(blended).glb',
       w: 3.4, h: 2.2,
       traces: [
         { x1: -0.4, z1: 0.1, x2: 0.6, z2: 0.1, w: 0.048 }, { x1: -0.4, z1: 0.1, x2: -1.0, z2: 0.3, w: 0.035 },
@@ -175,6 +163,52 @@ window.PROJECTS = {
     }
   },
 
+  sensor: {
+    name: 'Sensor Module Board',
+    meta: 'KiCad, I²C, STM32',
+    desc: 'Compact multi-sensor breakout — IMU, baro, and temp/humidity over I²C.',
+    longDesc: [
+      'A small four-layer sensor breakout that aggregates an IMU, a barometric pressure sensor, and a temperature/humidity probe behind a single STM32G0 bridge MCU. Talks to a host over UART or USB-CDC, exposes raw and fused data.',
+      'The G0 runs a Madgwick fusion filter at 200 Hz and time-stamps every packet against a hardware timer so downstream consumers see jitter-free sample intervals. There\'s a tiny SPI flash for firmware updates over DFU.',
+      'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
+    ],
+    media: [],
+    pcb: {
+      glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
+      glbPathFull: 'models%20(pc)/can2usb(blended).glb',
+      w: 2.6, h: 1.8,
+      traces: [
+        { x1: 0, z1: 0, x2: -0.7, z2: 0.0, w: 0.024 },
+        { x1: 0, z1: 0, x2: 0.7, z2: 0.0, w: 0.024 },
+        { x1: 0, z1: 0, x2: 0.0, z2: -0.6, w: 0.020 },
+        { x1: 0, z1: 0, x2: 0.0, z2: 0.6, w: 0.020 },
+        { x1: 0, z1: 0, x2: -0.45, z2: 0.55, w: 0.015 },
+        { x1: 0, z1: 0, x2: 0.45, z2: 0.55, w: 0.015 },
+        { x1: 0, z1: 0, x2: -0.45, z2: -0.55, w: 0.015 },
+        { x1: 0, z1: 0, x2: 0.45, z2: -0.55, w: 0.015 },
+        { x1: -0.7, z1: 0.0, x2: -1.05, z2: 0.0, w: 0.030 },
+        { x1: 0.7, z1: 0.0, x2: 1.05, z2: 0.0, w: 0.030 },
+      ],
+      components: [
+        { t: 'ic', x: 0, z: 0, w: 0.46, d: 0.46, col: 0x131313 },
+        { t: 'ic', x: -0.7, z: 0.0, w: 0.22, d: 0.22, col: 0x222222 },
+        { t: 'ic', x: 0.0, z: 0.6, w: 0.20, d: 0.20, col: 0x202020 },
+        { t: 'ic', x: 0.7, z: 0.0, w: 0.22, d: 0.16, col: 0x1a1a1a },
+        { t: 'ic', x: 0.0, z: -0.6, w: 0.18, d: 0.14, col: 0x282828 },
+        { t: 'cap', x: -0.30, z: 0.30, r: 0.045, h: 0.13, col: 0x1a1a3a },
+        { t: 'cap', x: 0.30, z: 0.30, r: 0.045, h: 0.13, col: 0x1a1a3a },
+        { t: 'cap', x: -0.30, z: -0.30, r: 0.045, h: 0.13, col: 0x22224a },
+        { t: 'cap', x: 0.30, z: -0.30, r: 0.045, h: 0.13, col: 0x22224a },
+        { t: 'res', x: -0.55, z: 0.30 }, { t: 'res', x: 0.55, z: 0.30, col: 0x8a3a3a },
+        { t: 'res', x: -0.55, z: -0.30, col: 0x3a6a3a }, { t: 'res', x: 0.55, z: -0.30 },
+        { t: 'conn', x: -1.05, z: 0.0, w: 0.16, d: 0.50, h: 0.16, col: 0xf0f0f0 },
+        { t: 'conn', x: 1.05, z: 0.0, w: 0.16, d: 0.50, h: 0.16, col: 0xf0f0f0 },
+        { t: 'led', x: 0.0, z: 0.78, col: 0x00cc55 },
+        { t: 'crystal', x: -0.15, z: -0.78 },
+      ]
+    }
+  },
+
   heart: {
     name: 'Heart PCB',
     meta: 'KiCad, Charlieplexed LEDs',
@@ -186,6 +220,8 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
+      glbPath: 'models%20(draco%26mobile)/heartpcb.glb',
+      glbPathFull: 'models%20(pc)/heartpcb.glb',
       w: 2.2, h: 2.4,
       traces: [
         { x1: 0, z1: 0.3, x2: -0.5, z2: -0.3, w: 0.02 }, { x1: 0, z1: 0.3, x2: 0.5, z2: -0.3, w: 0.02 },
@@ -204,54 +240,10 @@ window.PROJECTS = {
     }
   },
 
-  sensor: {
-    name: 'Sensor Module Board',
-    meta: 'KiCad, I²C, STM32',
-    desc: 'Compact multi-sensor breakout — IMU, baro, and temp/humidity over I²C.',
-    longDesc: [
-      'A small four-layer sensor breakout that aggregates an IMU, a barometric pressure sensor, and a temperature/humidity probe behind a single STM32G0 bridge MCU. Talks to a host over UART or USB-CDC, exposes raw and fused data.',
-      'The G0 runs a Madgwick fusion filter at 200 Hz and time-stamps every packet against a hardware timer so downstream consumers see jitter-free sample intervals. There\'s a tiny SPI flash for firmware updates over DFU.',
-      'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
-    ],
-    media: [],
-    pcb: {
-      w: 2.6, h: 1.8,
-      traces: [
-        { x1: 0, z1: 0, x2: -0.7, z2: 0.0, w: 0.024 },
-        { x1: 0, z1: 0, x2: 0.7, z2: 0.0, w: 0.024 },
-        { x1: 0, z1: 0, x2: 0.0, z2: -0.6, w: 0.020 },
-        { x1: 0, z1: 0, x2: 0.0, z2: 0.6, w: 0.020 },
-        { x1: 0, z1: 0, x2: -0.45, z2: 0.55, w: 0.015 },
-        { x1: 0, z1: 0, x2: 0.45, z2: 0.55, w: 0.015 },
-        { x1: 0, z1: 0, x2: -0.45, z2: -0.55, w: 0.015 },
-        { x1: 0, z1: 0, x2: 0.45, z2: -0.55, w: 0.015 },
-        { x1: -0.7, z1: 0.0, x2: -1.05, z2: 0.0, w: 0.030 },
-        { x1: 0.7, z1: 0.0, x2: 1.05, z2: 0.0, w: 0.030 },
-      ],
-      components: [
-        // central STM32G0 bridge MCU
-        { t: 'ic', x: 0, z: 0, w: 0.46, d: 0.46, col: 0x131313 },
-        // IMU (left), baro (top), temp/humidity (right)
-        { t: 'ic', x: -0.7, z: 0.0, w: 0.22, d: 0.22, col: 0x222222 },
-        { t: 'ic', x: 0.0, z: 0.6, w: 0.20, d: 0.20, col: 0x202020 },
-        { t: 'ic', x: 0.7, z: 0.0, w: 0.22, d: 0.16, col: 0x1a1a1a },
-        // SPI flash
-        { t: 'ic', x: 0.0, z: -0.6, w: 0.18, d: 0.14, col: 0x282828 },
-        // bypass caps
-        { t: 'cap', x: -0.30, z: 0.30, r: 0.045, h: 0.13, col: 0x1a1a3a },
-        { t: 'cap', x: 0.30, z: 0.30, r: 0.045, h: 0.13, col: 0x1a1a3a },
-        { t: 'cap', x: -0.30, z: -0.30, r: 0.045, h: 0.13, col: 0x22224a },
-        { t: 'cap', x: 0.30, z: -0.30, r: 0.045, h: 0.13, col: 0x22224a },
-        // pull-ups + termination
-        { t: 'res', x: -0.55, z: 0.30 }, { t: 'res', x: 0.55, z: 0.30, col: 0x8a3a3a },
-        { t: 'res', x: -0.55, z: -0.30, col: 0x3a6a3a }, { t: 'res', x: 0.55, z: -0.30 },
-        // edge connectors
-        { t: 'conn', x: -1.05, z: 0.0, w: 0.16, d: 0.50, h: 0.16, col: 0xf0f0f0 },
-        { t: 'conn', x: 1.05, z: 0.0, w: 0.16, d: 0.50, h: 0.16, col: 0xf0f0f0 },
-        // status LED + crystal
-        { t: 'led', x: 0.0, z: 0.78, col: 0x00cc55 },
-        { t: 'crystal', x: -0.15, z: -0.78 },
-      ]
-    }
+  comingsoon: {
+    name: 'coming soon!',
+    meta: '',
+    desc: '',
+    comingSoon: true,
   }
 };

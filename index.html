@@ -263,7 +263,9 @@
     }
 
     .palette-title {
+      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
       font-size: 10px;
+      font-weight: 400;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--fg2);
@@ -535,6 +537,31 @@
       background: transparent;
       overflow: hidden;
       pointer-events: none;
+      position: relative;
+    }
+
+    .project-card-soon {
+      cursor: default;
+      border-style: dashed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 264px;
+    }
+
+    .project-card-soon:hover {
+      border-color: var(--border);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .project-card-soon .soon-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--fg2);
+      font-style: italic;
+      opacity: 0.55;
     }
 
     .project-info {
@@ -1216,6 +1243,15 @@
       window.PROJECT_ORDER.forEach(id => {
         const p = window.PROJECTS[id];
         if (!p) return;
+
+        if (p.comingSoon) {
+          const div = document.createElement('div');
+          div.className = 'project-card project-card-soon';
+          div.innerHTML = '<span class="soon-label">coming soon!</span>';
+          grid.appendChild(div);
+          return;
+        }
+
         const a = document.createElement('a');
         a.className = 'project-card';
         a.href = '/project/' + encodeURIComponent(id);

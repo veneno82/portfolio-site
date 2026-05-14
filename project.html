@@ -379,6 +379,159 @@
     body {
       overflow-x: hidden;
     }
+
+    /* ── model-viewer & overlay components ───────────────────────────────── */
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      --progress-bar-color: transparent;
+      --progress-mask: none;
+    }
+
+    .viewer-reticle {
+      position: absolute;
+      pointer-events: none;
+      width: 18px;
+      height: 18px;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.12s;
+      z-index: 10;
+      color: var(--fg2);
+    }
+    .viewer-reticle.visible { opacity: 0.65; }
+    .viewer-reticle::before,
+    .viewer-reticle::after {
+      content: '';
+      position: absolute;
+      background: currentColor;
+      border-radius: 1px;
+    }
+    .viewer-reticle::before {
+      left: 50%; top: 2px; bottom: 2px;
+      width: 1px;
+      margin-left: -0.5px;
+    }
+    .viewer-reticle::after {
+      top: 50%; left: 2px; right: 2px;
+      height: 1px;
+      margin-top: -0.5px;
+    }
+
+    .viewer-coords {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      font-size: 9px;
+      font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+      line-height: 1.65;
+      color: var(--fg2);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 10;
+      white-space: pre;
+      letter-spacing: 0.04em;
+    }
+
+    .viewer-fs-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      background: var(--nav-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg2);
+      opacity: 0.7;
+      z-index: 10;
+      transition: opacity 0.15s, color 0.15s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .viewer-fs-btn:hover { opacity: 1; color: var(--fg); }
+
+    .viewer-wrap:fullscreen,
+    .viewer-wrap:-webkit-full-screen,
+    .viewer-wrap:-moz-full-screen {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      border: none;
+    }
+
+    /* ── model-viewer loading overlay (matches pcb.js loader style) ──────── */
+    .mv-loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: var(--surface, rgba(0,0,0,0.04));
+      color: var(--fg, #141414);
+      z-index: 5;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      user-select: none;
+    }
+    .mv-loader.hidden { opacity: 0; }
+    .mv-loader-ast {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      animation: mv-spin 1.6s cubic-bezier(.5,0,.5,1) infinite;
+    }
+    .mv-loader-arm {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 4px;
+      height: 44px;
+      margin-left: -2px;
+      margin-top: -22px;
+      background: currentColor;
+      border-radius: 2px;
+    }
+    .mv-loader-arm:nth-child(1) { transform: rotate(0deg); }
+    .mv-loader-arm:nth-child(2) { transform: rotate(60deg); }
+    .mv-loader-arm:nth-child(3) { transform: rotate(120deg); }
+    @keyframes mv-spin {
+      0%   { transform: rotate(0deg)   scale(1); }
+      50%  { transform: rotate(180deg) scale(1.18); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .mv-loader-text {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--fg2, #4a4a50);
+    }
+    .mv-loader-dots::after {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      text-align: left;
+      animation: mv-dots 1.4s steps(4) infinite;
+    }
+    @keyframes mv-dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+      100% { content: ''; }
+    }
+    .mv-loader-pct {
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      color: var(--fg2, #4a4a50);
+      opacity: 0.75;
+    }
   </style>
 </head>
 
@@ -398,10 +551,7 @@
 
   <main id="main"></main>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
-  <script src="pcb.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <script src="projects-data.js"></script>
   <script>
     // theme: persist + follow notes' key so toggling stays consistent across pages
@@ -442,6 +592,17 @@
         return;
       }
 
+      if (proj.comingSoon) {
+        main.innerHTML =
+          '<div class="not-found">' +
+          '<h1>coming soon</h1>' +
+          '<p>this project isn\'t up yet — check back later.</p>' +
+          '<a class="back-btn" href="/#projects">back to projects</a>' +
+          '</div>';
+        document.title = 'coming soon — Mauro Brito';
+        return;
+      }
+
       document.title = proj.name + ' — Mauro Brito';
 
       // ---- header ----
@@ -457,15 +618,103 @@
       head.querySelector('.proj-desc').textContent = proj.desc;
       main.appendChild(head);
 
-      // ---- interactive viewer ----
+      // ---- interactive viewer (model-viewer) ----
+      const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
       const viewerWrap = document.createElement('div');
       viewerWrap.className = 'viewer-wrap';
-      const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+      const enterFsIcon = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/></svg>';
+      const exitFsIcon  = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1v4H1M13 5H9V1M9 13v-4h4M1 9h4v4"/></svg>';
+
       viewerWrap.innerHTML =
         '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
-        '<div class="pcb-stage" id="projectStage"></div>';
+        '<model-viewer id="mv" camera-controls auto-rotate auto-rotate-delay="1500"' +
+        ' rotation-per-second="12deg" shadow-intensity="0.8" exposure="1.05"' +
+        ' camera-orbit="45deg 72deg auto" loading="eager"' +
+        ' style="width:100%;height:100%;background-color:transparent;">' +
+        '<div slot="progress-bar" style="display:none;"></div>' +
+        '</model-viewer>' +
+        '<div class="viewer-reticle" id="mvReticle"></div>' +
+        '<div class="viewer-coords" id="mvCoords"></div>' +
+        '<button class="viewer-fs-btn" id="mvFsBtn" title="Fullscreen" aria-label="Toggle fullscreen">' + enterFsIcon + '</button>' +
+        '<div class="mv-loader" id="mvLoader">' +
+        '<div class="mv-loader-ast"><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span></div>' +
+        '<div class="mv-loader-text">loading 3d model<span class="mv-loader-dots"></span></div>' +
+        '<div class="mv-loader-pct">0%</div>' +
+        '</div>';
+
       main.appendChild(viewerWrap);
-      initPCBViewer('projectStage', proj.pcb, { interactive: true, camDist: 4.6, camHeight: 3.4 });
+
+      const mv       = document.getElementById('mv');
+      const mvLoader = document.getElementById('mvLoader');
+      const mvPct    = mvLoader && mvLoader.querySelector('.mv-loader-pct');
+      const mvReticle = document.getElementById('mvReticle');
+      const mvCoords  = document.getElementById('mvCoords');
+      const mvFsBtn   = document.getElementById('mvFsBtn');
+
+      // Choose model source: mobile → draco&mobile GLB, desktop → full-quality GLB
+      const modelSrc = touchDevice
+        ? (proj.pcb.glbPath || '')
+        : (proj.pcb.glbPathFull || proj.pcb.glbPath || '');
+      if (modelSrc && mv) mv.setAttribute('src', modelSrc);
+
+      // Loading progress + hide loader on complete
+      if (mv && mvLoader) {
+        mv.addEventListener('progress', function (e) {
+          if (mvPct && e.detail && e.detail.totalProgress !== undefined) {
+            mvPct.textContent = Math.round(e.detail.totalProgress * 100) + '%';
+          }
+        });
+        function dismissLoader() {
+          mvLoader.classList.add('hidden');
+          setTimeout(function () { if (mvLoader.parentNode) mvLoader.parentNode.removeChild(mvLoader); }, 450);
+        }
+        mv.addEventListener('load',  dismissLoader);
+        mv.addEventListener('error', dismissLoader);
+      }
+
+      // Camera coordinates overlay (bottom-left) — updates on every camera-change
+      if (mv && mvCoords) {
+        function updateCoords() {
+          try {
+            var o = mv.getCameraOrbit();
+            var t = mv.getCameraTarget();
+            var deg = function (r) { return (r * 180 / Math.PI).toFixed(1); };
+            mvCoords.textContent =
+              'θ ' + deg(o.theta) + '°  φ ' + deg(o.phi) + '°  r ' + o.radius.toFixed(2) + 'm\n' +
+              't  ' + t.x.toFixed(2) + '  ' + t.y.toFixed(2) + '  ' + t.z.toFixed(2);
+          } catch (_) {}
+        }
+        mv.addEventListener('camera-change', updateCoords);
+        mv.addEventListener('load', updateCoords);
+      }
+
+      // Pointer-tracking reticle (crosshair follows cursor inside viewer)
+      if (mvReticle) {
+        viewerWrap.addEventListener('pointermove', function (e) {
+          var rect = viewerWrap.getBoundingClientRect();
+          mvReticle.style.left = (e.clientX - rect.left) + 'px';
+          mvReticle.style.top  = (e.clientY - rect.top)  + 'px';
+          mvReticle.classList.add('visible');
+        });
+        viewerWrap.addEventListener('pointerleave', function () {
+          mvReticle.classList.remove('visible');
+        });
+      }
+
+      // Fullscreen toggle
+      if (mvFsBtn) {
+        mvFsBtn.addEventListener('click', function () {
+          if (!document.fullscreenElement) {
+            viewerWrap.requestFullscreen && viewerWrap.requestFullscreen().catch(function () {});
+          } else {
+            document.exitFullscreen && document.exitFullscreen();
+          }
+        });
+        document.addEventListener('fullscreenchange', function () {
+          mvFsBtn.innerHTML = document.fullscreenElement ? exitFsIcon : enterFsIcon;
+        });
+      }
 
       // ---- about ----
       const aboutLabel = document.createElement('div');

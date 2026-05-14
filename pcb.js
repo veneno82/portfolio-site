@@ -121,9 +121,11 @@
     var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
     var skipForMobile = isMobile && cfg && cfg.mobileSkipGlb === true;
 
+    // Mobile always uses the draco&mobile GLB (preview and dedicated page alike).
+    // Desktop dedicated page uses glbPathFull; previews and mobile use glbPath.
     var resolvedGlbPath = skipForMobile
       ? null
-      : ((interactive && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
+      : ((interactive && !isMobile && cfg && cfg.glbPathFull) ? cfg.glbPathFull : (cfg && cfg.glbPath));
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(W, H);
@@ -174,9 +176,10 @@
     group.rotation.x = -0.28;
     group.rotation.y = 0.40;
 
-    // ── Loading overlay (only on the interactive dedicated page) ────────────
+    // ── Loading overlay (interactive dedicated page AND preview cards) ────────
     var loaderEl = null;
-    if (interactive && resolvedGlbPath) {
+    if (resolvedGlbPath) {
+      container.style.position = 'relative';
       injectLoaderStyles();
       loaderEl = document.createElement('div');
       loaderEl.className = 'pcb-loader';
