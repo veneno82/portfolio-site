@@ -372,7 +372,7 @@
       const onUp = () => {
         dragging = false;
         el.style.cursor = 'grab';
-        spinTimer = setTimeout(() => { autoSpin = true; }, 1000);
+        spinTimer = setTimeout(() => { autoSpin = true; }, 1200);
       };
 
       el.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
