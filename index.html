@@ -10,7 +10,9 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Open+Sauce+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Open+Sauce+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --fg: #141414;
@@ -101,11 +103,10 @@
     }
 
     .nav-name {
-      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 14px;
+      font-weight: 500;
       color: var(--fg);
-      letter-spacing: -0.03em;
+      letter-spacing: -0.01em;
     }
 
     .nav-links-group {
@@ -139,8 +140,14 @@
       -webkit-tap-highlight-color: transparent;
       outline: none;
     }
-    .asterisk-btn:focus { outline: none; }
-    .asterisk-btn:focus-visible { outline: none; }
+
+    .asterisk-btn:focus {
+      outline: none;
+    }
+
+    .asterisk-btn:focus-visible {
+      outline: none;
+    }
 
     .asterisk-static,
     .asterisk-anim {
@@ -256,10 +263,9 @@
     }
 
     .palette-title {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       font-size: 10px;
       letter-spacing: 0.08em;
-      text-transform: lowercase;
+      text-transform: uppercase;
       color: var(--fg2);
       margin-bottom: 2px;
     }
@@ -529,29 +535,6 @@
       background: transparent;
       overflow: hidden;
       pointer-events: none;
-      position: relative;
-    }
-
-    .project-card.placeholder-card {
-      border-style: dashed;
-      opacity: 0.6;
-      cursor: default;
-    }
-    .project-card.placeholder-card:hover {
-      transform: none;
-      box-shadow: none;
-      border-color: var(--border);
-    }
-    .placeholder-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: lowercase;
-      color: var(--fg2);
-      opacity: 0.5;
     }
 
     .project-info {
@@ -716,24 +699,42 @@
 
     /* ── Mobile phones ─────────────────────────────────────────── */
     @media (max-width: 520px) {
+
       /* hide nav links — page is single-scroll, not needed on small screens */
-      .nav-links-group { display: none; }
+      .nav-links-group {
+        display: none;
+      }
+
       /* hide palette customizer — color pickers are awkward on touch */
-      .palette-wrap { display: none; }
+      .palette-wrap {
+        display: none;
+      }
+
       /* tighten up projects grid gap */
-      .projects-grid { gap: 10px; }
+      .projects-grid {
+        gap: 10px;
+      }
+
       /* slightly shorter PCB preview cards */
-      .pcb-viewer { height: 170px; }
+      .pcb-viewer {
+        height: 170px;
+      }
+
       /* allow project card hover lift only on non-touch */
     }
 
     /* show todo delete button always on touch devices */
     @media (hover: none) {
-      .todo-x { opacity: 1 !important; }
+      .todo-x {
+        opacity: 1 !important;
+      }
     }
 
     /* prevent any horizontal bleed */
-    html, body { overflow-x: hidden; }
+    html,
+    body {
+      overflow-x: hidden;
+    }
   </style>
 </head>
 
@@ -1215,31 +1216,21 @@
       window.PROJECT_ORDER.forEach(id => {
         const p = window.PROJECTS[id];
         if (!p) return;
-        const isPlaceholder = !!p.isPlaceholder;
-        const a = document.createElement(isPlaceholder ? 'div' : 'a');
-        a.className = 'project-card' + (isPlaceholder ? ' placeholder-card' : '');
-        if (!isPlaceholder) a.href = '/project/' + encodeURIComponent(id);
-        if (isPlaceholder) {
-          a.innerHTML =
-            '<div class="placeholder-badge">under construction</div>' +
-            '<div class="project-info">' +
-            '<div class="project-name">' + p.name + '</div>' +
-            '<div class="project-meta">' + p.meta + '</div>' +
-            '</div>';
-        } else {
-          a.innerHTML =
-            '<div class="pcb-viewer" id="pcb-' + id + '"></div>' +
-            '<div class="project-info">' +
-            '<div class="project-name"></div>' +
-            '<div class="project-meta"></div>' +
-            '<div class="project-desc"></div>' +
-            '</div>';
-          a.querySelector('.project-name').textContent = p.name;
-          a.querySelector('.project-meta').textContent = p.meta;
-          a.querySelector('.project-desc').textContent = p.desc;
-          initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
-        }
+        const a = document.createElement('a');
+        a.className = 'project-card';
+        a.href = '/project/' + encodeURIComponent(id);
+        a.innerHTML =
+          '<div class="pcb-viewer" id="pcb-' + id + '"></div>' +
+          '<div class="project-info">' +
+          '<div class="project-name"></div>' +
+          '<div class="project-meta"></div>' +
+          '<div class="project-desc"></div>' +
+          '</div>';
+        a.querySelector('.project-name').textContent = p.name;
+        a.querySelector('.project-meta').textContent = p.meta;
+        a.querySelector('.project-desc').textContent = p.desc;
         grid.appendChild(a);
+        initPCBViewer('pcb-' + id, p.pcb, { interactive: false });
       });
     })();
   </script>

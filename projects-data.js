@@ -1,5 +1,5 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['dime', 'gd', 'pihole', 'motor', 'sensor', 'heart', 'under_construction'];
+window.PROJECT_ORDER = ['dime', 'gd', 'pihole', 'motor', 'heart', 'sensor'];
 
 window.PROJECTS = {
   dime: {
@@ -13,8 +13,8 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
-      glbPathFull: 'models%20(pc)/dime3dmodel40mb.glb',
+      glbPath: 'dime_preview.glb',
+      glbPathFull: 'dime3dmodel40mb.glb',
       w: 3.0, h: 2.0,
       traces: [
         { x1: -0.1, z1: -0.1, x2: -0.8, z2: -0.2 }, { x1: -0.1, z1: -0.1, x2: 0.5, z2: 0.15 },
@@ -54,8 +54,6 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
-      glbPathFull: 'models%20(pc)/Gd%203D%20model(blended)glb-compressed.glb',
       w: 2.6, h: 3.4,
       traces: [
         { x1: 0, z1: 0, x2: 0, z2: -1.35, w: 0.025 }, { x1: 0, z1: 0, x2: 0, z2: 1.55, w: 0.025 },
@@ -99,8 +97,9 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath:     'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
-      glbPathFull: 'models%20(pc)/PiHole%20render%20FINAL-compressed.glb',
+      // Super-compressed for the small preview card; full-compressed on the dedicated page.
+      glbPath: 'PiHole%20render%20FINAL-supercompressed%20(.glb',
+      glbPathFull: 'PiHole%20render%20FINAL-compressed.glb',
 
       // The pihole scene is heavy (24MB / 40MB) — phone GPUs OOM and crash the
       // tab. Skip the GLB on mobile and fall back to the procedural board
@@ -146,8 +145,6 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/final%20bldc%20(blended).glb',
-      glbPathFull: 'models%20(pc)/final%20bldc%20(blended).glb',
       w: 3.4, h: 2.2,
       traces: [
         { x1: -0.4, z1: 0.1, x2: 0.6, z2: 0.1, w: 0.048 }, { x1: -0.4, z1: 0.1, x2: -1.0, z2: 0.3, w: 0.035 },
@@ -189,8 +186,6 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/heartpcb.glb',
-      glbPathFull: 'models%20(pc)/heartpcb.glb',
       w: 2.2, h: 2.4,
       traces: [
         { x1: 0, z1: 0.3, x2: -0.5, z2: -0.3, w: 0.02 }, { x1: 0, z1: 0.3, x2: 0.5, z2: -0.3, w: 0.02 },
@@ -220,8 +215,6 @@ window.PROJECTS = {
     ],
     media: [],
     pcb: {
-      glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
-      glbPathFull: 'models%20(pc)/can2usb(blended).glb',
       w: 2.6, h: 1.8,
       traces: [
         { x1: 0, z1: 0, x2: -0.7, z2: 0.0, w: 0.024 },
@@ -259,20 +252,6 @@ window.PROJECTS = {
         { t: 'led', x: 0.0, z: 0.78, col: 0x00cc55 },
         { t: 'crystal', x: -0.15, z: -0.78 },
       ]
-    }
-  },
-
-  under_construction: {
-    name: 'Under Construction',
-    meta: 'coming soon',
-    desc: 'Something new is in the works.',
-    longDesc: ['This project is currently under construction. Check back soon.'],
-    media: [],
-    isPlaceholder: true,
-    pcb: {
-      w: 2.0, h: 2.0,
-      traces: [],
-      components: []
     }
   }
 };
