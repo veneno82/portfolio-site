@@ -586,14 +586,38 @@
       }
       function persist() {
         try {
+          const ts = Date.now();
           localStorage.setItem(DOC_KEY, doc.innerHTML);
-          localStorage.setItem(META_KEY, String(Date.now()));
+          localStorage.setItem(META_KEY, String(ts));
           flashSaved();
           refreshMeta();
+          // push to cloud in background — fire and forget
+          fetch('/api/notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: doc.innerHTML, ts })
+          }).catch(() => {});
         } catch (_) {
           saved.textContent = 'save failed';
         }
       }
+
+      // Pull from cloud on load — if cloud is newer than localStorage, use it.
+      async function loadFromCloud() {
+        try {
+          const r = await fetch('/api/notes');
+          if (!r.ok) return;
+          const data = await r.json();
+          const localTs = Number(localStorage.getItem(META_KEY)) || 0;
+          if (data.ts > localTs && data.content) {
+            doc.innerHTML = data.content;
+            localStorage.setItem(DOC_KEY, data.content);
+            localStorage.setItem(META_KEY, String(data.ts));
+            refreshMeta();
+          }
+        } catch (_) {}
+      }
+      loadFromCloud();
       function schedule() {
         saved.textContent = 'saving…';
         clearTimeout(timer);
