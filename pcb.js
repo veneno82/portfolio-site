@@ -413,7 +413,11 @@
         else if (e.touches.length === 1) { lastPinchDist = null; onDown(e.touches[0].clientX, e.touches[0].clientY); }
       });
       el.addEventListener('wheel', e => {
-        targetFov = Math.max(15, Math.min(75, targetFov + e.deltaY * 0.05));
+        // Trackpad fires many small deltaY ticks (~3-10); mouse wheel fires
+        // fewer large ones (~100). Clamp each event so mouse wheel doesn't
+        // jump, then use a bigger multiplier so trackpad feels responsive too.
+        const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 25);
+        targetFov = Math.max(15, Math.min(75, targetFov + delta * 0.18));
         e.preventDefault();
       }, { passive: false });
     } else {
