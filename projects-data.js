@@ -147,7 +147,7 @@ window.PROJECTS = {
       { type: 'image', url: 'project%20media/bldc%20pic%20png.jpg', name: 'Assembled board' },
       { type: 'image', url: 'project%20media/bldc%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
       { type: 'image', url: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/BLDC%20schematic.png', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/BLDC%20schematic.png', name: 'Schematic', large: true }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
@@ -196,7 +196,7 @@ window.PROJECTS = {
       { type: 'image', url: 'project%20media/can2usb%20pic%20png.png', name: 'Assembled board' },
       { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
       { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/can2usb%20schematic.png', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/can2usb%20schematic.png', name: 'Schematic', large: true }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
@@ -249,7 +249,7 @@ window.PROJECTS = {
       { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', name: 'Assembled board' },
       { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
       { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', name: 'Schematic' }
+      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', name: 'Schematic', large: true }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/heartpcb.glb',

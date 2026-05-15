@@ -405,6 +405,135 @@
       line-height: 1.45;
     }
 
+    /* Schematic / oversized image — spans the full grid row and uses
+       object-fit:contain so the whole drawing is visible (no cropping). */
+    .media-image.large {
+      grid-column: 1 / -1;
+    }
+
+    .media-image.large img {
+      aspect-ratio: 16 / 7;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    [data-theme="dark"] .media-image.large img {
+      background: #f4f4f4;
+    }
+
+    /* ── Lightbox overlay ───────────────────────────────────────────── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.94);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 70px 70px 96px;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .lightbox-counter {
+      position: absolute;
+      top: 22px;
+      left: 26px;
+      font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.75);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lightbox-close,
+    .lightbox-prev,
+    .lightbox-next {
+      position: absolute;
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .lightbox-close:hover,
+    .lightbox-prev:hover,
+    .lightbox-next:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+
+    .lightbox-close {
+      top: 18px;
+      right: 22px;
+      width: 34px;
+      height: 34px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+      top: 50%;
+      transform: translateY(-50%);
+      width: 42px;
+      height: 42px;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .lightbox-prev { left: 18px; }
+    .lightbox-next { right: 18px; }
+
+    .lightbox-caption {
+      position: absolute;
+      bottom: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      max-width: 80%;
+      line-height: 1.5;
+    }
+
+    .lightbox-caption .lb-name {
+      display: block;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .lightbox-caption .lb-cap:empty,
+    .lightbox-caption .lb-name:empty {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .lightbox { padding: 60px 12px 80px; }
+      .lightbox-prev { left: 6px; }
+      .lightbox-next { right: 6px; }
+    }
+
     .not-found {
       text-align: center;
       padding: 80px 0;
@@ -892,6 +1021,7 @@
       filesGrid.className = 'files-grid';
 
       const media = Array.isArray(proj.media) ? proj.media : [];
+      const viewable = []; // collects {url, name, caption} for the lightbox
       if (media.length) {
         media.forEach(m => {
           // Video embed — spans full grid row.
@@ -918,12 +1048,12 @@
             return;
           }
 
-          // Inline image card — thumbnail + caption, click opens full size
+          // Inline image card — thumbnail + caption, click opens the lightbox.
+          // Items flagged `large: true` (typically schematics) span the full row.
           if (m.type === 'image' && m.url) {
             const card = document.createElement('a');
-            card.className = 'media-image';
+            card.className = 'media-image' + (m.large ? ' large' : '');
             card.href = m.url;
-            card.target = '_blank';
             card.rel = 'noopener';
             card.innerHTML =
               '<img alt="" loading="lazy">' +
@@ -936,6 +1066,12 @@
             img.alt = m.name || '';
             card.querySelector('.file-name').textContent = m.name || '(untitled)';
             card.querySelector('.file-caption').textContent = m.caption || '';
+            const lbIdx = viewable.length;
+            viewable.push({ url: m.url, name: m.name || '', caption: m.caption || '' });
+            card.addEventListener('click', e => {
+              e.preventDefault();
+              openLightbox(lbIdx);
+            });
             filesGrid.appendChild(card);
             return;
           }
@@ -964,6 +1100,55 @@
         main.appendChild(empty);
       }
       if (media.length) main.appendChild(filesGrid);
+
+      // ── Lightbox: full-screen image viewer with prev/next + counter ──
+      let lbIndex = 0;
+      const lightbox = document.createElement('div');
+      lightbox.className = 'lightbox';
+      lightbox.innerHTML =
+        '<span class="lightbox-counter"></span>' +
+        '<button class="lightbox-close" aria-label="Close">&times;</button>' +
+        '<button class="lightbox-prev"  aria-label="Previous">&#8249;</button>' +
+        '<button class="lightbox-next"  aria-label="Next">&#8250;</button>' +
+        '<img class="lightbox-img" alt="">' +
+        '<div class="lightbox-caption"><span class="lb-name"></span><span class="lb-cap"></span></div>';
+      document.body.appendChild(lightbox);
+
+      const lbImg     = lightbox.querySelector('.lightbox-img');
+      const lbCounter = lightbox.querySelector('.lightbox-counter');
+      const lbName    = lightbox.querySelector('.lb-name');
+      const lbCap     = lightbox.querySelector('.lb-cap');
+
+      function show(i) {
+        if (!viewable.length) return;
+        lbIndex = (i + viewable.length) % viewable.length;
+        const v = viewable[lbIndex];
+        lbImg.src = v.url;
+        lbImg.alt = v.name;
+        lbCounter.textContent = (lbIndex + 1) + '/' + viewable.length;
+        lbName.textContent = v.name;
+        lbCap.textContent  = v.caption;
+      }
+      function openLightbox(i) {
+        show(i);
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+      lightbox.querySelector('.lightbox-prev').addEventListener('click', e => { e.stopPropagation(); show(lbIndex - 1); });
+      lightbox.querySelector('.lightbox-next').addEventListener('click', e => { e.stopPropagation(); show(lbIndex + 1); });
+      lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+      document.addEventListener('keydown', e => {
+        if (!lightbox.classList.contains('open')) return;
+        if (e.key === 'Escape')     closeLightbox();
+        if (e.key === 'ArrowLeft')  show(lbIndex - 1);
+        if (e.key === 'ArrowRight') show(lbIndex + 1);
+      });
     })();
   </script>
   <script src="/site.js"></script>
