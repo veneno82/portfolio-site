@@ -790,9 +790,36 @@
       height: 100vh;
       border-radius: 0;
       border: none;
-      /* Without an explicit bg the browser fills fullscreen with black,
-         which looks wrong in light mode. Use the theme paper color. */
+      /* Paper color + a touch of surface tint so it isn't pure black in dark mode */
+      background: linear-gradient(var(--surface), var(--surface)), var(--paper);
+    }
+
+    /* Browser-generated layer behind any :fullscreen element — defaults to opaque
+       black. Style it to match the theme so transparency anywhere on the wrap or
+       model-viewer doesn't reveal a black void. */
+    .viewer-wrap:fullscreen::backdrop,
+    .viewer-wrap:-webkit-full-screen::backdrop,
+    .viewer-wrap:-moz-full-screen::backdrop {
       background: var(--paper);
+    }
+
+    /* Make sure the model-viewer canvas itself uses the theme paper in fullscreen
+       (transparent canvas means we'd otherwise see the ::backdrop through it) */
+    .viewer-wrap:fullscreen model-viewer,
+    .viewer-wrap:-webkit-full-screen model-viewer,
+    .viewer-wrap:-moz-full-screen model-viewer {
+      background-color: var(--paper);
+    }
+
+    [data-theme="dark"] .viewer-wrap:fullscreen,
+    [data-theme="dark"] .viewer-wrap:-webkit-full-screen,
+    [data-theme="dark"] .viewer-wrap:-moz-full-screen,
+    [data-theme="dark"] .viewer-wrap:fullscreen model-viewer,
+    [data-theme="dark"] .viewer-wrap:fullscreen::backdrop,
+    [data-theme="dark"] .viewer-wrap:-webkit-full-screen::backdrop {
+      /* Slightly lighter than the regular --paper (#0e0e10) so it's clearly
+         not the browser's default pure black */
+      background: #18181c;
     }
 
     /* ── model-viewer loading overlay (matches pcb.js loader style) ──────── */
