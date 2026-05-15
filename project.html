@@ -783,43 +783,17 @@
     }
     .viewer-fs-btn:hover { opacity: 1; color: var(--fg); }
 
-    .viewer-wrap:fullscreen,
-    .viewer-wrap:-webkit-full-screen,
-    .viewer-wrap:-moz-full-screen {
+    /* "Expanded" mode — pseudo-fullscreen overlay that fills the browser viewport
+       without invoking the real Fullscreen API (so the Chrome chrome stays put). */
+    .viewer-wrap.expanded {
+      position: fixed;
+      inset: 0;
       width: 100vw;
       height: 100vh;
       border-radius: 0;
       border: none;
-      /* Paper color + a touch of surface tint so it isn't pure black in dark mode */
-      background: linear-gradient(var(--surface), var(--surface)), var(--paper);
-    }
-
-    /* Browser-generated layer behind any :fullscreen element — defaults to opaque
-       black. Style it to match the theme so transparency anywhere on the wrap or
-       model-viewer doesn't reveal a black void. */
-    .viewer-wrap:fullscreen::backdrop,
-    .viewer-wrap:-webkit-full-screen::backdrop,
-    .viewer-wrap:-moz-full-screen::backdrop {
+      z-index: 9000;
       background: var(--paper);
-    }
-
-    /* Make sure the model-viewer canvas itself uses the theme paper in fullscreen
-       (transparent canvas means we'd otherwise see the ::backdrop through it) */
-    .viewer-wrap:fullscreen model-viewer,
-    .viewer-wrap:-webkit-full-screen model-viewer,
-    .viewer-wrap:-moz-full-screen model-viewer {
-      background-color: var(--paper);
-    }
-
-    [data-theme="dark"] .viewer-wrap:fullscreen,
-    [data-theme="dark"] .viewer-wrap:-webkit-full-screen,
-    [data-theme="dark"] .viewer-wrap:-moz-full-screen,
-    [data-theme="dark"] .viewer-wrap:fullscreen model-viewer,
-    [data-theme="dark"] .viewer-wrap:fullscreen::backdrop,
-    [data-theme="dark"] .viewer-wrap:-webkit-full-screen::backdrop {
-      /* Slightly lighter than the regular --paper (#0e0e10) so it's clearly
-         not the browser's default pure black */
-      background: #18181c;
     }
 
     /* ── model-viewer loading overlay (matches pcb.js loader style) ──────── */
@@ -1061,17 +1035,21 @@
         });
       }
 
-      // Fullscreen toggle
+      // "Expand" toggle — overlay that fills the browser viewport instead of
+      // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
       if (mvFsBtn) {
+        function setExpanded(on) {
+          viewerWrap.classList.toggle('expanded', on);
+          document.body.style.overflow = on ? 'hidden' : '';
+          mvFsBtn.innerHTML = on ? exitFsIcon : enterFsIcon;
+        }
         mvFsBtn.addEventListener('click', function () {
-          if (!document.fullscreenElement) {
-            viewerWrap.requestFullscreen && viewerWrap.requestFullscreen().catch(function () {});
-          } else {
-            document.exitFullscreen && document.exitFullscreen();
-          }
+          setExpanded(!viewerWrap.classList.contains('expanded'));
         });
-        document.addEventListener('fullscreenchange', function () {
-          mvFsBtn.innerHTML = document.fullscreenElement ? exitFsIcon : enterFsIcon;
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && viewerWrap.classList.contains('expanded')) {
+            setExpanded(false);
+          }
         });
       }
 
