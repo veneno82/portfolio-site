@@ -13,8 +13,8 @@ window.PROJECTS = {
       'Tuning was the hard part: too much P and it oscillated, too little D and it fell. The final loop runs at 500 Hz on the ESP32, with telemetry streamed to a small browser dashboard for live PID gain tweaking.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/dimepic.png', subtype: 'photo', name: 'Robot', caption: 'two-wheel self-balancer at rest' },
-      { type: 'image', url: 'project%20media/dime%20diagram.jpeg', subtype: 'diagram', name: 'Control diagram', caption: 'nested PID + complementary filter' }
+      { kind: 'image', type: 'photo',   src: 'project%20media/dimepic.png',         name: 'Dime, assembled',       caption: 'final build standing upright on the bench during a balancing test.' },
+      { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Control loop diagram', caption: 'nested PID — outer tilt-angle loop wraps an inner wheel-velocity loop at 500 Hz.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
@@ -58,9 +58,9 @@ window.PROJECTS = {
       'Won "Best Game" at the UT Austin ECE319K end-of-semester showcase, beating ~70 teams. Source includes the level editor used to author the demo tracks.'
     ],
     media: [
-      { type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'running on the MSPM0G3507 at the ECE319K showcase' },
-      { type: 'image', url: 'project%20media/GD%20pic%202.jpg', subtype: 'photo', name: 'Build photo' },
-      { type: 'image', url: 'project%20media/GD%20pic%20png.jpg', subtype: 'photo', name: 'Hardware setup' }
+      { kind: 'video', type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'running on the MSPM0G3507 at the ECE319K showcase.', span: 'wide' },
+      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%20png.jpg', name: 'Gameplay on hardware', caption: 'level running on the MSPM0 dev board — 320×240 SPI LCD at 60 FPS.' },
+      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%202.jpg',   name: 'Showcase day',         caption: 'on the floor at the ECE319K end-of-semester showcase.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
@@ -108,7 +108,7 @@ window.PROJECTS = {
       'The "PCB" here is the actual Raspberry Pi 4 board model — nostalgic rendering of the layout I keep behind the TV.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/pihole%20pic.png', subtype: 'photo', name: 'Setup', caption: 'Pi running pi-hole behind the TV' }
+      { kind: 'image', type: 'photo', src: 'project%20media/pihole%20pic.png', name: 'Pi-hole admin dashboard', caption: 'live query log — roughly 28% of LAN DNS traffic getting black-holed at the resolver.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
@@ -144,10 +144,10 @@ window.PROJECTS = {
       'Designed in KiCad, fabbed by JLCPCB. Drives the wheels on the Dime balancing robot.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/bldc%20pic%20png.jpg', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/BLDC%20schematic.png', name: 'Schematic', large: true }
+      { kind: 'image', type: 'photo',     src: 'project%20media/bldc%20pic%20png.jpg',              name: 'Fabbed board',    caption: 'assembled board fresh off JLCPCB — 2 oz copper power planes for the bridge.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE.png',         name: 'Render — top',    caption: 'KiCad 3D render, top side. Bulk caps flank the H-bridge MOSFETs.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render — bottom', caption: 'bottom side — separate signal ground for the gate driver, stitched with vias.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/BLDC%20schematic.png',               name: 'Schematic',       caption: 'four-MOSFET H-bridge with dedicated gate driver IC and high-side current sense shunt.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
@@ -193,10 +193,10 @@ window.PROJECTS = {
       'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
     ],
     media: [
-      { type: 'image', url: 'project%20media/can2usb%20pic%20png.png', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/can2usb%20schematic.png', name: 'Schematic', large: true }
+      { kind: 'image', type: 'photo',     src: 'project%20media/can2usb%20pic%20png.png',              name: 'Assembled module', caption: 'four-layer board, populated — sensor stack and STM32G0 bridge MCU.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE.png',         name: 'Render — top',     caption: 'top side render. USB-C on one end, breakout header on the other.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render — bottom',  caption: 'bottom side — passives and the tiny SPI flash for DFU firmware updates.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/can2usb%20schematic.png',               name: 'Schematic',        caption: 'I²C sensor bus, USB-CDC bridge, and the time-base hardware timer feeding sample timestamps.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
@@ -245,11 +245,11 @@ window.PROJECTS = {
       'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
     ],
     media: [
-      { type: 'video', url: 'project%20media/heartpcb%20vid.mp4', name: 'Animations', caption: 'heartbeat pulse, sparkle, and outline-trace patterns' },
-      { type: 'image', url: 'project%20media/heartpcb%20pic%20png.png', name: 'Assembled board' },
-      { type: 'image', url: 'project%20media/heartpcb%20render%20IMAGE.png', name: 'Render — front', caption: 'KiCad 3D render' },
-      { type: 'image', url: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back' },
-      { type: 'image', url: 'project%20media/heartpcb%20schematic.png', name: 'Schematic', large: true }
+      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'heartbeat-pulse pattern running live on the board.', poster: 'project%20media/heartpcb%20pic%20png.png', span: 'wide' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'Lit up',         caption: 'all 20 charlieplexed SMD LEDs alive — only five GPIOs driving the entire array.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render — front', caption: 'KiCad 3D view, front. Custom heart-shaped edge cut with silkscreen accents.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back',  caption: 'back side — ATtiny, current-limit resistors, and the programming header.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/heartpcb%20schematic.png',               name: 'Schematic',      caption: 'charlieplex matrix — five GPIOs, twenty LEDs, zero external drivers.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/heartpcb.glb',
