@@ -247,7 +247,7 @@ window.PROJECTS = {
       'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
     ],
     media: [
-      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'heartbeat-pulse pattern running live on the board.', poster: 'project%20media/heartpcb%20pic%20png.png', span: 'wide' },
+      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'heartbeat-pulse pattern running live on the board.', poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
       { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'Lit up',         caption: 'all 20 charlieplexed SMD LEDs alive — only five GPIOs driving the entire array.' },
       { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render — front', caption: 'KiCad 3D view, front. Custom heart-shaped edge cut with silkscreen accents.' },
       { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back',  caption: 'back side — ATtiny, current-limit resistors, and the programming header.' },
