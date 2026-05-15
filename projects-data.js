@@ -99,7 +99,7 @@ window.PROJECTS = {
 
   pihole: {
     name: 'Pi-hole Adblocker',
-    previewImg: 'project%20media/pihole%20pic.png',
+    previewImg: 'project%20media/pi-hole-dash.png',
     meta: 'Raspberry Pi, DNS, Linux',
     desc: 'Network-wide DNS sinkhole on a Raspberry Pi.',
     longDesc: [
@@ -108,7 +108,9 @@ window.PROJECTS = {
       'The "PCB" here is the actual Raspberry Pi 4 board model — nostalgic rendering of the layout I keep behind the TV.'
     ],
     media: [
-      { kind: 'image', type: 'photo', src: 'project%20media/pihole%20pic.png', name: 'Pi-hole admin dashboard', caption: 'live query log — roughly 28% of LAN DNS traffic getting black-holed at the resolver.' }
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi-hole-dash.png',         name: 'Admin dashboard', caption: 'live query log + per-domain block stats.' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20performance.png', name: 'Performance',     caption: '96 MB RAM, near-zero CPU time, handling 30K+ requests — barely breaking a sweat.' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20setup.png',       name: 'Hardware setup',  caption: 'the Pi 4 living behind the TV — the actual box doing all the DNS sinkholing.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
