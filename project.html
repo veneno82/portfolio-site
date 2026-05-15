@@ -540,10 +540,6 @@
       gap: 14px;
     }
 
-    .lightbox-mediaWrap {
-      position: relative;
-    }
-
     .lightbox-media {
       max-width: min(1400px, 100%);
       max-height: calc(100vh - 160px);
@@ -609,10 +605,6 @@
       border-color: var(--fg2);
     }
 
-    /* Prev/next live inside lightbox-mediaWrap and are absolute so they
-       always center vertically on the image, not the full viewport. */
-    .lightbox-prev,
-    .lightbox-next { position: absolute; }
     .lightbox-prev { left: 8px; }
     .lightbox-next { right: 8px; }
 
@@ -1251,16 +1243,15 @@
             '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>' +
             '</button>' +
             '<div class="lightbox-stage">' +
-            '<div class="lightbox-mediaWrap">' +
+            '<div class="lightbox-mediaWrap"></div>' +
+            '<div class="lightbox-caption"></div>' +
+            '</div>' +
             '<button class="lightbox-btn lightbox-prev" aria-label="Previous">' +
             '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L4 8l6 6"/></svg>' +
             '</button>' +
             '<button class="lightbox-btn lightbox-next" aria-label="Next">' +
             '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l6 6-6 6"/></svg>' +
-            '</button>' +
-            '</div>' +
-            '<div class="lightbox-caption"></div>' +
-            '</div>';
+            '</button>';
           document.body.appendChild(lb);
 
           const lbWrap    = lb.querySelector('.lightbox-mediaWrap');
