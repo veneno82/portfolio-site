@@ -108,9 +108,9 @@ window.PROJECTS = {
       'The "PCB" here is the actual Raspberry Pi 4 board model — nostalgic rendering of the layout I keep behind the TV.'
     ],
     media: [
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20setup.png',       name: 'Hardware setup',  caption: 'the Pi 4 living behind the TV — the actual box doing all the DNS sinkholing.' },
       { kind: 'image', type: 'photo',     src: 'project%20media/pi-hole-dash.png',         name: 'Admin dashboard', caption: 'live query log + per-domain block stats.' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20performance.png', name: 'Performance',     caption: '96 MB RAM, near-zero CPU time, handling 30K+ requests — barely breaking a sweat.' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20setup.png',       name: 'Hardware setup',  caption: 'the Pi 4 living behind the TV — the actual box doing all the DNS sinkholing.' }
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20performance.png', name: 'Performance',     caption: '96 MB RAM, near-zero CPU time, handling 30K+ requests — barely breaking a sweat.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
