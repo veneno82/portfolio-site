@@ -790,6 +790,9 @@
       height: 100vh;
       border-radius: 0;
       border: none;
+      /* Without an explicit bg the browser fills fullscreen with black,
+         which looks wrong in light mode. Use the theme paper color. */
+      background: var(--paper);
     }
 
     /* ── model-viewer loading overlay (matches pcb.js loader style) ──────── */
