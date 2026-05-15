@@ -1046,12 +1046,25 @@
       // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
       if (mvFsBtn) {
         function setExpanded(on) {
+          // Mask the one-frame WebGL canvas resize lag: without this, model-viewer's
+          // drawing buffer is still at the old size when the wrapper jumps to/from
+          // fullscreen, so the scene briefly renders into a corner of the new box.
+          if (mv) mv.style.visibility = 'hidden';
+
           viewerWrap.classList.toggle('expanded', on);
           // Lock scroll on both <html> and <body> so the page scrollbar fully
           // disappears (body alone leaves a gutter in some browsers).
           document.documentElement.style.overflow = on ? 'hidden' : '';
           document.body.style.overflow           = on ? 'hidden' : '';
           mvFsBtn.innerHTML = on ? exitFsIcon : enterFsIcon;
+
+          // Two RAFs: first lets layout/ResizeObserver fire, second lets the
+          // renderer paint at the new size before we reveal.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              if (mv) mv.style.visibility = '';
+            });
+          });
         }
         mvFsBtn.addEventListener('click', function () {
           setExpanded(!viewerWrap.classList.contains('expanded'));
