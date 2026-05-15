@@ -1306,7 +1306,29 @@
             btnPrev.style.display = single ? 'none' : '';
             btnNext.style.display = single ? 'none' : '';
             lbCounter.style.display = single ? 'none' : '';
+            // Position buttons at the vertical center of the media element,
+            // not the viewport — the image is rarely at exactly 50vh.
+            alignBtns(el);
           }
+
+          function alignBtns(el) {
+            function place() {
+              const r = el.getBoundingClientRect();
+              if (r.height === 0) return;
+              const mid = r.top + r.height / 2;
+              btnPrev.style.top = mid + 'px';
+              btnNext.style.top = mid + 'px';
+            }
+            if (el.tagName === 'IMG' && !el.complete) {
+              el.addEventListener('load', place, { once: true });
+            } else {
+              requestAnimationFrame(place);
+            }
+          }
+          window.addEventListener('resize', function () {
+            const el = lbWrap.querySelector('.lightbox-media');
+            if (el) alignBtns(el);
+          });
 
           openLightbox = function (i) {
             render(i);
