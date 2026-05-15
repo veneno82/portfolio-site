@@ -99,7 +99,7 @@ window.PROJECTS = {
 
   pihole: {
     name: 'Pi-hole Adblocker',
-    previewImg: 'project%20media/pi-hole-dash.png',
+    previewImg: 'project%20media/pi%20hole%20setup.png',
     meta: 'Raspberry Pi, DNS, Linux',
     desc: 'Network-wide DNS sinkhole on a Raspberry Pi.',
     longDesc: [

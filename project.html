@@ -595,6 +595,9 @@
       -webkit-backdrop-filter: blur(8px);
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      /* Stage comes after the buttons in DOM and is position:relative, so it
+         would otherwise stack on top and swallow taps on mobile. */
+      z-index: 10;
     }
 
     .lightbox-btn:hover {
@@ -625,7 +628,9 @@
 
     @media (max-width: 600px) {
       .media-grid { grid-template-columns: 1fr; gap: 12px; }
-      .lightbox { padding: 48px 14px; }
+      /* Wider horizontal padding so the prev/next buttons sit in a gutter
+         outside the image area instead of covering it. */
+      .lightbox { padding: 48px 56px; }
       .lightbox-btn { width: 36px; height: 36px; }
       .lightbox-prev { left: 8px; }
       .lightbox-next { right: 8px; }
