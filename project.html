@@ -796,6 +796,13 @@
       background: var(--paper);
     }
 
+    /* Nudge the close button inward in expanded mode so it doesn't sit under
+       the scrollbar gutter on browsers that keep it reserved. */
+    .viewer-wrap.expanded .viewer-fs-btn {
+      top: 18px;
+      right: 22px;
+    }
+
     /* ── model-viewer loading overlay (matches pcb.js loader style) ──────── */
     .mv-loader {
       position: absolute;
@@ -1039,9 +1046,39 @@
       // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
       if (mvFsBtn) {
         function setExpanded(on) {
+          // Capture the current camera state before the resize so we can pin
+          // it back afterwards — model-viewer otherwise re-frames the model
+          // with a visible interpolation when the canvas size changes.
+          var frozen = null;
+          try {
+            if (mv && mv.getCameraOrbit) {
+              var o = mv.getCameraOrbit();
+              var t = mv.getCameraTarget();
+              frozen = {
+                orbit:  o.theta + 'rad ' + o.phi + 'rad ' + o.radius + 'm',
+                target: t.x + 'm ' + t.y + 'm ' + t.z + 'm'
+              };
+            }
+          } catch (_) {}
+
           viewerWrap.classList.toggle('expanded', on);
-          document.body.style.overflow = on ? 'hidden' : '';
+          // Lock scroll on both <html> and <body> so the page scrollbar fully
+          // disappears (body alone leaves a gutter in some browsers).
+          document.documentElement.style.overflow = on ? 'hidden' : '';
+          document.body.style.overflow           = on ? 'hidden' : '';
           mvFsBtn.innerHTML = on ? exitFsIcon : enterFsIcon;
+
+          // After layout settles, restore the saved camera and snap to it
+          // without any animation.
+          if (frozen) {
+            requestAnimationFrame(function () {
+              try {
+                mv.setAttribute('camera-orbit',  frozen.orbit);
+                mv.setAttribute('camera-target', frozen.target);
+                if (mv.jumpCameraToGoal) mv.jumpCameraToGoal();
+              } catch (_) {}
+            });
+          }
         }
         mvFsBtn.addEventListener('click', function () {
           setExpanded(!viewerWrap.classList.contains('expanded'));
