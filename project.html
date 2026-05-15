@@ -966,7 +966,9 @@
 
       viewerWrap.innerHTML =
         '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
-        '<model-viewer id="mv" camera-controls shadow-intensity="0.8" exposure="1.05"' +
+        // interpolation-decay="0" → instant camera transitions, kills the
+        // reframing animation that played out when the wrap resized on expand.
+        '<model-viewer id="mv" camera-controls interpolation-decay="0" shadow-intensity="0.8" exposure="1.05"' +
         ' camera-orbit="' + (proj.pcb.mvCameraOrbit || '45deg 72deg auto') + '"' +
         (proj.pcb.mvCameraTarget ? ' camera-target="' + proj.pcb.mvCameraTarget + '"' : '') +
         (proj.pcb.mvMinOrbit ? ' min-camera-orbit="' + proj.pcb.mvMinOrbit + '"' : '') +
