@@ -1,16 +1,21 @@
 (function(){
   /* ── CONSTANTS ─────────────────────────────────────────────── */
   const DOC_KEY='mb_notes_doc', META_KEY='mb_notes_doc_meta', PIN_KEY='mb_notes_pinned',
-        TODO_KEY='mb_notes_todos', TODO_TS_KEY='mb_notes_todos_ts', THEME_KEY='mb_theme';
-  const COLORS=['#141414','#6e6e73','#e55','#e87d2f','#e8b63a','#34c759',
-                '#30b0c7','#3478f6','#8944e0','#e54f8a','#8b6f47','#f0f0f2'];
+        TODO_KEY='mb_notes_todos', TODO_TS_KEY='mb_notes_todos_ts', THEME_KEY='mb_theme',
+        SWATCH_KEY='mb_color_swatches', HL_SWATCH_KEY='mb_hl_swatches', PIN_COLOR_KEY='mb_pin_color';
+
+  // 5 default swatches: mint, blue, purple, pink, orange
+  const DEFAULT_SWATCHES=['#3ecf8e','#3478f6','#8944e0','#e54f8a','#e87d2f'];
+  const DEFAULT_HL_SWATCHES=['#a8f0c8','#a0cfff','#cba8f0','#f0a8c8','#ffe0a0'];
+  const PIN_COLORS=['#ffcc00','#ff9500','#ff6b6b','#a8f0c8','#a0cfff','#cba8f0','#f5f5dc','#d4d4d4'];
 
   /* ── DOM ────────────────────────────────────────────────────── */
   const $=id=>document.getElementById(id);
   const root=document.documentElement, doc=$('doc'), savedEl=$('savedIndicator'),
         toggle=$('themeToggle'), pinnedBody=$('pinnedBody'), pinnedSection=$('pinnedSection'),
         pinnedHeader=$('pinnedHeader'), todoList=$('todoList'), todoForm=$('todoForm'),
-        todoInput=$('todoInput'), todoCount=$('todoCount');
+        todoInput=$('todoInput'), todoCount=$('todoCount'), panelNotes=$('panelNotes'),
+        panelTodos=$('panelTodos');
 
   /* ── THEME ──────────────────────────────────────────────────── */
   toggle.addEventListener('click',()=>{
@@ -21,7 +26,6 @@
 
   /* ── MOBILE TABS ────────────────────────────────────────────── */
   const tabBtns=document.querySelectorAll('.tab-btn');
-  const panelNotes=$('panelNotes'), panelTodos=$('panelTodos');
   let isMobile=()=>window.innerWidth<=840;
   function applyTab(){
     if(!isMobile()){panelNotes.classList.remove('hidden-mobile');panelTodos.classList.remove('hidden-mobile');return}
@@ -74,7 +78,6 @@
     }catch(_){}
   }
   loadNotesCloud();
-
   window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistNotes()}});
 
   /* ── PASTE PLAIN TEXT ───────────────────────────────────────── */
@@ -84,10 +87,42 @@
   /* ── PINNED TOGGLE ──────────────────────────────────────────── */
   let pinCollapsed=localStorage.getItem('mb_pin_collapsed')==='1';
   if(pinCollapsed)pinnedSection.classList.add('collapsed');
-  pinnedHeader.addEventListener('click',()=>{
+  pinnedHeader.addEventListener('click',e=>{
+    // don't toggle if clicking the color button area
+    if(e.target.closest('.pinned-color-btn')||e.target.closest('.pin-color-popup'))return;
     pinCollapsed=!pinCollapsed;pinnedSection.classList.toggle('collapsed',pinCollapsed);
     localStorage.setItem('mb_pin_collapsed',pinCollapsed?'1':'0');
   });
+
+  /* ── PINNED COLOR PICKER ────────────────────────────────────── */
+  const pinColorBtn=$('pinColorBtn'), pinColorPopup=$('pinColorPopup');
+  let currentPinColor=localStorage.getItem(PIN_COLOR_KEY)||'#ffcc00';
+  function applyPinColor(hex){
+    currentPinColor=hex;
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    pinnedSection.style.background=`rgba(${r},${g},${b},.08)`;
+    pinnedSection.style.borderColor=`rgba(${r},${g},${b},.25)`;
+    pinColorBtn.style.background=hex;
+    localStorage.setItem(PIN_COLOR_KEY,hex);
+  }
+  applyPinColor(currentPinColor);
+
+  // build pin color popup
+  PIN_COLORS.forEach(c=>{
+    const s=document.createElement('button');s.type='button';s.className='pin-color-swatch';
+    s.style.background=c;
+    s.addEventListener('click',e=>{e.stopPropagation();applyPinColor(c);pinColorPopup.classList.remove('open');
+      pinColorPopup.querySelectorAll('.pin-color-swatch').forEach(el=>el.classList.toggle('selected',el.style.background===s.style.background))});
+    pinColorPopup.appendChild(s);
+  });
+  const pinHex=document.createElement('input');pinHex.type='text';pinHex.className='pin-hex-input';
+  pinHex.placeholder='#hex';pinHex.maxLength=7;
+  pinHex.addEventListener('click',e=>e.stopPropagation());
+  pinHex.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopPropagation();
+    const v=pinHex.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){applyPinColor(v);pinColorPopup.classList.remove('open')}}});
+  pinColorPopup.appendChild(pinHex);
+
+  pinColorBtn.addEventListener('click',e=>{e.stopPropagation();pinColorPopup.classList.toggle('open')});
 
   /* ── TOOLBAR: FORMAT BUTTONS ────────────────────────────────── */
   document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn=>{
@@ -107,47 +142,75 @@
   $('tbSize').addEventListener('change',function(){
     doc.focus();document.execCommand('fontSize',false,this.value);scheduleNoteSave()});
 
-  /* ── TOOLBAR: COLOR PICKER ──────────────────────────────────── */
-  const colorPopup=$('colorPopup'), colorDot=$('tbColorDot'), colorBtn=$('tbColorBtn');
-  COLORS.forEach(c=>{
-    const s=document.createElement('button');s.type='button';s.className='color-swatch';
-    s.style.background=c;s.title=c;
-    s.addEventListener('click',e=>{e.stopPropagation();doc.focus();
-      document.execCommand('foreColor',false,c);colorDot.style.background=c;
-      colorPopup.classList.remove('open');scheduleNoteSave()});
-    colorPopup.appendChild(s);
-  });
-  colorBtn.addEventListener('click',e=>{e.stopPropagation();colorPopup.classList.toggle('open');
-    $('tablePopup').classList.remove('open')});
+  /* ── COLOR PICKER (5 customizable swatches + hex) ──────────── */
+  function loadSwatches(key,defaults){
+    try{const s=JSON.parse(localStorage.getItem(key));if(Array.isArray(s)&&s.length===5)return s}catch(_){}
+    return[...defaults];
+  }
+  function saveSwatches(key,arr){try{localStorage.setItem(key,JSON.stringify(arr))}catch(_){}}
 
-  /* ── TOOLBAR: TABLE GRID ────────────────────────────────────── */
-  const tablePopup=$('tablePopup'),tableGrid=$('tableGrid'),tableSizeLabel=$('tableSizeLabel');
-  for(let r=1;r<=5;r++)for(let c=1;c<=5;c++){
-    const cell=document.createElement('button');cell.type='button';cell.className='table-cell';
-    cell.dataset.r=r;cell.dataset.c=c;
-    cell.addEventListener('mouseenter',()=>{
-      tableSizeLabel.textContent=c+'×'+r;
-      tableGrid.querySelectorAll('.table-cell').forEach(el=>{
-        el.classList.toggle('highlight',+el.dataset.r<=r&&+el.dataset.c<=c)});
+  function buildColorPicker(opts){
+    const {popupEl,swatchesEl,hexInput,applyBtn,dotEl,key,defaults,command}=opts;
+    let swatches=loadSwatches(key,defaults);
+    let selectedIdx=0;
+
+    function renderSwatches(){
+      swatchesEl.innerHTML='';
+      swatches.forEach((c,i)=>{
+        const s=document.createElement('button');s.type='button';s.className='color-swatch'+(i===selectedIdx?' selected':'');
+        s.style.background=c;
+        s.addEventListener('click',e=>{e.stopPropagation();selectedIdx=i;
+          doc.focus();document.execCommand(command,false,c);
+          dotEl.style.background=c;scheduleNoteSave();
+          swatchesEl.querySelectorAll('.color-swatch').forEach((el,j)=>el.classList.toggle('selected',j===i));
+        });
+        // right-click to start editing this swatch
+        s.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();
+          selectedIdx=i;hexInput.value=c;hexInput.focus();
+          swatchesEl.querySelectorAll('.color-swatch').forEach((el,j)=>el.classList.toggle('selected',j===i));
+        });
+        swatchesEl.appendChild(s);
+      });
+    }
+    renderSwatches();
+
+    applyBtn.addEventListener('click',e=>{e.stopPropagation();
+      const v=hexInput.value.trim();if(!/^#[0-9a-fA-F]{6}$/.test(v))return;
+      swatches[selectedIdx]=v;saveSwatches(key,swatches);renderSwatches();
+      doc.focus();document.execCommand(command,false,v);dotEl.style.background=v;
+      scheduleNoteSave();popupEl.classList.remove('open');
     });
-    cell.addEventListener('click',e=>{e.stopPropagation();insertTable(+cell.dataset.r,+cell.dataset.c);
-      tablePopup.classList.remove('open')});
-    tableGrid.appendChild(cell);
+    hexInput.addEventListener('click',e=>e.stopPropagation());
+    hexInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyBtn.click()}});
   }
-  $('tbTableBtn').addEventListener('click',e=>{e.stopPropagation();tablePopup.classList.toggle('open');
+
+  // Text color picker
+  const colorPopup=$('colorPopup'),colorBtn=$('tbColorBtn'),colorDot=$('tbColorDot');
+  buildColorPicker({popupEl:colorPopup,swatchesEl:$('colorSwatches'),hexInput:$('colorHexInput'),
+    applyBtn:$('colorHexApply'),dotEl:colorDot,key:SWATCH_KEY,defaults:DEFAULT_SWATCHES,command:'foreColor'});
+  colorBtn.addEventListener('click',e=>{e.stopPropagation();colorPopup.classList.toggle('open');
+    $('highlightPopup').classList.remove('open')});
+
+  // Highlight picker
+  const hlPopup=$('highlightPopup'),hlBtn=$('tbHighlightBtn'),hlDot=$('tbHighlightDot');
+  buildColorPicker({popupEl:hlPopup,swatchesEl:$('highlightSwatches'),hexInput:$('highlightHexInput'),
+    applyBtn:$('highlightHexApply'),dotEl:hlDot,key:HL_SWATCH_KEY,defaults:DEFAULT_HL_SWATCHES,command:'hiliteColor'});
+  hlBtn.addEventListener('click',e=>{e.stopPropagation();hlPopup.classList.toggle('open');
     colorPopup.classList.remove('open')});
-  tableGrid.addEventListener('mouseleave',()=>{tableSizeLabel.textContent='';
-    tableGrid.querySelectorAll('.table-cell').forEach(el=>el.classList.remove('highlight'))});
 
-  function insertTable(rows,cols){
-    let h='<table><tbody>';
-    for(let r=0;r<rows;r++){h+='<tr>';for(let c=0;c<cols;c++)h+='<td>&nbsp;</td>';h+='</tr>'}
-    h+='</tbody></table><p><br></p>';
-    doc.focus();document.execCommand('insertHTML',false,h);scheduleNoteSave();
-  }
+  /* close all popups on outside click */
+  document.addEventListener('click',()=>{
+    colorPopup.classList.remove('open');hlPopup.classList.remove('open');pinColorPopup.classList.remove('open')});
 
-  /* close popups on outside click */
-  document.addEventListener('click',()=>{colorPopup.classList.remove('open');tablePopup.classList.remove('open')});
+  /* ── KEYBOARD SHORTCUTS ─────────────────────────────────────── */
+  doc.addEventListener('keydown',e=>{
+    const mod=e.ctrlKey||e.metaKey;
+    if(mod&&e.shiftKey&&e.key.toLowerCase()==='x'){e.preventDefault();document.execCommand('strikeThrough');scheduleNoteSave()}
+    if(mod&&e.shiftKey&&e.key.toLowerCase()==='h'){e.preventDefault();
+      const hl=loadSwatches(HL_SWATCH_KEY,DEFAULT_HL_SWATCHES);
+      document.execCommand('hiliteColor',false,hl[0]);scheduleNoteSave()}
+    if(mod&&e.shiftKey&&e.key.toLowerCase()==='c'){e.preventDefault();colorPopup.classList.toggle('open');hlPopup.classList.remove('open')}
+  });
 
   /* ── FOCUS DOC ON LOAD ──────────────────────────────────────── */
   setTimeout(()=>{doc.focus();try{const r=document.createRange();r.selectNodeContents(doc);
@@ -188,7 +251,6 @@
 
   function renderTodos(){
     let items=loadTodos();
-    // ensure all items have indent
     items.forEach(t=>{if(t.indent===undefined)t.indent=0;if(!t.id)t.id=Math.random().toString(36).slice(2,9)});
     const sorted=sortedTodos(items);
     const activeCount=sorted.filter(t=>!t.done).length;
@@ -198,7 +260,7 @@
       const e=document.createElement('li');e.className='todo-empty';
       e.textContent='no tasks yet — add one above';todoList.appendChild(e);return}
     let shownDoneSep=false;
-    sorted.forEach((it,si)=>{
+    sorted.forEach((it)=>{
       const realIdx=items.findIndex(t=>t.id===it.id);
       if(it.done&&!shownDoneSep){shownDoneSep=true;
         const sep=document.createElement('div');sep.className='todo-separator';
@@ -250,7 +312,7 @@
     items.unshift({id:Math.random().toString(36).slice(2,9),text,done:false,indent:0,ts:Date.now()});
     saveTodos(items);todoInput.value='';renderTodos()});
 
-  /* Indent/Outdent/Undo buttons */
+  /* Indent/Outdent/Undo buttons (mobile only, but always wired) */
   $('todoIndentBtn').addEventListener('click',()=>{
     if(focusedTodoIdx===null)return;const cur=loadTodos();
     if(cur[focusedTodoIdx]&&cur[focusedTodoIdx].indent<3){cur[focusedTodoIdx].indent++;saveTodos(cur);renderTodos()}});
