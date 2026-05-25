@@ -27,439 +27,179 @@
       --paper: #0e0e10;
     }
 
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-      color: var(--fg);
-      font-size: 15px;
-      line-height: 1.65;
-      background: var(--paper);
-      transition: background 0.35s, color 0.35s;
-      min-height: 100vh;
+      color: var(--fg); font-size: 15px; line-height: 1.65;
+      background: var(--paper); transition: background 0.35s, color 0.35s; min-height: 100vh;
     }
 
     nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 0 36px;
-      height: 52px;
-      background: var(--nav-bg);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 1px solid var(--border);
-      transition: background 0.35s, border-color 0.35s;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      padding: 0 36px; height: 52px; background: var(--nav-bg);
+      backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border); transition: background 0.35s, border-color 0.35s;
     }
-
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .nav-center {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-      justify-content: center;
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 16px;
-    }
-
-    .nav-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--fg);
-      letter-spacing: -0.01em;
-      text-decoration: none;
-    }
-
-    .nav-links-group a {
-      font-size: 13px;
-      color: var(--fg2);
-      text-decoration: none;
-      letter-spacing: 0.01em;
-      transition: color 0.15s;
-    }
-
-    .nav-links-group a:hover {
-      color: var(--fg);
-    }
-
-    .saved-indicator {
-      font-size: 11px;
-      color: var(--fg2);
-      letter-spacing: 0.04em;
-      opacity: 0.7;
-      transition: opacity 0.3s;
-    }
-
-    .saved-indicator.flash {
-      opacity: 1;
-      color: var(--fg);
-    }
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-center { display: flex; align-items: center; gap: 22px; justify-content: center; }
+    .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+    .nav-name { font-size: 14px; font-weight: 500; color: var(--fg); letter-spacing: -0.01em; text-decoration: none; }
+    .nav-links-group a { font-size: 13px; color: var(--fg2); text-decoration: none; letter-spacing: 0.01em; transition: color 0.15s; }
+    .nav-links-group a:hover { color: var(--fg); }
+    .saved-indicator { font-size: 11px; color: var(--fg2); letter-spacing: 0.04em; opacity: 0.7; transition: opacity 0.3s; }
+    .saved-indicator.flash { opacity: 1; color: var(--fg); }
 
     .pill-toggle {
-      position: relative;
-      width: 52px;
-      height: 28px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      cursor: pointer;
-      transition: background 0.25s, border-color 0.25s;
-      flex-shrink: 0;
+      position: relative; width: 52px; height: 28px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 14px; cursor: pointer;
+      transition: background 0.25s, border-color 0.25s; flex-shrink: 0;
     }
-
     .pill-toggle::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--fg2);
-      top: 3px;
-      left: 3px;
-      transition: transform 0.25s, background 0.25s;
+      content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--fg2); top: 3px; left: 3px; transition: transform 0.25s, background 0.25s;
     }
+    [data-theme="dark"] .pill-toggle::after { transform: translateX(24px); background: var(--fg); }
+    .pill-toggle:hover::after { background: var(--fg); }
 
-    [data-theme="dark"] .pill-toggle::after {
-      transform: translateX(24px);
-      background: var(--fg);
+    main { max-width: 800px; margin: 0 auto; padding: 100px 44px 120px; }
+
+    /* ── Tab bar ──────────────────────────────────────── */
+    .tab-bar {
+      display: flex; gap: 0; margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
     }
-
-    .pill-toggle:hover::after {
-      background: var(--fg);
+    .tab-btn {
+      background: none; border: none; padding: 10px 22px 12px; cursor: pointer;
+      font-family: inherit; font-size: 14px; font-weight: 500; color: var(--fg2);
+      letter-spacing: -0.01em; position: relative; transition: color 0.15s;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
     }
+    .tab-btn:hover { color: var(--fg); }
+    .tab-btn.active { color: var(--fg); border-bottom-color: var(--fg); }
 
-    main {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 100px 44px 120px;
-    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
 
-    .doc-shell {
-      display: flex;
-      gap: 56px;
-      align-items: flex-start;
-    }
-
-    .doc-col {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .todo-col {
-      flex: 0 0 260px;
-      position: sticky;
-      top: 84px;
-    }
-
-    .doc-head {
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-      margin-bottom: 6px;
-    }
-
+    /* ── Notes pane ────────────────────────────────────── */
+    .doc-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
     .doc-title {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-      font-size: 38px;
-      font-weight: 600;
-      letter-spacing: -0.025em;
-      color: var(--fg);
-      line-height: 1.05;
-      text-transform: lowercase;
+      font-size: 38px; font-weight: 600; letter-spacing: -0.025em; color: var(--fg);
+      line-height: 1.05; text-transform: lowercase;
     }
-
-    .doc-meta {
-      font-size: 12px;
-      color: var(--fg2);
-      letter-spacing: 0.02em;
-    }
-
-    .doc-rule {
-      height: 1px;
-      background: var(--border);
-      margin: 22px 0 30px;
-    }
-
+    .doc-meta { font-size: 12px; color: var(--fg2); letter-spacing: 0.02em; }
+    .doc-rule { height: 1px; background: var(--border); margin: 22px 0 30px; }
     .doc {
-      min-height: calc(100vh - 280px);
-      outline: none;
-      font-size: 16px;
-      line-height: 1.75;
-      color: var(--fg);
-      caret-color: var(--fg);
-      white-space: pre-wrap;
-      word-wrap: break-word;
+      min-height: calc(100vh - 340px); outline: none; font-size: 16px; line-height: 1.75;
+      color: var(--fg); caret-color: var(--fg); white-space: pre-wrap; word-wrap: break-word;
     }
-
     .doc:empty::before {
-      content: attr(data-placeholder);
-      color: var(--fg2);
-      opacity: 0.55;
-      font-style: italic;
-      pointer-events: none;
+      content: attr(data-placeholder); color: var(--fg2); opacity: 0.55;
+      font-style: italic; pointer-events: none;
     }
-
-    .doc h1, .doc h2, .doc h3 {
-      font-weight: 600;
-      letter-spacing: -0.015em;
-      margin: 1.2em 0 0.4em;
-    }
-
-    .doc h1 { font-size: 22px; }
-    .doc h2 { font-size: 18px; }
-    .doc h3 { font-size: 16px; }
-
+    .doc h1, .doc h2, .doc h3 { font-weight: 600; letter-spacing: -0.015em; margin: 1.2em 0 0.4em; }
+    .doc h1 { font-size: 22px; } .doc h2 { font-size: 18px; } .doc h3 { font-size: 16px; }
     .doc p { margin: 0 0 0.7em; }
-
-    .doc ul, .doc ol {
-      padding-left: 22px;
-      margin: 0 0 0.7em;
-    }
-
+    .doc ul, .doc ol { padding-left: 22px; margin: 0 0 0.7em; }
     .doc li { margin: 0.15em 0; }
+    .doc a { color: var(--fg); text-decoration: underline; text-decoration-color: var(--fg2); text-underline-offset: 3px; }
+    .doc code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.92em; }
+    .doc blockquote { border-left: 2px solid var(--border); padding-left: 14px; color: var(--fg2); margin: 0.6em 0; }
+    .doc-footer { margin-top: 40px; font-size: 11px; color: var(--fg2); opacity: 0.6; letter-spacing: 0.04em; }
 
-    .doc a {
-      color: var(--fg);
-      text-decoration: underline;
-      text-decoration-color: var(--fg2);
-      text-underline-offset: 3px;
+    /* ── Todo pane ──────────────────────────────────────── */
+    .todo-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+    .todo-pane-title { font-size: 38px; font-weight: 600; letter-spacing: -0.025em; color: var(--fg); line-height: 1.05; text-transform: lowercase; }
+    .todo-pane-count { font-size: 13px; color: var(--fg2); font-variant-numeric: tabular-nums; }
+
+    .todo-add-bar { margin-bottom: 20px; }
+    .todo-add-bar input {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--border); color: var(--fg);
+      padding: 10px 2px 12px; font-family: inherit; font-size: 15px;
+      outline: none; transition: border-color 0.15s;
     }
+    .todo-add-bar input::placeholder { color: var(--fg2); opacity: 0.65; }
+    .todo-add-bar input:focus { border-bottom-color: var(--fg2); }
 
-    .doc code {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-family: 'SF Mono', Menlo, Consolas, monospace;
-      font-size: 0.92em;
+    .todo-list-full { list-style: none; padding: 0; margin: 0; }
+
+    .todo-item-full {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 4px; border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
     }
+    .todo-item-full:last-child { border-bottom: none; }
+    .todo-item-full:hover { background: var(--surface); border-radius: 6px; }
 
-    .doc blockquote {
-      border-left: 2px solid var(--border);
-      padding-left: 14px;
-      color: var(--fg2);
-      margin: 0.6em 0;
-    }
-
-    .doc-footer {
-      margin-top: 40px;
-      font-size: 11px;
-      color: var(--fg2);
-      opacity: 0.6;
-      letter-spacing: 0.04em;
-    }
-
-    /* todo sidebar */
-    .todo-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: var(--surface);
-      padding: 18px 18px 12px;
-    }
-
-    .todo-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .todo-title {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--fg2);
-    }
-
-    .todo-count {
-      font-size: 11px;
-      color: var(--fg2);
-      font-variant-numeric: tabular-nums;
-      opacity: 0.7;
-    }
-
-    .todo-add {
-      margin-bottom: 12px;
-    }
-
-    .todo-add input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      color: var(--fg);
-      padding: 6px 2px 8px;
-      font-family: inherit;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    .todo-add input::placeholder {
-      color: var(--fg2);
-      opacity: 0.65;
-    }
-
-    .todo-add input:focus {
-      border-bottom-color: var(--fg2);
-    }
-
-    .todo-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-
-    .todo-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 8px 2px;
-      font-size: 13px;
-      line-height: 1.45;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .todo-item:last-child {
-      border-bottom: none;
-    }
-
-    .todo-check {
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid var(--fg2);
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 2px;
-      position: relative;
-      transition: background 0.15s, border-color 0.15s;
-      background: transparent;
+    .todo-check-full {
+      flex-shrink: 0; width: 20px; height: 20px; border: 1.5px solid var(--fg2);
+      border-radius: 50%; cursor: pointer; margin-top: 2px; position: relative;
+      transition: background 0.15s, border-color 0.15s; background: transparent;
       padding: 0;
     }
+    .todo-check-full:hover { border-color: var(--fg); }
+    .todo-check-full::after {
+      content: ''; position: absolute; top: 3px; left: 5px;
+      width: 6px; height: 10px; border: solid var(--paper);
+      border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0);
+      transform-origin: center; transition: transform 0.15s;
+    }
+    .todo-item-full.done .todo-check-full { background: var(--fg); border-color: var(--fg); }
+    .todo-item-full.done .todo-check-full::after { transform: rotate(45deg) scale(1); }
 
-    .todo-check:hover {
-      border-color: var(--fg);
+    .todo-content { flex: 1; min-width: 0; }
+
+    .todo-text-full {
+      display: block; width: 100%; background: transparent; border: none;
+      color: var(--fg); font-family: inherit; font-size: 15px; line-height: 1.55;
+      outline: none; resize: none; overflow: hidden; word-break: break-word;
+      padding: 0; min-height: 24px;
+    }
+    .todo-item-full.done .todo-text-full { text-decoration: line-through; color: var(--fg2); }
+
+    /* Indent styling */
+    .todo-item-full[data-indent="1"] { padding-left: 32px; }
+    .todo-item-full[data-indent="2"] { padding-left: 60px; }
+    .todo-item-full[data-indent="3"] { padding-left: 88px; }
+    .todo-item-full[data-indent="4"] { padding-left: 116px; }
+
+    .todo-x-full {
+      opacity: 0; cursor: pointer; color: var(--fg2); font-size: 16px;
+      flex-shrink: 0; padding: 2px 4px; background: none; border: none;
+      font-family: inherit; transition: opacity 0.15s, color 0.15s;
+      line-height: 1; margin-top: 2px;
+    }
+    .todo-item-full:hover .todo-x-full { opacity: 1; }
+    .todo-x-full:hover { color: var(--fg); }
+
+    .todo-empty-full {
+      font-size: 14px; color: var(--fg2); font-style: italic; padding: 20px 4px; opacity: 0.65;
     }
 
-    .todo-check::after {
-      content: '';
-      position: absolute;
-      top: 1px; left: 4px;
-      width: 4px; height: 8px;
-      border: solid var(--paper);
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) scale(0);
-      transform-origin: center;
-      transition: transform 0.15s;
-    }
-
-    .todo-item.done .todo-check {
-      background: var(--fg);
-      border-color: var(--fg);
-    }
-
-    .todo-item.done .todo-check::after {
-      transform: rotate(45deg) scale(1);
-    }
-
-    .todo-text {
-      flex: 1;
-      color: var(--fg);
-      word-break: break-word;
-      cursor: pointer;
-    }
-
-    .todo-item.done .todo-text {
-      text-decoration: line-through;
-      color: var(--fg2);
-    }
-
-    .todo-x {
-      opacity: 0;
-      cursor: pointer;
-      color: var(--fg2);
-      font-size: 13px;
-      flex-shrink: 0;
-      padding: 0 2px;
-      background: none;
-      border: none;
-      font-family: inherit;
-      transition: opacity 0.15s, color 0.15s;
-      line-height: 1;
-      margin-top: 2px;
-    }
-
-    .todo-item:hover .todo-x { opacity: 1; }
-    .todo-x:hover { color: var(--fg); }
-
-    .todo-empty {
-      font-size: 12px;
-      color: var(--fg2);
-      font-style: italic;
-      padding: 10px 2px;
-      opacity: 0.65;
-    }
-
-    @media (max-width: 880px) {
-      .doc-shell {
-        flex-direction: column;
-      }
-      .todo-col {
-        position: static;
-        flex: none;
-        width: 100%;
-        order: -1;
-      }
+    .todo-hint {
+      margin-top: 24px; font-size: 11px; color: var(--fg2); opacity: 0.5; letter-spacing: 0.04em;
     }
 
     @media (max-width: 700px) {
       nav { padding: 0 16px; }
       main { padding: 84px 22px 80px; }
-      .doc-title { font-size: 32px; }
+      .doc-title, .todo-pane-title { font-size: 32px; }
     }
 
     @media (max-width: 520px) {
-      /* hide ← back link — tapping the name or browser back works fine */
       .nav-links-group { display: none; }
       main { padding: 76px 16px 60px; }
-      .doc-title { font-size: 26px; }
-      /* hide keyboard shortcut tip — not relevant on touch */
-      .doc-footer { display: none; }
+      .doc-title, .todo-pane-title { font-size: 26px; }
+      .doc-footer, .todo-hint { display: none; }
+      .tab-btn { padding: 8px 16px 10px; font-size: 13px; }
     }
 
-    /* always show delete button on touch devices (no hover state) */
     @media (hover: none) {
-      .todo-x { opacity: 1 !important; }
-      .todo-item { padding: 10px 2px; }
+      .todo-x-full { opacity: 1 !important; }
+      .todo-item-full { padding-top: 12px; padding-bottom: 12px; }
     }
 
     html, body { overflow-x: hidden; }
@@ -484,41 +224,57 @@
   </nav>
 
   <main>
-    <div class="doc-shell">
-      <div class="doc-col">
-        <div class="doc-head">
-          <h1 class="doc-title">notes</h1>
-          <span class="doc-meta" id="docMeta"></span>
-        </div>
-        <div class="doc-rule"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="notes">notes</button>
+      <button class="tab-btn" data-tab="todo">to do</button>
+    </div>
 
-        <div
-          id="doc"
-          class="doc"
-          contenteditable="true"
-          spellcheck="true"
-          data-placeholder="start writing — autosaves as you type"
-        ></div>
-
-        <div class="doc-footer">cmd/ctrl+b · cmd/ctrl+i · cmd/ctrl+u — autosaves locally to this browser</div>
+    <!-- ── NOTES TAB ──────────────────────────────────── -->
+    <div class="tab-pane active" id="pane-notes">
+      <div class="doc-head">
+        <h1 class="doc-title">notes</h1>
+        <span class="doc-meta" id="docMeta"></span>
       </div>
+      <div class="doc-rule"></div>
+      <div id="doc" class="doc" contenteditable="true" spellcheck="true"
+        data-placeholder="start writing — autosaves as you type"></div>
+      <div class="doc-footer">cmd/ctrl+b · cmd/ctrl+i · cmd/ctrl+u — autosaves locally to this browser</div>
+    </div>
 
-      <aside class="todo-col">
-        <div class="todo-card">
-          <div class="todo-head">
-            <span class="todo-title">todo</span>
-            <span class="todo-count" id="todoCount">0</span>
-          </div>
-          <form class="todo-add" id="todoForm">
-            <input id="todoInput" type="text" placeholder="add a task — enter to add" autocomplete="off">
-          </form>
-          <ul class="todo-list" id="todoList"></ul>
-        </div>
-      </aside>
+    <!-- ── TODO TAB ───────────────────────────────────── -->
+    <div class="tab-pane" id="pane-todo">
+      <div class="todo-header">
+        <h1 class="todo-pane-title">to do</h1>
+        <span class="todo-pane-count" id="todoCount">0</span>
+      </div>
+      <div class="doc-rule"></div>
+      <form class="todo-add-bar" id="todoForm">
+        <input id="todoInput" type="text" placeholder="add a task — enter to add" autocomplete="off">
+      </form>
+      <ul class="todo-list-full" id="todoList"></ul>
+      <div class="todo-hint">tab to indent · shift+tab to outdent · enter for new task below</div>
     </div>
   </main>
 
   <script>
+    /* ── Tab switching ──────────────────────────────────── */
+    (function () {
+      const TAB_KEY = 'mb_notes_active_tab';
+      const btns = document.querySelectorAll('.tab-btn');
+      const panes = document.querySelectorAll('.tab-pane');
+
+      function activate(name) {
+        btns.forEach(b => { b.classList.toggle('active', b.dataset.tab === name); });
+        panes.forEach(p => { p.classList.toggle('active', p.id === 'pane-' + name); });
+        try { localStorage.setItem(TAB_KEY, name); } catch (_) {}
+      }
+
+      btns.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+      // restore last tab
+      try { const last = localStorage.getItem(TAB_KEY); if (last) activate(last); } catch (_) {}
+    })();
+
+    /* ── Notes editor ──────────────────────────────────── */
     (function () {
       const DOC_KEY = 'mb_notes_doc';
       const LEGACY_KEY = 'mb_notes_v2';
@@ -531,7 +287,7 @@
       const saved = document.getElementById('savedIndicator');
       const toggle = document.getElementById('themeToggle');
 
-      // ── theme ─────────────────────────────────────────────────────
+      // ── theme
       const storedTheme = localStorage.getItem(THEME_KEY);
       if (storedTheme === 'dark') root.setAttribute('data-theme', 'dark');
       toggle.addEventListener('click', () => {
@@ -540,10 +296,8 @@
         try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
       });
 
-      // ── load ──────────────────────────────────────────────────────
+      // ── load
       let initial = localStorage.getItem(DOC_KEY);
-
-      // one-time migration from old list-style notes
       if (!initial) {
         try {
           const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
@@ -555,10 +309,8 @@
           }
         } catch (_) {}
       }
-
       if (initial) doc.innerHTML = initial;
 
-      // ── meta line (last edited) ───────────────────────────────────
       function fmtDate(ts) {
         const d = new Date(ts);
         const today = new Date();
@@ -575,7 +327,6 @@
       }
       refreshMeta();
 
-      // ── save (debounced) ──────────────────────────────────────────
       let timer = null;
       let flashTimer = null;
       function flashSaved() {
@@ -591,7 +342,6 @@
           localStorage.setItem(META_KEY, String(ts));
           flashSaved();
           refreshMeta();
-          // push to cloud in background — fire and forget
           fetch('/api/notes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -602,7 +352,6 @@
         }
       }
 
-      // Pull from cloud on load — if cloud is newer than localStorage, use it.
       async function loadFromCloud() {
         try {
           const r = await fetch('/api/notes');
@@ -618,6 +367,7 @@
         } catch (_) {}
       }
       loadFromCloud();
+
       function schedule() {
         saved.textContent = 'saving…';
         clearTimeout(timer);
@@ -625,20 +375,16 @@
       }
 
       doc.addEventListener('input', schedule);
-      // pagehide instead of beforeunload — keeps the page bfcache-eligible so
-      // back-navigation restores instantly without a network round-trip.
       window.addEventListener('pagehide', () => {
         if (timer) { clearTimeout(timer); persist(); }
       });
 
-      // ── paste as plain text ───────────────────────────────────────
       doc.addEventListener('paste', e => {
         e.preventDefault();
         const text = (e.clipboardData || window.clipboardData).getData('text');
         document.execCommand('insertText', false, text);
       });
 
-      // ── focus on load ─────────────────────────────────────────────
       setTimeout(() => {
         doc.focus();
         const range = document.createRange();
@@ -650,68 +396,148 @@
       }, 0);
     })();
 
-    // ── Todo list ──────────────────────────────────────────────────
+    /* ── Todo list (enhanced) ──────────────────────────── */
     (function () {
       const TODO_KEY = 'mb_notes_todos';
+      const TODO_TS_KEY = 'mb_notes_todos_ts';
       const list = document.getElementById('todoList');
       const form = document.getElementById('todoForm');
       const input = document.getElementById('todoInput');
-      const count = document.getElementById('todoCount');
+      const countEl = document.getElementById('todoCount');
+      const saved = document.getElementById('savedIndicator');
 
       function load() {
         try { return JSON.parse(localStorage.getItem(TODO_KEY) || '[]'); } catch (_) { return []; }
       }
       function save(items) {
-        try { localStorage.setItem(TODO_KEY, JSON.stringify(items)); } catch (_) {}
+        const ts = Date.now();
+        try {
+          localStorage.setItem(TODO_KEY, JSON.stringify(items));
+          localStorage.setItem(TODO_TS_KEY, String(ts));
+        } catch (_) {}
+        // push to cloud
+        fetch('/api/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ todos: JSON.stringify(items), todosTs: ts })
+        }).catch(() => {});
+      }
+
+      // Pull todos from cloud on load
+      async function loadFromCloud() {
+        try {
+          const r = await fetch('/api/notes');
+          if (!r.ok) return;
+          const data = await r.json();
+          const localTs = Number(localStorage.getItem(TODO_TS_KEY)) || 0;
+          if (data.todosTs > localTs && data.todos) {
+            const cloudItems = JSON.parse(data.todos);
+            localStorage.setItem(TODO_KEY, JSON.stringify(cloudItems));
+            localStorage.setItem(TODO_TS_KEY, String(data.todosTs));
+            render();
+          }
+        } catch (_) {}
+      }
+      loadFromCloud();
+
+      function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
       }
 
       function render() {
         const items = load();
         const remaining = items.filter(t => !t.done).length;
-        count.textContent = items.length ? `${remaining}/${items.length}` : '0';
+        countEl.textContent = items.length ? `${remaining}/${items.length}` : '0';
         list.innerHTML = '';
         if (!items.length) {
           const empty = document.createElement('li');
-          empty.className = 'todo-empty';
-          empty.textContent = 'nothing yet — add one above';
+          empty.className = 'todo-empty-full';
+          empty.textContent = 'nothing yet — add a task above';
           list.appendChild(empty);
           return;
         }
         items.forEach((it, i) => {
           const li = document.createElement('li');
-          li.className = 'todo-item' + (it.done ? ' done' : '');
+          li.className = 'todo-item-full' + (it.done ? ' done' : '');
+          li.setAttribute('data-indent', String(it.indent || 0));
 
           const check = document.createElement('button');
           check.type = 'button';
-          check.className = 'todo-check';
+          check.className = 'todo-check-full';
           check.setAttribute('aria-label', it.done ? 'mark incomplete' : 'mark complete');
           check.addEventListener('click', () => {
-            const cur = load();
-            cur[i].done = !cur[i].done;
-            save(cur);
-            render();
+            const cur = load(); cur[i].done = !cur[i].done; save(cur); render();
           });
 
-          const text = document.createElement('span');
-          text.className = 'todo-text';
-          text.textContent = it.text;
-          text.title = 'click to toggle';
-          text.addEventListener('click', () => check.click());
+          const ta = document.createElement('textarea');
+          ta.className = 'todo-text-full';
+          ta.value = it.text;
+          ta.rows = 1;
+          ta.spellcheck = true;
+          ta.addEventListener('input', () => {
+            autoResize(ta);
+            const cur = load(); cur[i].text = ta.value; save(cur);
+          });
+
+          // Tab / Shift+Tab for indent/outdent, Enter for new task below
+          ta.addEventListener('keydown', e => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              const cur = load();
+              const lvl = cur[i].indent || 0;
+              if (e.shiftKey) {
+                cur[i].indent = Math.max(0, lvl - 1);
+              } else {
+                cur[i].indent = Math.min(4, lvl + 1);
+              }
+              save(cur); render();
+              // refocus same item
+              setTimeout(() => {
+                const allTa = list.querySelectorAll('.todo-text-full');
+                if (allTa[i]) allTa[i].focus();
+              }, 0);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              const cur = load();
+              const newItem = { text: '', done: false, ts: Date.now(), indent: cur[i].indent || 0 };
+              cur.splice(i + 1, 0, newItem);
+              save(cur); render();
+              setTimeout(() => {
+                const allTa = list.querySelectorAll('.todo-text-full');
+                if (allTa[i + 1]) allTa[i + 1].focus();
+              }, 0);
+            } else if (e.key === 'Backspace' && ta.value === '') {
+              e.preventDefault();
+              const cur = load();
+              if (cur.length <= 1 && i === 0) return;
+              cur.splice(i, 1);
+              save(cur); render();
+              setTimeout(() => {
+                const allTa = list.querySelectorAll('.todo-text-full');
+                const focusIdx = Math.max(0, i - 1);
+                if (allTa[focusIdx]) {
+                  allTa[focusIdx].focus();
+                  allTa[focusIdx].setSelectionRange(allTa[focusIdx].value.length, allTa[focusIdx].value.length);
+                }
+              }, 0);
+            }
+          });
 
           const x = document.createElement('button');
           x.type = 'button';
-          x.className = 'todo-x';
+          x.className = 'todo-x-full';
           x.textContent = '×';
           x.title = 'delete';
           x.addEventListener('click', () => {
-            const cur = load();
-            cur.splice(i, 1);
-            save(cur);
-            render();
+            const cur = load(); cur.splice(i, 1); save(cur); render();
           });
 
-          li.append(check, text, x);
+          li.append(check, ta, x);
           list.appendChild(li);
+
+          // auto-resize after append
+          requestAnimationFrame(() => autoResize(ta));
         });
       }
 
@@ -720,10 +546,22 @@
         const text = input.value.trim();
         if (!text) return;
         const items = load();
-        items.push({ text, done: false, ts: Date.now() });
+        items.unshift({ text, done: false, ts: Date.now(), indent: 0 });
         save(items);
         input.value = '';
         render();
+      });
+
+      // Double-space on mobile → indent (like Apple Notes)
+      let lastSpaceTime = 0;
+      input.addEventListener('keydown', e => {
+        if (e.key === ' ') {
+          const now = Date.now();
+          if (now - lastSpaceTime < 400) {
+            // double space detected — this is for the input field hint
+          }
+          lastSpaceTime = now;
+        }
       });
 
       render();
