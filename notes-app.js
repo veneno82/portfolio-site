@@ -15,7 +15,7 @@
         toggle=$('themeToggle'), pinnedBody=$('pinnedBody'), pinnedSection=$('pinnedSection'),
         pinnedHeader=$('pinnedHeader'), todoList=$('todoList'), todoForm=$('todoForm'),
         todoInput=$('todoInput'), todoCount=$('todoCount'), panelNotes=$('panelNotes'),
-        panelTodos=$('panelTodos');
+        panelTodos=$('panelTodos'), docMeta=$('docMeta');
 
   /* ── THEME ──────────────────────────────────────────────────── */
   toggle.addEventListener('click',()=>{
@@ -49,6 +49,22 @@
   let initialPin=localStorage.getItem(PIN_KEY);
   if(initialPin)pinnedBody.innerHTML=initialPin;
 
+  /* ── META LINE (last edited) ────────────────────────────────── */
+  function fmtDate(ts){
+    const d=new Date(ts),today=new Date();
+    const sameDay=d.toDateString()===today.toDateString();
+    const time=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}).toLowerCase();
+    if(sameDay)return'today, '+time;
+    const opts={month:'short',day:'numeric'};
+    if(d.getFullYear()!==today.getFullYear())opts.year='numeric';
+    return d.toLocaleDateString([],opts)+', '+time;
+  }
+  function refreshMeta(){
+    const ts=Number(localStorage.getItem(META_KEY))||Date.now();
+    if(docMeta)docMeta.textContent='last edited '+fmtDate(ts);
+  }
+  refreshMeta();
+
   let saveTimer=null;
   function persistNotes(){
     try{
@@ -57,6 +73,7 @@
       localStorage.setItem(PIN_KEY,pinnedBody.innerHTML);
       localStorage.setItem(META_KEY,String(ts));
       flash();
+      refreshMeta();
       fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({content:doc.innerHTML,pinned:pinnedBody.innerHTML,ts})}).catch(()=>{});
     }catch(_){savedEl.textContent='save failed'}
@@ -74,6 +91,7 @@
         if(data.content){doc.innerHTML=data.content;localStorage.setItem(DOC_KEY,data.content)}
         if(data.pinned!==undefined){pinnedBody.innerHTML=data.pinned;localStorage.setItem(PIN_KEY,data.pinned)}
         localStorage.setItem(META_KEY,String(data.ts));
+        refreshMeta();
       }
     }catch(_){}
   }
@@ -136,7 +154,15 @@
 
   /* ── TOOLBAR: FONT FAMILY ───────────────────────────────────── */
   $('tbFont').addEventListener('change',function(){
-    doc.focus();document.execCommand('fontName',false,this.value||'');scheduleNoteSave()});
+    doc.focus();
+    if(this.value){
+      document.execCommand('fontName',false,this.value);
+    }else{
+      // "Default" — remove font override by applying the body's default font
+      document.execCommand('fontName',false,"-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif");
+    }
+    scheduleNoteSave();
+  });
 
   /* ── TOOLBAR: FONT SIZE ─────────────────────────────────────── */
   $('tbSize').addEventListener('change',function(){
