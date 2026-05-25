@@ -4,15 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>notes — Mauro Brito</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
   <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
   <style>
-    @font-face{font-family:'Cooper BT';src:local('Cooper Black'),local('Cooper BT'),local('CooperBT-Black');font-weight:900;font-style:normal}
-    @font-face{font-family:'Avant Garde';src:local('ITC Avant Garde Gothic'),local('AvantGarde Bk BT'),local('Century Gothic');font-weight:400;font-style:normal}
-    @font-face{font-family:'Peace Sans';src:local('Peace Sans'),local('PeaceSans');font-weight:400;font-style:normal}
-    @font-face{font-family:'Proxima Nova';src:local('Proxima Nova'),local('ProximaNova-Regular');font-weight:400;font-style:normal}
 
     :root{--fg:#141414;--fg2:#4a4a50;--border:rgba(0,0,0,.10);--surface:rgba(0,0,0,.04);--nav-bg:rgba(255,255,255,.78);--paper:#fdfdfb;--accent:#3478f6;--accent-soft:rgba(52,120,246,.12);--done-bg:rgba(0,0,0,.025);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.22)}
     [data-theme="dark"]{--fg:#f0f0f2;--fg2:#b8b8bc;--border:rgba(255,255,255,.10);--surface:rgba(255,255,255,.04);--nav-bg:rgba(5,5,5,.80);--paper:#0e0e10;--accent:#5a9fff;--accent-soft:rgba(90,159,255,.14);--done-bg:rgba(255,255,255,.02);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.18)}
@@ -94,8 +87,14 @@
     .pinned-section.collapsed .pinned-toggle::after{content:'▸'}
     .pinned-section:not(.collapsed) .pinned-toggle::after{content:'▾'}
 
+    /* DOC HEAD */
+    .doc-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+    .doc-title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:38px;font-weight:600;letter-spacing:-.025em;color:var(--fg);line-height:1.05;text-transform:lowercase}
+    .doc-meta{font-size:12px;color:var(--fg2);letter-spacing:.02em}
+    .doc-rule{height:1px;background:var(--border);margin:22px 0 30px}
+
     /* DOC EDITOR */
-    .doc{min-height:calc(100vh - 320px);outline:none;font-size:16px;line-height:1.75;color:var(--fg);caret-color:var(--fg);white-space:pre-wrap;word-wrap:break-word}
+    .doc{min-height:calc(100vh - 380px);outline:none;font-size:16px;line-height:1.75;color:var(--fg);caret-color:var(--fg);white-space:pre-wrap;word-wrap:break-word}
     .doc:empty::before{content:attr(data-placeholder);color:var(--fg2);opacity:.55;font-style:italic;pointer-events:none}
     .doc h1,.doc h2,.doc h3{font-weight:600;letter-spacing:-.015em;margin:.8em 0 .3em}
     .doc h1{font-size:26px}
@@ -193,13 +192,9 @@
         </select>
         <select id="tbFont" title="Font">
           <option value="">Default</option>
-          <option value="'Open Sans', sans-serif">Open Sans</option>
-          <option value="'Proxima Nova', 'Helvetica Neue', Arial, sans-serif">Proxima Nova</option>
-          <option value="'Cooper BT', 'Cooper Black', serif">Cooper BT</option>
-          <option value="'Avant Garde', 'Century Gothic', sans-serif">Avant Garde</option>
-          <option value="'Peace Sans', 'Impact', sans-serif">Peace Sans</option>
           <option value="Georgia, serif">Serif</option>
           <option value="'SF Mono', Menlo, Consolas, monospace">Mono</option>
+          <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
         </select>
         <select id="tbSize" title="Font size">
           <option value="2">Small</option>
@@ -234,6 +229,12 @@
           </div>
         </div>
       </div>
+
+      <div class="doc-head">
+        <h1 class="doc-title">notes</h1>
+        <span class="doc-meta" id="docMeta"></span>
+      </div>
+      <div class="doc-rule"></div>
 
       <div class="pinned-section" id="pinnedSection">
         <div class="pinned-header" id="pinnedHeader">
