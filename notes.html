@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>notes — Mauro Brito</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
   <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
   <style>
+    @font-face{font-family:'Cooper BT';src:local('Cooper Black'),local('Cooper BT'),local('CooperBT-Black');font-weight:900;font-style:normal}
+    @font-face{font-family:'Avant Garde';src:local('ITC Avant Garde Gothic'),local('AvantGarde Bk BT'),local('Century Gothic');font-weight:400;font-style:normal}
+    @font-face{font-family:'Peace Sans';src:local('Peace Sans'),local('PeaceSans');font-weight:400;font-style:normal}
+    @font-face{font-family:'Proxima Nova';src:local('Proxima Nova'),local('ProximaNova-Regular');font-weight:400;font-style:normal}
+
     :root{--fg:#141414;--fg2:#4a4a50;--border:rgba(0,0,0,.10);--surface:rgba(0,0,0,.04);--nav-bg:rgba(255,255,255,.78);--paper:#fdfdfb;--accent:#3478f6;--accent-soft:rgba(52,120,246,.12);--done-bg:rgba(0,0,0,.025);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.22)}
     [data-theme="dark"]{--fg:#f0f0f2;--fg2:#b8b8bc;--border:rgba(255,255,255,.10);--surface:rgba(255,255,255,.04);--nav-bg:rgba(5,5,5,.80);--paper:#0e0e10;--accent:#5a9fff;--accent-soft:rgba(90,159,255,.14);--done-bg:rgba(255,255,255,.02);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.18)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -44,32 +52,42 @@
     .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 0 12px;border-bottom:1px solid var(--border);margin-bottom:16px;position:sticky;top:52px;background:var(--paper);z-index:10}
     .toolbar select{background:var(--surface);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:12px;padding:4px 6px;border-radius:6px;cursor:pointer;outline:none}
     .toolbar select:focus{border-color:var(--accent)}
-    .tb-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
-    .tb-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:28px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--fg2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .15s}
+    .tb-sep{width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0}
+    .tb-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:28px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--fg2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .15s;flex-shrink:0}
     .tb-btn:hover{background:var(--surface);border-color:var(--border);color:var(--fg)}
     .tb-btn.active{background:var(--accent-soft);color:var(--accent);border-color:transparent}
-    .tb-color{width:30px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:0;background:transparent;display:flex;align-items:center;justify-content:center;position:relative}
+
+    /* COLOR / HIGHLIGHT PICKER */
+    .tb-color{width:30px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:0;background:transparent;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
     .tb-color-dot{width:16px;height:16px;border-radius:50%;border:1px solid var(--border)}
-
-    /* COLOR PICKER POPUP */
-    .color-popup{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;gap:4px;flex-wrap:wrap;width:148px}
+    .color-popup{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;flex-direction:column;gap:8px;width:200px}
     .color-popup.open{display:flex}
-    .color-swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s,border-color .15s;padding:0;background:none}
-    .color-swatch:hover{transform:scale(1.15);border-color:var(--fg2)}
+    .color-swatches{display:flex;gap:6px;justify-content:center}
+    .color-swatch{width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:transform .1s,border-color .15s;padding:0;background:none;flex-shrink:0}
+    .color-swatch:hover{transform:scale(1.12)}
+    .color-swatch.selected{border-color:var(--fg)}
+    .color-hex-row{display:flex;align-items:center;gap:6px}
+    .color-hex-input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--fg);font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;padding:5px 8px;border-radius:6px;outline:none}
+    .color-hex-input:focus{border-color:var(--accent)}
+    .color-hex-apply{padding:5px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+    .color-hex-apply:hover{opacity:.85}
 
-    /* TABLE POPUP */
-    .table-popup{display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;flex-direction:column;align-items:center;gap:6px}
-    .table-popup.open{display:flex}
-    .table-grid{display:grid;grid-template-columns:repeat(5,22px);gap:2px}
-    .table-cell{width:22px;height:22px;border:1px solid var(--border);border-radius:3px;background:transparent;cursor:pointer;transition:background .1s}
-    .table-cell.highlight{background:var(--accent-soft);border-color:var(--accent)}
-    .table-size-label{font-size:11px;color:var(--fg2);height:16px}
+    /* PIN COLOR PICKER */
+    .pin-color-popup{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200}
+    .pin-color-popup.open{display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:220px}
+    .pin-color-swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s;padding:0}
+    .pin-color-swatch:hover{transform:scale(1.15)}
+    .pin-color-swatch.selected{border-color:var(--fg)}
+    .pin-hex-input{width:80px;background:var(--surface);border:1px solid var(--border);color:var(--fg);font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11px;padding:4px 6px;border-radius:6px;outline:none}
 
     /* PINNED */
-    .pinned-section{background:var(--pin-bg);border:1px solid var(--pin-border);border-radius:10px;padding:10px 14px;margin-bottom:16px}
-    .pinned-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:6px}
-    .pinned-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2)}
-    .pinned-toggle{font-size:11px;color:var(--fg2);background:none;border:none;cursor:pointer;font-family:inherit}
+    .pinned-section{border:1px solid var(--pin-border);border-radius:10px;padding:10px 14px;margin-bottom:16px;transition:background .3s,border-color .3s}
+    .pinned-header{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;margin-bottom:6px}
+    .pinned-label{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--fg2)}
+    .pinned-right{display:flex;align-items:center;gap:4px;margin-left:auto}
+    .pinned-color-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);cursor:pointer;padding:0;position:relative;transition:transform .15s}
+    .pinned-color-btn:hover{transform:scale(1.1)}
+    .pinned-toggle{font-size:11px;color:var(--fg2);background:none;border:none;cursor:pointer;font-family:inherit;padding:2px}
     .pinned-body{outline:none;font-size:14px;line-height:1.6;color:var(--fg);min-height:24px;white-space:pre-wrap;word-wrap:break-word}
     .pinned-body:empty::before{content:'pin important notes here…';color:var(--fg2);opacity:.5;font-style:italic;pointer-events:none}
     .pinned-section.collapsed .pinned-body{display:none}
@@ -89,9 +107,9 @@
     .doc a{color:var(--fg);text-decoration:underline;text-decoration-color:var(--fg2);text-underline-offset:3px}
     .doc code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.92em}
     .doc blockquote{border-left:2px solid var(--border);padding-left:14px;color:var(--fg2);margin:.6em 0}
-    .doc table{border-collapse:collapse;margin:.8em 0;width:100%}
-    .doc td,.doc th{border:1px solid var(--border);padding:6px 10px;font-size:14px;min-width:60px}
-    .doc th{background:var(--surface);font-weight:600;font-size:13px}
+
+    /* FOOTER SHORTCUTS */
+    .doc-footer{margin-top:40px;font-size:11px;color:var(--fg2);opacity:.6;letter-spacing:.03em;line-height:1.8}
 
     /* TODO PANEL */
     .todo-header{display:flex;align-items:baseline;justify-content:space-between;padding:8px 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px}
@@ -101,7 +119,7 @@
     .todo-add input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:10px 12px;font-family:inherit;font-size:14px;border-radius:8px;outline:none;transition:border-color .15s}
     .todo-add input::placeholder{color:var(--fg2);opacity:.6}
     .todo-add input:focus{border-color:var(--accent)}
-    .todo-actions{display:flex;gap:4px;margin-bottom:12px}
+    .todo-actions{display:none;gap:4px;margin-bottom:12px}
     .todo-act-btn{padding:4px 10px;font-size:11px;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg2);cursor:pointer;transition:all .15s}
     .todo-act-btn:hover{color:var(--fg);border-color:var(--fg2)}
     .todo-list{list-style:none;padding:0;margin:0;overflow-y:auto;max-height:calc(100vh - 260px)}
@@ -120,7 +138,7 @@
     .todo-item:hover .todo-x{opacity:1}
     .todo-x:hover{color:#e55}
     .todo-empty{font-size:13px;color:var(--fg2);font-style:italic;padding:20px 4px;opacity:.6;text-align:center}
-    .todo-separator{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);opacity:.5;padding:12px 4px 4px}
+    .todo-separator{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--fg2);opacity:.5;padding:12px 4px 4px}
 
     /* RESPONSIVE */
     @media(max-width:840px){
@@ -132,6 +150,8 @@
       .panel.hidden-mobile{display:none!important}
       .toolbar{top:96px;padding:6px 0 10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
       .toolbar::-webkit-scrollbar{display:none}
+      .todo-actions{display:flex}
+      .doc-footer{display:none}
     }
     @media(max-width:520px){
       nav{padding:0 16px}
@@ -173,9 +193,13 @@
         </select>
         <select id="tbFont" title="Font">
           <option value="">Default</option>
+          <option value="'Open Sans', sans-serif">Open Sans</option>
+          <option value="'Proxima Nova', 'Helvetica Neue', Arial, sans-serif">Proxima Nova</option>
+          <option value="'Cooper BT', 'Cooper Black', serif">Cooper BT</option>
+          <option value="'Avant Garde', 'Century Gothic', sans-serif">Avant Garde</option>
+          <option value="'Peace Sans', 'Impact', sans-serif">Peace Sans</option>
           <option value="Georgia, serif">Serif</option>
           <option value="'SF Mono', Menlo, Consolas, monospace">Mono</option>
-          <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
         </select>
         <select id="tbSize" title="Font size">
           <option value="2">Small</option>
@@ -187,18 +211,26 @@
         <button class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
         <button class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
         <button class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-        <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+        <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough (Ctrl+Shift+X)"><s>S</s></button>
         <div class="tb-sep"></div>
         <div style="position:relative">
-          <button class="tb-color" id="tbColorBtn" title="Text color"><span class="tb-color-dot" id="tbColorDot" style="background:#141414"></span></button>
-          <div class="color-popup" id="colorPopup"></div>
+          <button class="tb-color" id="tbColorBtn" title="Text color (Ctrl+Shift+C)"><span class="tb-color-dot" id="tbColorDot" style="background:#141414"></span></button>
+          <div class="color-popup" id="colorPopup">
+            <div class="color-swatches" id="colorSwatches"></div>
+            <div class="color-hex-row">
+              <input class="color-hex-input" id="colorHexInput" type="text" placeholder="#hex" maxlength="7">
+              <button class="color-hex-apply" id="colorHexApply" type="button">Apply</button>
+            </div>
+          </div>
         </div>
-        <div class="tb-sep"></div>
         <div style="position:relative">
-          <button class="tb-btn" id="tbTableBtn" title="Insert table">⊞</button>
-          <div class="table-popup" id="tablePopup">
-            <div class="table-grid" id="tableGrid"></div>
-            <span class="table-size-label" id="tableSizeLabel"></span>
+          <button class="tb-color" id="tbHighlightBtn" title="Highlight (Ctrl+Shift+H)"><span class="tb-color-dot" id="tbHighlightDot" style="background:rgba(255,255,0,.4);border:1px dashed var(--fg2)"></span></button>
+          <div class="color-popup" id="highlightPopup">
+            <div class="color-swatches" id="highlightSwatches"></div>
+            <div class="color-hex-row">
+              <input class="color-hex-input" id="highlightHexInput" type="text" placeholder="#hex" maxlength="7">
+              <button class="color-hex-apply" id="highlightHexApply" type="button">Apply</button>
+            </div>
           </div>
         </div>
       </div>
@@ -206,12 +238,23 @@
       <div class="pinned-section" id="pinnedSection">
         <div class="pinned-header" id="pinnedHeader">
           <span class="pinned-label">📌 pinned</span>
-          <button class="pinned-toggle" id="pinnedToggle"></button>
+          <div class="pinned-right">
+            <div style="position:relative">
+              <button class="pinned-color-btn" id="pinColorBtn" title="Change highlight color"></button>
+              <div class="pin-color-popup" id="pinColorPopup"></div>
+            </div>
+            <button class="pinned-toggle" id="pinnedToggle"></button>
+          </div>
         </div>
         <div class="pinned-body" id="pinnedBody" contenteditable="true" spellcheck="true"></div>
       </div>
 
       <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="start writing — autosaves as you type"></div>
+
+      <div class="doc-footer" id="docFooter">
+        cmd/ctrl+b bold · cmd/ctrl+i italic · cmd/ctrl+u underline · cmd/ctrl+shift+x strikethrough · cmd/ctrl+shift+h highlight · cmd/ctrl+shift+c text color<br>
+        tab indent task · shift+tab outdent task · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
+      </div>
     </div>
 
     <!-- TODO PANEL -->
@@ -223,10 +266,10 @@
       <form class="todo-add" id="todoForm">
         <input id="todoInput" type="text" placeholder="add a task — enter to submit" autocomplete="off">
       </form>
-      <div class="todo-actions">
-        <button class="todo-act-btn" id="todoIndentBtn" title="Indent selected">→ indent</button>
-        <button class="todo-act-btn" id="todoOutdentBtn" title="Outdent selected">← outdent</button>
-        <button class="todo-act-btn" id="todoUndoBtn" title="Undo (Ctrl+Z)">↩ undo</button>
+      <div class="todo-actions" id="todoActions">
+        <button class="todo-act-btn" id="todoIndentBtn" title="Indent selected" type="button">→ indent</button>
+        <button class="todo-act-btn" id="todoOutdentBtn" title="Outdent selected" type="button">← outdent</button>
+        <button class="todo-act-btn" id="todoUndoBtn" title="Undo" type="button">↩ undo</button>
       </div>
       <ul class="todo-list" id="todoList"></ul>
     </div>
