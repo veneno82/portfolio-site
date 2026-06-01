@@ -111,6 +111,17 @@
     .doc code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.92em}
     .doc blockquote{border-left:2px solid var(--border);padding-left:14px;color:var(--fg2);margin:.6em 0}
 
+    /* COLLAPSIBLE BLOCKS */
+    .collapse-block{border-left:2.5px solid var(--accent);border-radius:4px;margin:.5em 0;padding:0;background:var(--surface);transition:background .2s}
+    .collapse-block:hover{background:rgba(128,128,128,.07)}
+    .collapse-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:6px 10px;background:none;border:none;color:var(--fg);font-family:inherit;font-size:14px;font-weight:600;width:100%;text-align:left;transition:color .15s}
+    .collapse-toggle:hover{color:var(--accent)}
+    .collapse-arrow{display:inline-block;font-size:12px;transition:transform .2s;flex-shrink:0;color:var(--fg2)}
+    .collapse-block.collapsed .collapse-arrow{transform:rotate(0deg)}
+    .collapse-block:not(.collapsed) .collapse-arrow{transform:rotate(90deg)}
+    .collapse-body{padding:4px 10px 8px;overflow:hidden;transition:max-height .25s ease,opacity .2s}
+    .collapse-block.collapsed .collapse-body{display:none}
+
     /* FOOTER SHORTCUTS */
     .doc-footer{margin-top:40px;font-size:11px;color:var(--fg2);opacity:.6;letter-spacing:.03em;line-height:1.8}
 
@@ -212,6 +223,8 @@
         <button class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
         <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough (Ctrl+Shift+X)"><s>S</s></button>
         <div class="tb-sep"></div>
+        <button class="tb-btn" id="tbCollapseBtn" title="Collapse selected text" style="font-size:11px;letter-spacing:-.02em">▶⋯</button>
+        <div class="tb-sep"></div>
         <div style="position:relative">
           <button class="tb-color" id="tbColorBtn" title="Text color (Ctrl+Shift+C)"><span class="tb-color-dot" id="tbColorDot" style="background:#141414"></span></button>
           <div class="color-popup" id="colorPopup">
@@ -258,7 +271,8 @@
 
       <div class="doc-footer" id="docFooter">
         cmd/ctrl+b bold · cmd/ctrl+i italic · cmd/ctrl+u underline · cmd/ctrl+shift+x strikethrough · cmd/ctrl+shift+h highlight · cmd/ctrl+shift+c text color<br>
-        tab indent task · shift+tab outdent task · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
+        * + space = bullet list · tab indent · shift+tab outdent · select text + ▶⋯ = collapsible block<br>
+        cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
       </div>
     </div>
 
