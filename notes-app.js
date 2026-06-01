@@ -102,6 +102,42 @@
   doc.addEventListener('paste',e=>{e.preventDefault();
     document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'))});
 
+  /* ── AUTO BULLET LIST (type "* " at line start → bullet) ────── */
+  doc.addEventListener('input',e=>{
+    // Only process insertText type inputs
+    if(e.inputType!=='insertText' || e.data!==' ') return;
+    const sel=window.getSelection();
+    if(!sel.rangeCount) return;
+    const node=sel.anchorNode;
+    if(!node||node.nodeType!==3) return;
+    const text=node.textContent;
+    const offset=sel.anchorOffset;
+    // Check if the text right before cursor is "* " at beginning of text node
+    // (offset should be 2 after typing the space, text starts with "* ")
+    if(offset===2 && text.startsWith('* ')){
+      // Verify this text node is at the start of a block
+      const block=node.parentElement;
+      if(!block) return;
+      // Only trigger if the text node is the first meaningful content
+      const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT,null);
+      const firstText=walker.nextNode();
+      if(firstText!==node) return;
+      // Remove the "* " prefix
+      e.preventDefault && false; // can't preventDefault on input, so we manually fix
+      const remaining=text.slice(2);
+      node.textContent=remaining;
+      // Place cursor at start of the remaining text
+      const range=document.createRange();
+      range.setStart(node,0);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      // Convert block to unordered list
+      document.execCommand('insertUnorderedList',false,null);
+      scheduleNoteSave();
+    }
+  });
+
   /* ── PINNED TOGGLE ──────────────────────────────────────────── */
   let pinCollapsed=localStorage.getItem('mb_pin_collapsed')==='1';
   if(pinCollapsed)pinnedSection.classList.add('collapsed');
@@ -236,7 +272,100 @@
       const hl=loadSwatches(HL_SWATCH_KEY,DEFAULT_HL_SWATCHES);
       document.execCommand('hiliteColor',false,hl[0]);scheduleNoteSave()}
     if(mod&&e.shiftKey&&e.key.toLowerCase()==='c'){e.preventDefault();colorPopup.classList.toggle('open');hlPopup.classList.remove('open')}
+
+    /* TAB INDENT / OUTDENT in doc (Google Docs style) */
+    if(e.key==='Tab'){
+      e.preventDefault();
+      if(e.shiftKey){
+        document.execCommand('outdent',false,null);
+      }else{
+        document.execCommand('indent',false,null);
+      }
+      scheduleNoteSave();
+    }
   });
+
+  /* ── COLLAPSIBLE BLOCKS ──────────────────────────────────────── */
+  function wrapSelectionInCollapseBlock(){
+    const sel=window.getSelection();
+    if(!sel.rangeCount||sel.isCollapsed) return;
+    const range=sel.getRangeAt(0);
+    // Extract selected content
+    const fragment=range.extractContents();
+    const selectedText=fragment.textContent.trim();
+    // Build the first line as the toggle label (first 40 chars or first line)
+    const lines=selectedText.split('\n');
+    let label=lines[0]||'collapsed section';
+    if(label.length>40) label=label.slice(0,40)+'…';
+
+    // Create collapse block
+    const block=document.createElement('div');
+    block.className='collapse-block';
+    block.contentEditable='false';
+
+    const toggle=document.createElement('div');
+    toggle.className='collapse-toggle';
+    const arrow=document.createElement('span');
+    arrow.className='collapse-arrow';
+    arrow.textContent='▶';
+    const labelSpan=document.createElement('span');
+    labelSpan.textContent=label;
+    toggle.append(arrow,labelSpan);
+
+    const body=document.createElement('div');
+    body.className='collapse-body';
+    body.contentEditable='true';
+    body.appendChild(fragment);
+
+    block.append(toggle,body);
+
+    // Toggle collapse on click
+    toggle.addEventListener('click',()=>{
+      block.classList.toggle('collapsed');
+      scheduleNoteSave();
+    });
+
+    range.insertNode(block);
+    // Insert a br after so user can keep typing
+    const br=document.createElement('br');
+    block.after(br);
+    sel.removeAllRanges();
+    scheduleNoteSave();
+  }
+
+  // Wire up toolbar button
+  const collapseBtn=$('tbCollapseBtn');
+  if(collapseBtn){
+    collapseBtn.addEventListener('click',e=>{
+      e.preventDefault();
+      doc.focus();
+      wrapSelectionInCollapseBlock();
+    });
+  }
+
+  // Re-attach toggle listeners to existing collapse blocks (e.g. after page load)
+  function rehydrateCollapseBlocks(){
+    doc.querySelectorAll('.collapse-block').forEach(block=>{
+      block.contentEditable='false';
+      const body=block.querySelector('.collapse-body');
+      if(body) body.contentEditable='true';
+      const toggle=block.querySelector('.collapse-toggle');
+      if(toggle && !toggle.dataset.hydrated){
+        toggle.dataset.hydrated='1';
+        toggle.addEventListener('click',()=>{
+          block.classList.toggle('collapsed');
+          scheduleNoteSave();
+        });
+      }
+    });
+  }
+  // Run on load and after cloud sync
+  const origLoadNotesCloud=loadNotesCloud;
+  setTimeout(rehydrateCollapseBlocks,100);
+
+  // Observe mutations to re-hydrate any new collapse blocks pasted/synced in
+  const observer=new MutationObserver(()=>rehydrateCollapseBlocks());
+  observer.observe(doc,{childList:true,subtree:true});
 
   /* ── FOCUS DOC ON LOAD ──────────────────────────────────────── */
   setTimeout(()=>{doc.focus();try{const r=document.createRange();r.selectNodeContents(doc);
