@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>archive — Mauro Brito</title>
+  <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
+  <style>
+
+    :root{--fg:#141414;--fg2:#4a4a50;--border:rgba(0,0,0,.10);--surface:rgba(0,0,0,.04);--nav-bg:rgba(255,255,255,.78);--paper:#fdfdfb;--accent:#3478f6;--accent-soft:rgba(52,120,246,.12);--done-bg:rgba(0,0,0,.025);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.22)}
+    [data-theme="dark"]{--fg:#f0f0f2;--fg2:#b8b8bc;--border:rgba(255,255,255,.10);--surface:rgba(255,255,255,.04);--nav-bg:rgba(5,5,5,.80);--paper:#0e0e10;--accent:#5a9fff;--accent-soft:rgba(90,159,255,.14);--done-bg:rgba(255,255,255,.02);--pin-bg:rgba(255,204,0,.06);--pin-border:rgba(255,180,0,.18)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:var(--fg);font-size:15px;line-height:1.65;background:var(--paper);transition:background .35s,color .35s;min-height:100vh;overflow-x:hidden}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 36px;height:52px;background:var(--nav-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border);transition:background .35s,border-color .35s}
+    .nav-left{display:flex;align-items:center;gap:20px}
+    .nav-center{display:flex;align-items:center;gap:22px;justify-content:center}
+    .nav-right{display:flex;align-items:center;justify-content:flex-end;gap:16px}
+    .nav-name{font-size:14px;font-weight:500;color:var(--fg);letter-spacing:-.01em;text-decoration:none}
+    .nav-links-group a{font-size:13px;color:var(--fg2);text-decoration:none;letter-spacing:.01em;transition:color .15s}
+    .nav-links-group a:hover{color:var(--fg)}
+    .saved-indicator{font-size:11px;color:var(--fg2);letter-spacing:.04em;opacity:.7;transition:opacity .3s}
+    .saved-indicator.flash{opacity:1;color:var(--fg)}
+    .pill-toggle{position:relative;width:52px;height:28px;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:background .25s,border-color .25s;flex-shrink:0}
+    .pill-toggle::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:var(--fg2);top:3px;left:3px;transition:transform .25s,background .25s}
+    [data-theme="dark"] .pill-toggle::after{transform:translateX(24px);background:var(--fg)}
+    .pill-toggle:hover::after{background:var(--fg)}
+
+    /* MAIN LAYOUT */
+    main{max-width:900px;margin:0 auto;padding:68px 24px 40px}
+
+    /* DOC HEAD */
+    .doc-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+    .doc-title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;font-size:38px;font-weight:600;letter-spacing:-.025em;color:var(--fg);line-height:1.05;text-transform:lowercase}
+    .doc-meta{font-size:12px;color:var(--fg2);letter-spacing:.02em}
+    .doc-rule{height:1px;background:var(--border);margin:22px 0 30px}
+
+    /* DOC EDITOR (archive is editable so you can delete stuff) */
+    .doc{min-height:calc(100vh - 240px);outline:none;font-size:16px;line-height:1.75;color:var(--fg);caret-color:var(--fg);white-space:pre-wrap;word-wrap:break-word}
+    .doc:empty::before{content:attr(data-placeholder);color:var(--fg2);opacity:.55;font-style:italic;pointer-events:none}
+    .doc h1,.doc h2,.doc h3{font-weight:600;letter-spacing:-.015em;margin:.8em 0 .3em}
+    .doc h1{font-size:26px}
+    .doc h2{font-size:20px}
+    .doc h3{font-size:17px}
+    .doc p{margin:0 0 .5em}
+    .doc ul,.doc ol{padding-left:22px;margin:0 0 .5em}
+    .doc li{margin:.1em 0}
+    .doc a{color:var(--fg);text-decoration:underline;text-decoration-color:var(--fg2);text-underline-offset:3px}
+    .doc code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.92em}
+    .doc blockquote{border-left:2px solid var(--border);padding-left:14px;color:var(--fg2);margin:.6em 0}
+
+    /* EMPTY STATE */
+    .archive-empty{text-align:center;padding:60px 20px;color:var(--fg2);opacity:.5;font-size:14px;font-style:italic}
+
+    /* BACK TO NOTES FAB */
+    .notes-fab{position:fixed;bottom:24px;right:24px;z-index:90;padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-decoration:none;display:flex;align-items:center;gap:6px;letter-spacing:.01em}
+    .notes-fab:hover{color:var(--fg);border-color:var(--fg2);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+
+    /* RESPONSIVE */
+    @media(max-width:520px){
+      nav{padding:0 16px}
+      .nav-links-group{display:none}
+      .doc{font-size:15px}
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left"><a class="nav-name" href="/">mauro brito</a></div>
+    <div class="nav-center"><div class="nav-links-group"><a href="/notes">← notes</a></div></div>
+    <div class="nav-right">
+      <span class="saved-indicator" id="savedIndicator">saved</span>
+      <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="doc-head">
+      <h1 class="doc-title">archive</h1>
+      <span class="doc-meta" id="docMeta"></span>
+    </div>
+    <div class="doc-rule"></div>
+
+    <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="nothing archived yet — select text in notes and press ctrl+shift+- to archive"></div>
+  </main>
+
+  <a class="notes-fab" href="/notes">📝 notes</a>
+
+  <script>
+  (function(){
+    const ARCHIVE_KEY='mb_archive_doc', ARCHIVE_TS_KEY='mb_archive_ts', THEME_KEY='mb_theme';
+    const $=id=>document.getElementById(id);
+    const root=document.documentElement, doc=$('doc'), savedEl=$('savedIndicator'), toggle=$('themeToggle'), docMeta=$('docMeta');
+
+    /* THEME */
+    toggle.addEventListener('click',()=>{
+      const next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+      root.setAttribute('data-theme',next);
+      try{localStorage.setItem(THEME_KEY,next)}catch(_){}
+    });
+
+    /* SAVE INDICATOR */
+    let flashT=null;
+    function flash(){savedEl.textContent='saved';savedEl.classList.add('flash');
+      clearTimeout(flashT);flashT=setTimeout(()=>savedEl.classList.remove('flash'),600)}
+
+    /* META LINE */
+    function fmtDate(ts){
+      const d=new Date(ts),today=new Date();
+      const sameDay=d.toDateString()===today.toDateString();
+      const time=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}).toLowerCase();
+      if(sameDay)return'today, '+time;
+      const opts={month:'short',day:'numeric'};
+      if(d.getFullYear()!==today.getFullYear())opts.year='numeric';
+      return d.toLocaleDateString([],opts)+', '+time;
+    }
+    function refreshMeta(){
+      const ts=Number(localStorage.getItem(ARCHIVE_TS_KEY))||0;
+      if(docMeta) docMeta.textContent=ts?'last archived '+fmtDate(ts):'';
+    }
+    refreshMeta();
+
+    /* LOAD */
+    let initial=localStorage.getItem(ARCHIVE_KEY);
+    if(initial) doc.innerHTML=initial;
+
+    /* SAVE */
+    let saveTimer=null;
+    function persistArchive(){
+      try{
+        const ts=Date.now();
+        localStorage.setItem(ARCHIVE_KEY,doc.innerHTML);
+        localStorage.setItem(ARCHIVE_TS_KEY,String(ts));
+        flash();
+        refreshMeta();
+        fetch('/api/archive',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({content:doc.innerHTML,ts})}).catch(()=>{});
+      }catch(_){savedEl.textContent='save failed'}
+    }
+    function scheduleSave(){savedEl.textContent='saving…';clearTimeout(saveTimer);saveTimer=setTimeout(persistArchive,400)}
+    doc.addEventListener('input',scheduleSave);
+
+    /* CLOUD SYNC */
+    async function loadArchiveCloud(){
+      try{
+        const r=await fetch('/api/archive');if(!r.ok)return;
+        const data=await r.json();
+        const localTs=Number(localStorage.getItem(ARCHIVE_TS_KEY))||0;
+        if(data.ts>localTs){
+          if(data.content){doc.innerHTML=data.content;localStorage.setItem(ARCHIVE_KEY,data.content)}
+          localStorage.setItem(ARCHIVE_TS_KEY,String(data.ts));
+          refreshMeta();
+        }
+      }catch(_){}
+    }
+    loadArchiveCloud();
+    window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistArchive()}});
+
+    /* PASTE PLAIN TEXT */
+    doc.addEventListener('paste',e=>{e.preventDefault();
+      document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'))});
+  })();
+  </script>
+  <script src="/site.js"></script>
+</body>
+</html>
