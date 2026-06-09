@@ -111,16 +111,19 @@
     .doc code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.92em}
     .doc blockquote{border-left:2px solid var(--border);padding-left:14px;color:var(--fg2);margin:.6em 0}
 
-    /* COLLAPSIBLE BLOCKS */
-    .collapse-block{border-left:2.5px solid var(--accent);border-radius:4px;margin:.5em 0;padding:0;background:var(--surface);transition:background .2s}
-    .collapse-block:hover{background:rgba(128,128,128,.07)}
-    .collapse-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:6px 10px;background:none;border:none;color:var(--fg);font-family:inherit;font-size:14px;font-weight:600;width:100%;text-align:left;transition:color .15s}
-    .collapse-toggle:hover{color:var(--accent)}
-    .collapse-arrow{display:inline-block;font-size:12px;transition:transform .2s;flex-shrink:0;color:var(--fg2)}
-    .collapse-block.collapsed .collapse-arrow{transform:rotate(0deg)}
-    .collapse-block:not(.collapsed) .collapse-arrow{transform:rotate(90deg)}
-    .collapse-body{padding:4px 10px 8px;overflow:hidden;transition:max-height .25s ease,opacity .2s}
-    .collapse-block.collapsed .collapse-body{display:none}
+    /* COLLAPSIBLE BLOCKS — minimal inline arrow */
+    .collapse-wrap{display:block;margin:0;padding:0}
+    .collapse-arrow{display:inline;cursor:pointer;user-select:none;font-size:.7em;color:var(--fg2);margin-right:3px;transition:color .15s}
+    .collapse-arrow:hover{color:var(--accent)}
+    .collapse-wrap.collapsed .collapse-inner{display:none}
+    .collapse-wrap:not(.collapsed) .collapse-arrow::after{content:'▾'}
+    .collapse-wrap.collapsed .collapse-arrow::after{content:'▸'}
+    .collapse-inner{display:inline}
+
+    /* ARCHIVE FAB */
+    .archive-fab{position:fixed;bottom:24px;right:24px;z-index:90;padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-decoration:none;display:flex;align-items:center;gap:6px;letter-spacing:.01em}
+    .archive-fab:hover{color:var(--fg);border-color:var(--fg2);background:var(--surface);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    .archive-fab-icon{font-size:14px}
 
     /* FOOTER SHORTCUTS */
     .doc-footer{margin-top:40px;font-size:11px;color:var(--fg2);opacity:.6;letter-spacing:.03em;line-height:1.8}
@@ -224,6 +227,7 @@
         <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough (Ctrl+Shift+X)"><s>S</s></button>
         <div class="tb-sep"></div>
         <button class="tb-btn" id="tbCollapseBtn" title="Collapse selected text" style="font-size:11px;letter-spacing:-.02em">▶⋯</button>
+        <button class="tb-btn" id="tbArchiveBtn" title="Archive selected text (Ctrl+Shift+-)" style="font-size:12px">📦</button>
         <div class="tb-sep"></div>
         <div style="position:relative">
           <button class="tb-color" id="tbColorBtn" title="Text color (Ctrl+Shift+C)"><span class="tb-color-dot" id="tbColorDot" style="background:#141414"></span></button>
@@ -272,7 +276,7 @@
       <div class="doc-footer" id="docFooter">
         cmd/ctrl+b bold · cmd/ctrl+i italic · cmd/ctrl+u underline · cmd/ctrl+shift+x strikethrough · cmd/ctrl+shift+h highlight · cmd/ctrl+shift+c text color<br>
         * + space = bullet list · tab indent · shift+tab outdent · select text + ▶⋯ = collapsible block<br>
-        cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
+        cmd/ctrl+shift+- = archive selected text · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
       </div>
     </div>
 
@@ -293,6 +297,8 @@
       <ul class="todo-list" id="todoList"></ul>
     </div>
   </div></main>
+
+  <a class="archive-fab" href="/archive" id="archiveFab">📦 archive</a>
 
   <script src="/notes-app.js"></script>
   <script src="/site.js"></script>

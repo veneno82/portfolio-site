@@ -2,7 +2,8 @@
   /* ── CONSTANTS ─────────────────────────────────────────────── */
   const DOC_KEY='mb_notes_doc', META_KEY='mb_notes_doc_meta', PIN_KEY='mb_notes_pinned',
         TODO_KEY='mb_notes_todos', TODO_TS_KEY='mb_notes_todos_ts', THEME_KEY='mb_theme',
-        SWATCH_KEY='mb_color_swatches', HL_SWATCH_KEY='mb_hl_swatches', PIN_COLOR_KEY='mb_pin_color';
+        SWATCH_KEY='mb_color_swatches', HL_SWATCH_KEY='mb_hl_swatches', PIN_COLOR_KEY='mb_pin_color',
+        ARCHIVE_KEY='mb_archive_doc', ARCHIVE_TS_KEY='mb_archive_ts';
 
   // 5 default swatches: mint, blue, purple, pink, orange
   const DEFAULT_SWATCHES=['#3ecf8e','#3478f6','#8944e0','#e54f8a','#e87d2f'];
@@ -283,52 +284,66 @@
       }
       scheduleNoteSave();
     }
+
+    /* ARCHIVE selected text: Ctrl+Shift+- */
+    if(mod&&e.shiftKey&&(e.key==='-'||e.key==='_')){
+      e.preventDefault();
+      archiveSelection();
+    }
   });
 
-  /* ── COLLAPSIBLE BLOCKS ──────────────────────────────────────── */
+  /* ── COLLAPSIBLE BLOCKS (inline arrow, no block styling) ────── */
+  // Undo stack for collapse operations (stores doc innerHTML snapshots)
+  const collapseUndoStack=[];
+  const MAX_COLLAPSE_UNDO=20;
+
+  function saveCollapseSnapshot(){
+    collapseUndoStack.push(doc.innerHTML);
+    if(collapseUndoStack.length>MAX_COLLAPSE_UNDO) collapseUndoStack.shift();
+  }
+
+  function undoCollapse(){
+    if(!collapseUndoStack.length) return;
+    doc.innerHTML=collapseUndoStack.pop();
+    rehydrateCollapseBlocks();
+    scheduleNoteSave();
+  }
+
   function wrapSelectionInCollapseBlock(){
     const sel=window.getSelection();
     if(!sel.rangeCount||sel.isCollapsed) return;
+
+    // Save snapshot for undo
+    saveCollapseSnapshot();
+
     const range=sel.getRangeAt(0);
-    // Extract selected content
     const fragment=range.extractContents();
-    const selectedText=fragment.textContent.trim();
-    // Build the first line as the toggle label (first 40 chars or first line)
-    const lines=selectedText.split('\n');
-    let label=lines[0]||'collapsed section';
-    if(label.length>40) label=label.slice(0,40)+'…';
 
-    // Create collapse block
-    const block=document.createElement('div');
-    block.className='collapse-block';
-    block.contentEditable='false';
+    // Create the wrapper span
+    const wrap=document.createElement('span');
+    wrap.className='collapse-wrap';
 
-    const toggle=document.createElement('div');
-    toggle.className='collapse-toggle';
+    // Arrow element
     const arrow=document.createElement('span');
     arrow.className='collapse-arrow';
-    arrow.textContent='▶';
-    const labelSpan=document.createElement('span');
-    labelSpan.textContent=label;
-    toggle.append(arrow,labelSpan);
+    arrow.setAttribute('contenteditable','false');
 
-    const body=document.createElement('div');
-    body.className='collapse-body';
-    body.contentEditable='true';
-    body.appendChild(fragment);
+    // Inner content
+    const inner=document.createElement('span');
+    inner.className='collapse-inner';
+    inner.appendChild(fragment);
 
-    block.append(toggle,body);
+    wrap.append(arrow,inner);
 
-    // Toggle collapse on click
-    toggle.addEventListener('click',()=>{
-      block.classList.toggle('collapsed');
+    // Wire up toggle
+    arrow.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      wrap.classList.toggle('collapsed');
       scheduleNoteSave();
     });
 
-    range.insertNode(block);
-    // Insert a br after so user can keep typing
-    const br=document.createElement('br');
-    block.after(br);
+    range.insertNode(wrap);
     sel.removeAllRanges();
     scheduleNoteSave();
   }
@@ -343,29 +358,91 @@
     });
   }
 
-  // Re-attach toggle listeners to existing collapse blocks (e.g. after page load)
+  // Wire up archive toolbar button
+  const archiveBtn=$('tbArchiveBtn');
+  if(archiveBtn){
+    archiveBtn.addEventListener('click',e=>{
+      e.preventDefault();
+      doc.focus();
+      archiveSelection();
+    });
+  }
+
+  // Re-attach toggle listeners to existing collapse wraps (e.g. after page load)
   function rehydrateCollapseBlocks(){
-    doc.querySelectorAll('.collapse-block').forEach(block=>{
-      block.contentEditable='false';
-      const body=block.querySelector('.collapse-body');
-      if(body) body.contentEditable='true';
-      const toggle=block.querySelector('.collapse-toggle');
-      if(toggle && !toggle.dataset.hydrated){
-        toggle.dataset.hydrated='1';
-        toggle.addEventListener('click',()=>{
-          block.classList.toggle('collapsed');
-          scheduleNoteSave();
-        });
+    doc.querySelectorAll('.collapse-wrap').forEach(wrap=>{
+      const arrow=wrap.querySelector('.collapse-arrow');
+      if(arrow){
+        arrow.setAttribute('contenteditable','false');
+        if(!arrow.dataset.hydrated){
+          arrow.dataset.hydrated='1';
+          arrow.addEventListener('click',e=>{
+            e.preventDefault();
+            e.stopPropagation();
+            wrap.classList.toggle('collapsed');
+            scheduleNoteSave();
+          });
+        }
       }
     });
   }
-  // Run on load and after cloud sync
-  const origLoadNotesCloud=loadNotesCloud;
   setTimeout(rehydrateCollapseBlocks,100);
 
-  // Observe mutations to re-hydrate any new collapse blocks pasted/synced in
+  // Observe mutations to re-hydrate any new collapse blocks
   const observer=new MutationObserver(()=>rehydrateCollapseBlocks());
   observer.observe(doc,{childList:true,subtree:true});
+
+  // Undo collapse with Ctrl+Z when stack has items
+  doc.addEventListener('keydown',e=>{
+    const mod=e.ctrlKey||e.metaKey;
+    if(mod&&!e.shiftKey&&e.key==='z'&&collapseUndoStack.length){
+      e.preventDefault();
+      undoCollapse();
+    }
+  });
+
+  /* ── ARCHIVE FEATURE ─────────────────────────────────────── */
+  function archiveSelection(){
+    const sel=window.getSelection();
+    if(!sel.rangeCount||sel.isCollapsed) return;
+    const range=sel.getRangeAt(0);
+
+    // Get the HTML content of selection
+    const cloned=range.cloneContents();
+    const tempDiv=document.createElement('div');
+    tempDiv.appendChild(cloned);
+    const html=tempDiv.innerHTML;
+    if(!html.trim()) return;
+
+    // Add to archive with timestamp separator
+    const ts=Date.now();
+    const dateStr=new Date(ts).toLocaleString([],{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    const separator='<div style="font-size:11px;color:var(--fg2);opacity:.5;margin:12px 0 4px;border-top:1px solid var(--border);padding-top:6px">archived '+dateStr+'</div>';
+
+    // Load existing archive
+    let existing=localStorage.getItem(ARCHIVE_KEY)||'';
+    existing=separator+html+existing;
+    localStorage.setItem(ARCHIVE_KEY,existing);
+    localStorage.setItem(ARCHIVE_TS_KEY,String(ts));
+
+    // Sync to cloud
+    fetch('/api/archive',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({content:existing,ts})}).catch(()=>{});
+
+    // Delete from notes
+    range.deleteContents();
+    sel.removeAllRanges();
+    scheduleNoteSave();
+
+    // Flash indicator
+    savedEl.textContent='archived';
+    savedEl.classList.add('flash');
+    clearTimeout(flashT);
+    flashT=setTimeout(()=>savedEl.classList.remove('flash'),800);
+  }
+
+  // Expose for mobile button
+  window._archiveSelection=archiveSelection;
 
   /* ── FOCUS DOC ON LOAD ──────────────────────────────────────── */
   setTimeout(()=>{doc.focus();try{const r=document.createRange();r.selectNodeContents(doc);
