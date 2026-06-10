@@ -315,6 +315,19 @@
     const range=sel.getRangeAt(0);
     const fragment=range.extractContents();
 
+    // Extract title from first bold text in the selection
+    const tempDiv=document.createElement('div');
+    tempDiv.appendChild(fragment.cloneNode(true));
+    let title='';
+    const boldEl=tempDiv.querySelector('b,strong');
+    if(boldEl) title=boldEl.textContent.trim();
+    if(!title){
+      // Fallback: first 30 chars of plain text
+      const plain=tempDiv.textContent.trim();
+      title=plain.length>30?plain.slice(0,30)+'\u2026':plain;
+    }
+    if(title.length>40) title=title.slice(0,40)+'\u2026';
+
     const wrap=document.createElement('span');
     wrap.className='collapse-wrap';
 
@@ -323,11 +336,17 @@
     arrow.setAttribute('contenteditable','false');
     arrow.textContent='\u25be';
 
+    // Label shown when collapsed
+    const label=document.createElement('span');
+    label.className='collapse-label';
+    label.setAttribute('contenteditable','false');
+    label.textContent=title||'collapsed';
+
     const inner=document.createElement('span');
     inner.className='collapse-inner';
     inner.appendChild(fragment);
 
-    wrap.append(arrow,inner);
+    wrap.append(arrow,label,inner);
     range.insertNode(wrap);
     sel.removeAllRanges();
     scheduleNoteSave();
