@@ -113,17 +113,14 @@
 
     /* COLLAPSIBLE BLOCKS — minimal inline arrow */
     .collapse-wrap{display:block;margin:0;padding:0}
-    .collapse-arrow{display:inline;cursor:pointer;user-select:none;font-size:.7em;color:var(--fg2);margin-right:3px;transition:color .15s}
-    .collapse-arrow:hover{color:var(--accent)}
+    .collapse-arrow{display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--fg2);margin-right:4px;padding:2px 4px;border-radius:3px;transition:color .15s,background .15s;vertical-align:middle;line-height:1;pointer-events:auto}
+    .collapse-arrow:hover{color:var(--accent);background:var(--accent-soft)}
     .collapse-wrap.collapsed .collapse-inner{display:none}
-    .collapse-wrap:not(.collapsed) .collapse-arrow::after{content:'▾'}
-    .collapse-wrap.collapsed .collapse-arrow::after{content:'▸'}
     .collapse-inner{display:inline}
 
-    /* ARCHIVE FAB */
-    .archive-fab{position:fixed;bottom:24px;right:24px;z-index:90;padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-decoration:none;display:flex;align-items:center;gap:6px;letter-spacing:.01em}
-    .archive-fab:hover{color:var(--fg);border-color:var(--fg2);background:var(--surface);box-shadow:0 4px 16px rgba(0,0,0,.08)}
-    .archive-fab-icon{font-size:14px}
+    /* ARCHIVE LINK (bottom of page) */
+    .archive-link{display:inline-block;margin-top:12px;padding:8px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--fg2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;letter-spacing:.01em}
+    .archive-link:hover{color:var(--fg);border-color:var(--fg2);box-shadow:0 4px 16px rgba(0,0,0,.08)}
 
     /* FOOTER SHORTCUTS */
     .doc-footer{margin-top:40px;font-size:11px;color:var(--fg2);opacity:.6;letter-spacing:.03em;line-height:1.8}
@@ -278,6 +275,7 @@
         * + space = bullet list · tab indent · shift+tab outdent · select text + ▶⋯ = collapsible block<br>
         cmd/ctrl+shift+- = archive selected text · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
       </div>
+      <a class="archive-link" href="/archive">archive</a>
     </div>
 
     <!-- TODO PANEL -->
@@ -297,8 +295,6 @@
       <ul class="todo-list" id="todoList"></ul>
     </div>
   </div></main>
-
-  <a class="archive-fab" href="/archive" id="archiveFab">📦 archive</a>
 
   <script src="/notes-app.js"></script>
   <script src="/site.js"></script>
