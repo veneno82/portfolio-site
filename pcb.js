@@ -414,10 +414,12 @@
       });
       el.addEventListener('wheel', e => {
         // Trackpad fires many small deltaY ticks (~3-10); mouse wheel fires
-        // fewer large ones (~100). Clamp each event so mouse wheel doesn't
-        // jump, then use a bigger multiplier so trackpad feels responsive too.
-        const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 25);
-        targetFov = Math.max(15, Math.min(75, targetFov + delta * 0.18));
+        // fewer large ones (~100). Use separate multipliers so both feel good.
+        const raw = Math.abs(e.deltaY);
+        const isTrackpad = raw < 30;
+        const clamped = Math.sign(e.deltaY) * Math.min(raw, 40);
+        const mult = isTrackpad ? 0.6 : 0.18;
+        targetFov = Math.max(15, Math.min(75, targetFov + clamped * mult));
         e.preventDefault();
       }, { passive: false });
     } else {
