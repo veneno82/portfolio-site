@@ -305,57 +305,59 @@
   function undoCollapse(){
     if(!collapseUndoStack.length) return;
     doc.innerHTML=collapseUndoStack.pop();
-    rehydrateCollapseBlocks();
     scheduleNoteSave();
   }
 
   function wrapSelectionInCollapseBlock(){
     const sel=window.getSelection();
     if(!sel.rangeCount||sel.isCollapsed) return;
-
-    // Save snapshot for undo
     saveCollapseSnapshot();
-
     const range=sel.getRangeAt(0);
     const fragment=range.extractContents();
 
-    // Create the wrapper span
     const wrap=document.createElement('span');
     wrap.className='collapse-wrap';
 
-    // Arrow element — actual text content, not ::after
     const arrow=document.createElement('span');
     arrow.className='collapse-arrow';
     arrow.setAttribute('contenteditable','false');
-    arrow.textContent='\u25be'; // ▾ expanded
+    arrow.textContent='\u25be';
 
-    // Inner content
     const inner=document.createElement('span');
     inner.className='collapse-inner';
     inner.appendChild(fragment);
 
     wrap.append(arrow,inner);
-
-    // Wire up toggle via mousedown (click gets eaten by contenteditable)
-    wireCollapseArrow(arrow,wrap);
-
     range.insertNode(wrap);
     sel.removeAllRanges();
     scheduleNoteSave();
   }
 
-  // Shared function to wire an arrow to toggle its wrap
-  function wireCollapseArrow(arrow,wrap){
-    arrow.addEventListener('mousedown',e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      const collapsed=!wrap.classList.contains('collapsed');
-      wrap.classList.toggle('collapsed',collapsed);
-      arrow.textContent=collapsed?'\u25b8':'\u25be'; // ▸ collapsed, ▾ expanded
-      scheduleNoteSave();
+  /* Single delegated mousedown on doc handles ALL collapse arrows.
+     No MutationObserver, no per-element listeners, no rehydration needed. */
+  doc.addEventListener('mousedown',e=>{
+    const arrow=e.target.closest('.collapse-arrow');
+    if(!arrow) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const wrap=arrow.closest('.collapse-wrap');
+    if(!wrap) return;
+    const collapsed=!wrap.classList.contains('collapsed');
+    wrap.classList.toggle('collapsed',collapsed);
+    arrow.textContent=collapsed?'\u25b8':'\u25be';
+    scheduleNoteSave();
+  });
+
+  // On load, set correct arrow text for any existing collapse blocks
+  setTimeout(()=>{
+    doc.querySelectorAll('.collapse-wrap').forEach(wrap=>{
+      const arrow=wrap.querySelector('.collapse-arrow');
+      if(arrow){
+        arrow.setAttribute('contenteditable','false');
+        arrow.textContent=wrap.classList.contains('collapsed')?'\u25b8':'\u25be';
+      }
     });
-  }
+  },60);
 
   // Wire up toolbar button
   const collapseBtn=$('tbCollapseBtn');
@@ -376,28 +378,6 @@
       archiveSelection();
     });
   }
-
-  // Re-attach toggle listeners to existing collapse wraps (e.g. after page load)
-  function rehydrateCollapseBlocks(){
-    doc.querySelectorAll('.collapse-wrap').forEach(wrap=>{
-      const arrow=wrap.querySelector('.collapse-arrow');
-      if(arrow){
-        arrow.setAttribute('contenteditable','false');
-        // Set correct arrow text based on current state
-        const isCollapsed=wrap.classList.contains('collapsed');
-        arrow.textContent=isCollapsed?'\u25b8':'\u25be';
-        if(!arrow.dataset.hydrated){
-          arrow.dataset.hydrated='1';
-          wireCollapseArrow(arrow,wrap);
-        }
-      }
-    });
-  }
-  setTimeout(rehydrateCollapseBlocks,100);
-
-  // Observe mutations to re-hydrate any new collapse blocks
-  const observer=new MutationObserver(()=>rehydrateCollapseBlocks());
-  observer.observe(doc,{childList:true,subtree:true});
 
   // Undo collapse with Ctrl+Z when stack has items
   doc.addEventListener('keydown',e=>{
