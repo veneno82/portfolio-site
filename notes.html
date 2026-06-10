@@ -120,9 +120,8 @@
     .collapse-wrap.collapsed .collapse-inner{display:none}
     .collapse-inner{display:inline}
 
-    /* ARCHIVE LINK (bottom-right of notes panel) */
-    .doc-bottom{display:flex;justify-content:flex-end;margin-top:12px}
-    .archive-link{padding:5px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg2);font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;letter-spacing:.01em}
+    /* ARCHIVE LINK (bottom of page, right-aligned) */
+    .archive-link{display:inline-block;float:right;margin-top:12px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--fg2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;letter-spacing:.01em}
     .archive-link:hover{color:var(--fg);border-color:var(--fg2)}
 
     /* FOOTER SHORTCUTS */
@@ -278,7 +277,7 @@
         * + space = bullet list · tab indent · shift+tab outdent · select text + ▶⋯ = collapsible block<br>
         cmd/ctrl+shift+- = archive selected text · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
       </div>
-      <div class="doc-bottom"><a class="archive-link" href="/archive">archive</a></div>
+      <a class="archive-link" href="/archive">archive</a>
     </div>
 
     <!-- TODO PANEL -->
