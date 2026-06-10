@@ -323,10 +323,11 @@
     const wrap=document.createElement('span');
     wrap.className='collapse-wrap';
 
-    // Arrow element
+    // Arrow element — actual text content, not ::after
     const arrow=document.createElement('span');
     arrow.className='collapse-arrow';
     arrow.setAttribute('contenteditable','false');
+    arrow.textContent='\u25be'; // ▾ expanded
 
     // Inner content
     const inner=document.createElement('span');
@@ -335,17 +336,25 @@
 
     wrap.append(arrow,inner);
 
-    // Wire up toggle
-    arrow.addEventListener('click',e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      wrap.classList.toggle('collapsed');
-      scheduleNoteSave();
-    });
+    // Wire up toggle via mousedown (click gets eaten by contenteditable)
+    wireCollapseArrow(arrow,wrap);
 
     range.insertNode(wrap);
     sel.removeAllRanges();
     scheduleNoteSave();
+  }
+
+  // Shared function to wire an arrow to toggle its wrap
+  function wireCollapseArrow(arrow,wrap){
+    arrow.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      const collapsed=!wrap.classList.contains('collapsed');
+      wrap.classList.toggle('collapsed',collapsed);
+      arrow.textContent=collapsed?'\u25b8':'\u25be'; // ▸ collapsed, ▾ expanded
+      scheduleNoteSave();
+    });
   }
 
   // Wire up toolbar button
@@ -374,14 +383,12 @@
       const arrow=wrap.querySelector('.collapse-arrow');
       if(arrow){
         arrow.setAttribute('contenteditable','false');
+        // Set correct arrow text based on current state
+        const isCollapsed=wrap.classList.contains('collapsed');
+        arrow.textContent=isCollapsed?'\u25b8':'\u25be';
         if(!arrow.dataset.hydrated){
           arrow.dataset.hydrated='1';
-          arrow.addEventListener('click',e=>{
-            e.preventDefault();
-            e.stopPropagation();
-            wrap.classList.toggle('collapsed');
-            scheduleNoteSave();
-          });
+          wireCollapseArrow(arrow,wrap);
         }
       }
     });
