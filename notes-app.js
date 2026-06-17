@@ -496,18 +496,40 @@
     const next=JSON.parse(redoStack.pop());
     localStorage.setItem(TODO_KEY,JSON.stringify(next));flash();renderTodos()}
 
-  /* Sort: active first in order, then completed in order */
+  /* Sort: dividers stay in place, active tasks first, completed last */
   function sortedTodos(items){
-    const active=items.filter(t=>!t.done), done=items.filter(t=>t.done);
-    return[...active,...done];
+    // Separate dividers, active tasks, and done tasks
+    const dividers=[];
+    const tasks=[];
+    items.forEach((t,i)=>{
+      if(t.type==='divider') dividers.push({item:t,origIdx:i});
+      else tasks.push(t);
+    });
+    const active=tasks.filter(t=>!t.done);
+    const done=tasks.filter(t=>t.done);
+    // Rebuild: active tasks, then dividers in original relative order among remaining, then done
+    // Actually, keep it simple: dividers act as section headers, keep original order
+    // Just move completed tasks to the end
+    const result=[];
+    const doneItems=[];
+    items.forEach(t=>{
+      if(t.type==='divider') result.push(t);
+      else if(!t.done) result.push(t);
+      else doneItems.push(t);
+    });
+    return[...result,...doneItems];
   }
 
   function renderTodos(){
     let items=loadTodos();
-    items.forEach(t=>{if(t.indent===undefined)t.indent=0;if(!t.id)t.id=Math.random().toString(36).slice(2,9)});
+    items.forEach(t=>{
+      if(t.type==='divider'){if(!t.id)t.id=Math.random().toString(36).slice(2,9);return}
+      if(t.indent===undefined)t.indent=0;if(!t.id)t.id=Math.random().toString(36).slice(2,9);
+    });
     const sorted=sortedTodos(items);
-    const activeCount=sorted.filter(t=>!t.done).length;
-    todoCount.textContent=items.length?activeCount+'/'+items.length:'0';
+    const activeCount=sorted.filter(t=>t.type!=='divider'&&!t.done).length;
+    const totalTasks=items.filter(t=>t.type!=='divider').length;
+    todoCount.textContent=totalTasks?activeCount+'/'+totalTasks:'0';
     todoList.innerHTML='';
     if(!items.length){
       const e=document.createElement('li');e.className='todo-empty';
@@ -515,6 +537,30 @@
     let shownDoneSep=false;
     sorted.forEach((it)=>{
       const realIdx=items.findIndex(t=>t.id===it.id);
+
+      // ── DIVIDER ──
+      if(it.type==='divider'){
+        const div=document.createElement('div');div.className='todo-divider';
+        const line1=document.createElement('span');line1.className='todo-divider-line';
+        const label=document.createElement('span');label.className='todo-divider-label';
+        label.contentEditable='true';label.spellcheck=false;label.textContent=it.label||'';
+        label.addEventListener('blur',()=>{
+          const cur=loadTodos();
+          if(cur[realIdx]&&label.textContent.trim()!==cur[realIdx].label){
+            cur[realIdx].label=label.textContent.trim();saveTodos(cur);
+          }
+        });
+        label.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();label.blur()}});
+        const line2=document.createElement('span');line2.className='todo-divider-line';
+        const x=document.createElement('button');x.type='button';x.className='todo-divider-x';
+        x.textContent='×';x.title='delete section';
+        x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);saveTodos(cur);renderTodos()});
+        div.append(line1,label,line2,x);
+        todoList.appendChild(div);
+        return;
+      }
+
+      // ── TASK ──
       if(it.done&&!shownDoneSep){shownDoneSep=true;
         const sep=document.createElement('div');sep.className='todo-separator';
         sep.textContent='completed';todoList.appendChild(sep)}
@@ -564,6 +610,49 @@
     const items=loadTodos();
     items.unshift({id:Math.random().toString(36).slice(2,9),text,done:false,indent:0,ts:Date.now()});
     saveTodos(items);todoInput.value='';renderTodos()});
+
+  /* ── DIVIDERS ─────────────────────────────────────────────── */
+  const dividerInput=$('dividerInput');
+  const dividerAddBtn=$('dividerAddBtn');
+  const dividerTomorrowBtn=$('dividerTomorrowBtn');
+
+  function addDivider(label){
+    if(!label)return;
+    const items=loadTodos();
+    items.unshift({id:Math.random().toString(36).slice(2,9),type:'divider',label});
+    saveTodos(items);renderTodos();
+  }
+
+  // Smart "tomorrow" date: if current time is 1am–6am, user hasn't slept yet,
+  // so "next day" = today's calendar date. Otherwise "next day" = tomorrow.
+  function getNextDayLabel(){
+    const now=new Date();
+    const hour=now.getHours();
+    const target=new Date(now);
+    if(hour>=7||hour<1){
+      // Normal hours: tomorrow
+      target.setDate(target.getDate()+1);
+    }
+    // 1am–6am: "tomorrow" is today (user hasn't slept yet)
+    const days=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    return days[target.getDay()]+' '+months[target.getMonth()]+' '+target.getDate();
+  }
+
+  dividerAddBtn.addEventListener('click',()=>{
+    const label=dividerInput.value.trim();
+    if(label){addDivider(label);dividerInput.value=''}
+  });
+
+  dividerInput.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();
+      const label=dividerInput.value.trim();
+      if(label){addDivider(label);dividerInput.value=''}}
+  });
+
+  dividerTomorrowBtn.addEventListener('click',()=>{
+    addDivider(getNextDayLabel());
+  });
 
   /* Indent/Outdent/Undo buttons (mobile only, but always wired) */
   $('todoIndentBtn').addEventListener('click',()=>{
