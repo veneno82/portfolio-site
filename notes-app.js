@@ -604,11 +604,15 @@
     });
   }
 
-  /* Add task — top of list */
+  /* Add task — below first divider if one leads the list, else top */
   todoForm.addEventListener('submit',e=>{e.preventDefault();
     const text=todoInput.value.trim();if(!text)return;
     const items=loadTodos();
-    items.unshift({id:Math.random().toString(36).slice(2,9),text,done:false,indent:0,ts:Date.now()});
+    const newTask={id:Math.random().toString(36).slice(2,9),text,done:false,indent:0,ts:Date.now()};
+    // Find first divider at the top and insert after it
+    const firstDiv=items.findIndex(t=>t.type==='divider');
+    if(firstDiv===0) items.splice(1,0,newTask);
+    else items.unshift(newTask);
     saveTodos(items);todoInput.value='';renderTodos()});
 
   /* ── DIVIDERS ─────────────────────────────────────────────── */
