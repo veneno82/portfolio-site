@@ -541,7 +541,6 @@
       // ── DIVIDER ──
       if(it.type==='divider'){
         const div=document.createElement('div');div.className='todo-divider';
-        const line1=document.createElement('span');line1.className='todo-divider-line';
         const label=document.createElement('span');label.className='todo-divider-label';
         label.contentEditable='true';label.spellcheck=false;label.textContent=it.label||'';
         label.addEventListener('blur',()=>{
@@ -551,11 +550,10 @@
           }
         });
         label.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();label.blur()}});
-        const line2=document.createElement('span');line2.className='todo-divider-line';
         const x=document.createElement('button');x.type='button';x.className='todo-divider-x';
         x.textContent='×';x.title='delete section';
         x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);saveTodos(cur);renderTodos()});
-        div.append(line1,label,line2,x);
+        div.append(label,x);
         todoList.appendChild(div);
         return;
       }
