@@ -156,6 +156,20 @@
     .todo-empty{font-size:13px;color:var(--fg2);font-style:italic;padding:20px 4px;opacity:.6;text-align:center}
     .todo-separator{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--fg2);opacity:.5;padding:12px 4px 4px}
 
+    /* TODO DIVIDERS */
+    .todo-divider{display:flex;align-items:center;gap:8px;padding:10px 4px 6px;cursor:default}
+    .todo-divider-line{flex:1;height:1px;background:var(--border)}
+    .todo-divider-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--fg2);white-space:nowrap;outline:none;min-width:20px}
+    .todo-divider-x{opacity:0;cursor:pointer;color:var(--fg2);font-size:13px;background:none;border:none;font-family:inherit;transition:opacity .15s,color .15s;padding:0 2px;line-height:1;flex-shrink:0}
+    .todo-divider:hover .todo-divider-x{opacity:1}
+    .todo-divider-x:hover{color:#e55}
+    .todo-divider-add{display:flex;gap:4px;margin-bottom:6px}
+    .todo-divider-add input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:6px 10px;font-family:inherit;font-size:12px;border-radius:6px;outline:none;transition:border-color .15s}
+    .todo-divider-add input::placeholder{color:var(--fg2);opacity:.5}
+    .todo-divider-add input:focus{border-color:var(--accent)}
+    .todo-divider-add button{padding:6px 10px;font-size:11px;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg2);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+    .todo-divider-add button:hover{color:var(--fg);border-color:var(--fg2)}
+
     /* RESPONSIVE */
     @media(max-width:840px){
       .mobile-tabs{display:block}
@@ -289,6 +303,11 @@
       <form class="todo-add" id="todoForm">
         <input id="todoInput" type="text" placeholder="add a task — enter to submit" autocomplete="off">
       </form>
+      <div class="todo-divider-add" id="dividerForm">
+        <input id="dividerInput" type="text" placeholder="section label" autocomplete="off">
+        <button type="button" id="dividerAddBtn" title="Add divider">+ divider</button>
+        <button type="button" id="dividerTomorrowBtn" title="Add tomorrow's date as divider">tomorrow</button>
+      </div>
       <div class="todo-actions" id="todoActions">
         <button class="todo-act-btn" id="todoIndentBtn" title="Indent selected" type="button">→ indent</button>
         <button class="todo-act-btn" id="todoOutdentBtn" title="Outdent selected" type="button">← outdent</button>
