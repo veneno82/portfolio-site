@@ -67,7 +67,9 @@
   refreshMeta();
 
   let saveTimer=null;
+  let syncing=false; // guard: don't save while loading cloud data
   function persistNotes(){
+    if(syncing) return;
     try{
       const ts=Date.now();
       localStorage.setItem(DOC_KEY,doc.innerHTML);
@@ -79,24 +81,37 @@
         body:JSON.stringify({content:doc.innerHTML,pinned:pinnedBody.innerHTML,ts})}).catch(()=>{});
     }catch(_){savedEl.textContent='save failed'}
   }
-  function scheduleNoteSave(){savedEl.textContent='saving…';clearTimeout(saveTimer);saveTimer=setTimeout(persistNotes,400)}
+  function scheduleNoteSave(){
+    if(syncing) return;
+    savedEl.textContent='saving…';clearTimeout(saveTimer);saveTimer=setTimeout(persistNotes,400);
+  }
   doc.addEventListener('input',scheduleNoteSave);
   pinnedBody.addEventListener('input',scheduleNoteSave);
 
-  async function loadNotesCloud(){
+  /* Initial load: always trust cloud as source of truth.
+     localStorage is shown first for speed, then cloud overwrites if available. */
+  async function loadNotesCloud(isPolling){
     try{
       const r=await fetch('/api/notes');if(!r.ok)return;
       const data=await r.json();
       const localTs=Number(localStorage.getItem(META_KEY))||0;
-      if(data.ts>localTs){
-        if(data.content){doc.innerHTML=data.content;localStorage.setItem(DOC_KEY,data.content)}
-        if(data.pinned!==undefined){pinnedBody.innerHTML=data.pinned;localStorage.setItem(PIN_KEY,data.pinned)}
-        localStorage.setItem(META_KEY,String(data.ts));
+      // On initial load, always use cloud data. On polling, only if cloud is newer.
+      const shouldSync=isPolling ? (data.ts && data.ts > localTs) : (data.ts != null);
+      if(shouldSync){
+        syncing=true;
+        if(data.content!=null){doc.innerHTML=data.content;localStorage.setItem(DOC_KEY,data.content)}
+        if(data.pinned!=null){pinnedBody.innerHTML=data.pinned;localStorage.setItem(PIN_KEY,data.pinned)}
+        if(data.ts) localStorage.setItem(META_KEY,String(data.ts));
         refreshMeta();
+        syncing=false;
       }
-    }catch(_){}
+    }catch(_){syncing=false}
   }
-  loadNotesCloud();
+  loadNotesCloud(false);
+
+  /* Periodic sync: poll every 30s to pick up changes from other devices */
+  setInterval(()=>loadNotesCloud(true),30000);
+
   window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistNotes()}});
 
   /* ── PASTE PLAIN TEXT ───────────────────────────────────────── */
@@ -568,19 +583,21 @@
   });
 
   /* Cloud sync for todos */
-  async function loadTodosCloud(){
+  async function loadTodosCloud(isPolling){
     try{
       const r=await fetch('/api/todos');if(!r.ok)return;
       const data=await r.json();
       const localTs=Number(localStorage.getItem(TODO_TS_KEY))||0;
-      if(data.ts>localTs&&data.items&&data.items.length){
+      const shouldSync=isPolling ? (data.ts && data.ts > localTs) : (data.ts != null);
+      if(shouldSync && data.items!=null){
         localStorage.setItem(TODO_KEY,JSON.stringify(data.items));
-        localStorage.setItem(TODO_TS_KEY,String(data.ts));
+        if(data.ts) localStorage.setItem(TODO_TS_KEY,String(data.ts));
         renderTodos();
       }
     }catch(_){}
   }
 
   renderTodos();
-  loadTodosCloud();
+  loadTodosCloud(false);
+  setInterval(()=>loadTodosCloud(true),30000);
 })();
