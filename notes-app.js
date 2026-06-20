@@ -114,9 +114,34 @@
 
   window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistNotes()}});
 
-  /* ── PASTE PLAIN TEXT ───────────────────────────────────────── */
-  doc.addEventListener('paste',e=>{e.preventDefault();
-    document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text'))});
+  /* ── PASTE & AUTO LINK DETECTION ────────────────────────────── */
+  doc.addEventListener('paste',e=>{
+    const plain = (e.clipboardData || window.clipboardData).getData('text') || '';
+    const urlRegex = /((https?:\/\/|www\.)[^\s]+)/gi;
+    if(urlRegex.test(plain)){
+      e.preventDefault();
+      urlRegex.lastIndex = 0;
+      const escaped = plain.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const html = escaped.replace(urlRegex, function(url){
+        const rawUrl = url.replace(/&amp;/g, '&');
+        const href = rawUrl.toLowerCase().startsWith('http') ? rawUrl : 'https://' + rawUrl;
+        return `<a href="${href}" target="_blank" rel="noopener">${url}</a>`;
+      }).replace(/\n/g, '<br>');
+      document.execCommand('insertHTML', false, html);
+    } else {
+      e.preventDefault();
+      document.execCommand('insertText', false, plain);
+    }
+  });
+
+  // Open links in editable area on click
+  doc.addEventListener('click',e=>{
+    const a=e.target.closest('a');
+    if(a && doc.contains(a)){
+      e.preventDefault();
+      window.open(a.href,'_blank');
+    }
+  });
 
   /* ── AUTO BULLET LIST (type "* " at line start → bullet) ────── */
   doc.addEventListener('input',e=>{
