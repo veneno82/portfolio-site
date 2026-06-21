@@ -39,7 +39,14 @@
     tabBtns.forEach(t=>t.classList.remove('active'));b.classList.add('active');applyTab();
     if(typeof repositionAllStickers==='function') repositionAllStickers();
   }));
-  window.addEventListener('resize',applyTab);applyTab();
+  window.addEventListener('resize',()=>{
+    applyTab();
+    if(typeof updateLastNotesWidth==='function') updateLastNotesWidth();
+  });
+  applyTab();
+  setTimeout(()=>{
+    if(typeof updateLastNotesWidth==='function') updateLastNotesWidth();
+  },100);
 
   /* ── SAVE INDICATOR ─────────────────────────────────────────── */
   let flashT=null;
@@ -106,6 +113,16 @@
         if(Array.isArray(data.stickers)){
           localStorage.setItem(STICKER_KEY,JSON.stringify(data.stickers));
           stickers=data.stickers;
+          let migrated = false;
+          stickers.forEach(st => {
+            if (st.panel === undefined || st.relX === undefined) {
+              initializeStickerPanel(st);
+              migrated = true;
+            }
+          });
+          if (migrated) {
+            saveStickers();
+          }
           renderAllStickers();
         }
         if(data.ts) localStorage.setItem(META_KEY,String(data.ts));
@@ -215,6 +232,24 @@
      ══════════════════════════════════════════════════════════════ */
   let stickers=[];
   let stickerIdCounter=Date.now();
+  let lastNotesWidth=700;
+
+  function updateLastNotesWidth(){
+    if(panelNotes && panelNotes.offsetWidth > 100 && !isMobile()){
+      lastNotesWidth = panelNotes.offsetWidth;
+    }
+  }
+
+  function initializeStickerPanel(s) {
+    if (!s.panel) {
+      updateLastNotesWidth();
+      s.panel = s.x < lastNotesWidth ? 'notes' : 'todos';
+    }
+    if (s.relX === undefined) {
+      updateLastNotesWidth();
+      s.relX = s.panel === 'notes' ? s.x : s.x - lastNotesWidth;
+    }
+  }
 
   function loadStickers(){
     try{const s=JSON.parse(localStorage.getItem(STICKER_KEY));if(Array.isArray(s))return s}catch(_){}
@@ -222,7 +257,7 @@
   }
   function saveStickers(){
     try{
-      const data=stickers.map(s=>({id:s.id,src:s.src,x:s.x,y:s.y,w:s.w,h:s.h}));
+      const data=stickers.map(s=>({id:s.id,src:s.src,x:s.x,y:s.y,w:s.w,h:s.h,panel:s.panel,relX:s.relX}));
       localStorage.setItem(STICKER_KEY,JSON.stringify(data));
       flash();
       // sync to cloud alongside notes
@@ -244,6 +279,18 @@
       const y=pos?pos.y:Math.max(80,window.scrollY-layerRect.top+layerRect.height/2-100);
       const id='stk_'+(stickerIdCounter++);
       const s={id,src:dataUrl,x,y,w:200,h:0}; // h:0 = auto aspect ratio
+
+      let notesWidth = panelNotes.offsetWidth || lastNotesWidth;
+      if (isMobile()) {
+        const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab || 'notes';
+        s.panel = activeTab;
+        s.relX = x;
+        s.x = s.panel === 'notes' ? x : x + notesWidth;
+      } else {
+        s.panel = x < notesWidth ? 'notes' : 'todos';
+        s.relX = s.panel === 'notes' ? x : x - notesWidth;
+      }
+
       // Determine natural aspect ratio
       const img=new Image();
       img.onload=function(){
@@ -348,15 +395,28 @@
     const isTouch=e.type==='touchstart';
     const startPt=isTouch?e.touches[0]:{clientX:e.clientX,clientY:e.clientY};
     const origX=stickerData.x, origY=stickerData.y;
+    const startXVal = isMobile() ? stickerData.relX : stickerData.x;
 
     function onMove(ev){
       ev.preventDefault();
       const pt=ev.touches?ev.touches[0]:ev;
       const dx=pt.clientX-startPt.clientX;
       const dy=pt.clientY-startPt.clientY;
-      stickerData.x=Math.max(0,origX+dx);
+      const newX = Math.max(0, startXVal + dx);
       stickerData.y=Math.max(0,origY+dy);
-      el.style.left=stickerData.x+'px';
+
+      if (isMobile()) {
+        stickerData.relX = newX;
+        let notesWidth = panelNotes.offsetWidth || lastNotesWidth;
+        stickerData.x = stickerData.panel === 'notes' ? newX : newX + notesWidth;
+        el.style.left=newX+'px';
+      } else {
+        stickerData.x = newX;
+        let notesWidth = panelNotes.offsetWidth || lastNotesWidth;
+        stickerData.panel = newX < notesWidth ? 'notes' : 'todos';
+        stickerData.relX = stickerData.panel === 'notes' ? newX : newX - notesWidth;
+        el.style.left=newX+'px';
+      }
       el.style.top=stickerData.y+'px';
     }
     function onUp(){
@@ -385,7 +445,9 @@
     const startPt=isTouch?e.touches[0]:{clientX:e.clientX,clientY:e.clientY};
     const origW=stickerData.w, origH=stickerData.h;
     const origX=stickerData.x, origY=stickerData.y;
+    const origRelX=stickerData.relX;
     const aspect=origH/origW;
+    const notesWidth = panelNotes.offsetWidth || lastNotesWidth;
 
     function onMove(ev){
       ev.preventDefault();
@@ -397,25 +459,37 @@
       if(corner==='br'){
         newW=Math.max(40,origW+dx);
         newH=Math.round(newW*aspect);
-        newX=origX; newY=origY;
+        newX=isMobile() ? origRelX : origX; newY=origY;
       }else if(corner==='bl'){
         newW=Math.max(40,origW-dx);
         newH=Math.round(newW*aspect);
-        newX=origX+(origW-newW); newY=origY;
+        newX=(isMobile() ? origRelX : origX)+(origW-newW); newY=origY;
       }else if(corner==='tr'){
         newW=Math.max(40,origW+dx);
         newH=Math.round(newW*aspect);
-        newX=origX; newY=origY+(origH-newH);
+        newX=isMobile() ? origRelX : origX; newY=origY+(origH-newH);
       }else{ // tl
         newW=Math.max(40,origW-dx);
         newH=Math.round(newW*aspect);
-        newX=origX+(origW-newW); newY=origY+(origH-newH);
+        newX=(isMobile() ? origRelX : origX)+(origW-newW); newY=origY+(origH-newH);
       }
 
       stickerData.w=newW; stickerData.h=newH;
-      stickerData.x=Math.max(0,newX); stickerData.y=Math.max(0,newY);
+      stickerData.y=Math.max(0,newY);
+
+      if (isMobile()) {
+        stickerData.relX=Math.max(0,newX);
+        stickerData.x=stickerData.panel==='notes'?stickerData.relX:stickerData.relX+notesWidth;
+        el.style.left=stickerData.relX+'px';
+      } else {
+        stickerData.x=Math.max(0,newX);
+        stickerData.panel=stickerData.x<notesWidth?'notes':'todos';
+        stickerData.relX=stickerData.panel==='notes'?stickerData.x:stickerData.x-notesWidth;
+        el.style.left=stickerData.x+'px';
+      }
+
       el.style.width=newW+'px'; el.style.height=newH+'px';
-      el.style.left=stickerData.x+'px'; el.style.top=stickerData.y+'px';
+      el.style.top=stickerData.y+'px';
     }
     function onUp(){
       document.removeEventListener('mousemove',onMove);
@@ -435,6 +509,19 @@
     stickers.forEach(s=>createStickerEl(s));
   }
   stickers=loadStickers();
+
+  // Migrate / initialize panel fields on load
+  let migrated = false;
+  stickers.forEach(s => {
+    if (s.panel === undefined || s.relX === undefined) {
+      initializeStickerPanel(s);
+      migrated = true;
+    }
+  });
+  if (migrated) {
+    saveStickers();
+  }
+
   renderAllStickers();
 
   /* ── RESPONSIVE STICKER LAYOUT ──────────────────────────── */
@@ -442,20 +529,35 @@
   // be off-screen. This helper clamps the visual position & size so stickers
   // always fit within the viewport, without changing the saved data model.
   function applyStickerLayout(el,s){
+    initializeStickerPanel(s);
     const vw=window.innerWidth;
     if(vw<=840){
+      const active=document.querySelector('.tab-btn.active')?.dataset.tab || 'notes';
+      if(s.panel!==active){
+        el.style.display='none';
+        return;
+      }else{
+        el.style.display='';
+      }
+
       // clamp width to fit screen (with 16px margin each side)
       const maxW=vw-32;
       const visW=Math.min(s.w,maxW);
       const scale=visW/s.w;
       const visH=Math.round(s.h*scale);
-      const visX=Math.min(s.x,vw-visW-16);
+      const visX=Math.min(s.relX,vw-visW-16);
       el.style.left=Math.max(0,visX)+'px';
       el.style.top=s.y+'px';
       el.style.width=visW+'px';
       el.style.height=visH+'px';
     }else{
-      el.style.left=s.x+'px';
+      el.style.display='';
+      let visLeft = s.x;
+      if(s.panel === 'todos'){
+        const notesWidth = panelNotes.offsetWidth || lastNotesWidth;
+        visLeft = notesWidth + s.relX;
+      }
+      el.style.left=visLeft+'px';
       el.style.top=s.y+'px';
       el.style.width=s.w+'px';
       el.style.height=s.h+'px';
