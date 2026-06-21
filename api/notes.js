@@ -8,22 +8,26 @@ export default async function handler(req, res) {
 
   // GET /api/notes — return saved content + pinned + timestamp
   if (req.method === 'GET') {
-    const [cRes, tRes, pRes] = await Promise.all([
+    const [cRes, tRes, pRes, sRes] = await Promise.all([
       fetch(`${url}/get/notes_doc`, { headers: { Authorization: `Bearer ${token}` } }),
       fetch(`${url}/get/notes_ts`,  { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${url}/get/notes_pinned`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${url}/get/notes_pinned`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${url}/get/notes_stickers`, { headers: { Authorization: `Bearer ${token}` } })
     ]);
     const c = await cRes.json();
     const t = await tRes.json();
     const p = await pRes.json();
-    return res.json({ content: c.result || '', ts: Number(t.result) || 0, pinned: p.result || '' });
+    const s = await sRes.json();
+    let stickers = [];
+    try { if (s.result) stickers = JSON.parse(s.result); } catch (_) {}
+    return res.json({ content: c.result || '', ts: Number(t.result) || 0, pinned: p.result || '', stickers });
   }
 
   // POST /api/notes — persist content + pinned + timestamp
   if (req.method === 'POST') {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
-    const { content = '', ts = Date.now(), pinned } = body;
+    const { content = '', ts = Date.now(), pinned, stickers } = body;
     const ops = [
       fetch(url, {
         method: 'POST',
@@ -41,6 +45,13 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(['SET', 'notes_pinned', pinned])
+      }));
+    }
+    if (stickers !== undefined) {
+      ops.push(fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['SET', 'notes_stickers', JSON.stringify(stickers)])
       }));
     }
     await Promise.all(ops);
