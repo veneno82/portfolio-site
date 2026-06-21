@@ -37,6 +37,7 @@
   }
   tabBtns.forEach(b=>b.addEventListener('click',()=>{
     tabBtns.forEach(t=>t.classList.remove('active'));b.classList.add('active');applyTab();
+    if(typeof repositionAllStickers==='function') repositionAllStickers();
   }));
   window.addEventListener('resize',applyTab);applyTab();
 
@@ -267,11 +268,8 @@
     const wrap=document.createElement('div');
     wrap.className='sticker-img';
     wrap.dataset.stickerId=s.id;
-    wrap.style.left=s.x+'px';
-    wrap.style.top=s.y+'px';
-    wrap.style.width=s.w+'px';
-    wrap.style.height=s.h+'px';
     wrap.setAttribute('tabindex','-1');
+    applyStickerLayout(wrap,s);
 
     const img=document.createElement('img');
     img.src=s.src;
@@ -438,6 +436,38 @@
   }
   stickers=loadStickers();
   renderAllStickers();
+
+  /* ── RESPONSIVE STICKER LAYOUT ──────────────────────────── */
+  // On mobile, stickers placed in the desktop todo-panel area (large x) would
+  // be off-screen. This helper clamps the visual position & size so stickers
+  // always fit within the viewport, without changing the saved data model.
+  function applyStickerLayout(el,s){
+    const vw=window.innerWidth;
+    if(vw<=840){
+      // clamp width to fit screen (with 16px margin each side)
+      const maxW=vw-32;
+      const visW=Math.min(s.w,maxW);
+      const scale=visW/s.w;
+      const visH=Math.round(s.h*scale);
+      const visX=Math.min(s.x,vw-visW-16);
+      el.style.left=Math.max(0,visX)+'px';
+      el.style.top=s.y+'px';
+      el.style.width=visW+'px';
+      el.style.height=visH+'px';
+    }else{
+      el.style.left=s.x+'px';
+      el.style.top=s.y+'px';
+      el.style.width=s.w+'px';
+      el.style.height=s.h+'px';
+    }
+  }
+  function repositionAllStickers(){
+    stickerLayer.querySelectorAll('.sticker-img').forEach(el=>{
+      const s=stickers.find(st=>st.id===el.dataset.stickerId);
+      if(s) applyStickerLayout(el,s);
+    });
+  }
+  window.addEventListener('resize',repositionAllStickers);
 
   /* ── DEACTIVATE sticker on outside click ────────────────── */
   document.addEventListener('click',e=>{
