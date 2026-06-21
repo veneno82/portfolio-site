@@ -121,6 +121,24 @@
   window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistNotes()}});
 
   /* ── PASTE & AUTO LINK DETECTION (+ IMAGE STICKERS) ────────── */
+  function getCaretStickerPos(){
+    const sel=window.getSelection();
+    if(!sel.rangeCount) return null;
+    const range=sel.getRangeAt(0);
+    const rect=range.getBoundingClientRect();
+    const panelRect=panelNotes.getBoundingClientRect();
+    if(rect.width===0&&rect.height===0){
+      // Collapsed caret — try caret position
+      const span=document.createElement('span');
+      span.textContent='\u200b';
+      range.insertNode(span);
+      const spanRect=span.getBoundingClientRect();
+      const pos={x:spanRect.left-panelRect.left+panelNotes.scrollLeft,y:spanRect.top-panelRect.top+panelNotes.scrollTop};
+      span.remove();
+      return pos;
+    }
+    return{x:rect.left-panelRect.left+panelNotes.scrollLeft,y:rect.top-panelRect.top+panelNotes.scrollTop};
+  }
   doc.addEventListener('paste',e=>{
     const items=e.clipboardData?.items;
     if(items){
@@ -128,7 +146,7 @@
         if(items[i].type.startsWith('image/')){
           e.preventDefault();
           const file=items[i].getAsFile();
-          if(file) handleStickerImageFile(file,null);
+          if(file) handleStickerImageFile(file,getCaretStickerPos());
           return;
         }
       }
@@ -159,7 +177,7 @@
         if(items[i].type.startsWith('image/')){
           e.preventDefault();
           const file=items[i].getAsFile();
-          if(file) handleStickerImageFile(file,null);
+          if(file) handleStickerImageFile(file,getCaretStickerPos());
           return;
         }
       }
@@ -175,7 +193,7 @@
         if(items[i].type.startsWith('image/')){
           e.preventDefault();
           const file=items[i].getAsFile();
-          if(file) handleStickerImageFile(file,null);
+          if(file) handleStickerImageFile(file,getCaretStickerPos());
           return;
         }
       }
@@ -279,12 +297,34 @@
     });
 
     wrap.append(img,del);
-    // drag via the main element
+    // double-click/double-tap to activate (enable drag + show controls)
+    wrap.addEventListener('dblclick',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      // deactivate all others first
+      panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
+      wrap.classList.add('active');
+    });
+    // double-tap detection for touch
+    let lastTap=0;
+    wrap.addEventListener('touchend',e=>{
+      if(e.target.classList.contains('sticker-resize')||e.target.classList.contains('sticker-delete'))return;
+      const now=Date.now();
+      if(now-lastTap<350){
+        e.preventDefault();
+        panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
+        wrap.classList.add('active');
+      }
+      lastTap=now;
+    });
+    // drag only when active
     wrap.addEventListener('mousedown',e=>{
+      if(!wrap.classList.contains('active'))return;
       if(e.target.classList.contains('sticker-resize')||e.target.classList.contains('sticker-delete'))return;
       startDrag(e,s.id);
     });
     wrap.addEventListener('touchstart',e=>{
+      if(!wrap.classList.contains('active'))return;
       if(e.target.classList.contains('sticker-resize')||e.target.classList.contains('sticker-delete'))return;
       startDrag(e,s.id);
     },{passive:false});
