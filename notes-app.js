@@ -3,7 +3,8 @@
   const DOC_KEY='mb_notes_doc', META_KEY='mb_notes_doc_meta', PIN_KEY='mb_notes_pinned',
         TODO_KEY='mb_notes_todos', TODO_TS_KEY='mb_notes_todos_ts', THEME_KEY='mb_theme',
         SWATCH_KEY='mb_color_swatches', HL_SWATCH_KEY='mb_hl_swatches', PIN_COLOR_KEY='mb_pin_color',
-        ARCHIVE_KEY='mb_archive_doc', ARCHIVE_TS_KEY='mb_archive_ts';
+        ARCHIVE_KEY='mb_archive_doc', ARCHIVE_TS_KEY='mb_archive_ts',
+        STICKER_KEY='mb_notes_stickers';
 
   // 5 default swatches: mint, blue, purple, pink, orange
   const DEFAULT_SWATCHES=['#3ecf8e','#3478f6','#8944e0','#e54f8a','#e87d2f'];
@@ -78,7 +79,7 @@
       flash();
       refreshMeta();
       fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({content:doc.innerHTML,pinned:pinnedBody.innerHTML,ts})}).catch(()=>{});
+        body:JSON.stringify({content:doc.innerHTML,pinned:pinnedBody.innerHTML,stickers:stickers.map(s=>({id:s.id,src:s.src,x:s.x,y:s.y,w:s.w,h:s.h})),ts})}).catch(()=>{});
     }catch(_){savedEl.textContent='save failed'}
   }
   function scheduleNoteSave(){
@@ -101,6 +102,11 @@
         syncing=true;
         if(data.content!=null){doc.innerHTML=data.content;localStorage.setItem(DOC_KEY,data.content)}
         if(data.pinned!=null){pinnedBody.innerHTML=data.pinned;localStorage.setItem(PIN_KEY,data.pinned)}
+        if(Array.isArray(data.stickers)){
+          localStorage.setItem(STICKER_KEY,JSON.stringify(data.stickers));
+          stickers=data.stickers;
+          renderAllStickers();
+        }
         if(data.ts) localStorage.setItem(META_KEY,String(data.ts));
         refreshMeta();
         syncing=false;
@@ -114,8 +120,19 @@
 
   window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistNotes()}});
 
-  /* ── PASTE & AUTO LINK DETECTION ────────────────────────────── */
+  /* ── PASTE & AUTO LINK DETECTION (+ IMAGE STICKERS) ────────── */
   doc.addEventListener('paste',e=>{
+    const items=e.clipboardData?.items;
+    if(items){
+      for(let i=0;i<items.length;i++){
+        if(items[i].type.startsWith('image/')){
+          e.preventDefault();
+          const file=items[i].getAsFile();
+          if(file) handleStickerImageFile(file,null);
+          return;
+        }
+      }
+    }
     const plain = (e.clipboardData || window.clipboardData).getData('text') || '';
     const urlRegex = /((https?:\/\/|www\.)[^\s]+)/gi;
     if(urlRegex.test(plain)){
@@ -134,12 +151,259 @@
     }
   });
 
+  /* Also intercept paste on the pinned body for sticker images */
+  pinnedBody.addEventListener('paste',e=>{
+    const items=e.clipboardData?.items;
+    if(items){
+      for(let i=0;i<items.length;i++){
+        if(items[i].type.startsWith('image/')){
+          e.preventDefault();
+          const file=items[i].getAsFile();
+          if(file) handleStickerImageFile(file,null);
+          return;
+        }
+      }
+    }
+  });
+
+  /* Also intercept paste on the panel itself for cases where user isn't focused on doc */
+  panelNotes.addEventListener('paste',e=>{
+    if(e.target===doc||doc.contains(e.target)||e.target===pinnedBody||pinnedBody.contains(e.target)) return;
+    const items=e.clipboardData?.items;
+    if(items){
+      for(let i=0;i<items.length;i++){
+        if(items[i].type.startsWith('image/')){
+          e.preventDefault();
+          const file=items[i].getAsFile();
+          if(file) handleStickerImageFile(file,null);
+          return;
+        }
+      }
+    }
+  });
+
   // Open links in editable area on click
   doc.addEventListener('click',e=>{
     const a=e.target.closest('a');
     if(a && doc.contains(a)){
       e.preventDefault();
       window.open(a.href,'_blank');
+    }
+  });
+
+  /* ══════════════════════════════════════════════════════════════
+     FLOATING STICKER IMAGES
+     ══════════════════════════════════════════════════════════════ */
+  let stickers=[];
+  let stickerIdCounter=Date.now();
+
+  function loadStickers(){
+    try{const s=JSON.parse(localStorage.getItem(STICKER_KEY));if(Array.isArray(s))return s}catch(_){}
+    return[];
+  }
+  function saveStickers(){
+    try{
+      const data=stickers.map(s=>({id:s.id,src:s.src,x:s.x,y:s.y,w:s.w,h:s.h}));
+      localStorage.setItem(STICKER_KEY,JSON.stringify(data));
+      flash();
+      // sync to cloud alongside notes
+      const ts=Date.now();
+      localStorage.setItem(META_KEY,String(ts));
+      refreshMeta();
+      fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({content:doc.innerHTML,pinned:pinnedBody.innerHTML,stickers:data,ts})}).catch(()=>{});
+    }catch(_){}
+  }
+
+  function handleStickerImageFile(file,pos){
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      const dataUrl=ev.target.result;
+      // determine default position: center of the panel viewport
+      const panelRect=panelNotes.getBoundingClientRect();
+      const scrollY=panelNotes.scrollTop||window.scrollY||0;
+      const x=pos?pos.x:Math.max(20,panelRect.width/2-100);
+      const y=pos?pos.y:Math.max(80,scrollY+panelRect.height/2-100);
+      const id='stk_'+(stickerIdCounter++);
+      const s={id,src:dataUrl,x,y,w:200,h:0}; // h:0 = auto aspect ratio
+      // Determine natural aspect ratio
+      const img=new Image();
+      img.onload=function(){
+        const aspect=img.naturalHeight/img.naturalWidth;
+        s.h=Math.round(200*aspect);
+        stickers.push(s);
+        createStickerEl(s);
+        saveStickers();
+      };
+      img.onerror=function(){
+        s.h=200;
+        stickers.push(s);
+        createStickerEl(s);
+        saveStickers();
+      };
+      img.src=dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function createStickerEl(s){
+    const wrap=document.createElement('div');
+    wrap.className='sticker-img';
+    wrap.dataset.stickerId=s.id;
+    wrap.style.left=s.x+'px';
+    wrap.style.top=s.y+'px';
+    wrap.style.width=s.w+'px';
+    wrap.style.height=s.h+'px';
+    wrap.setAttribute('tabindex','-1');
+
+    const img=document.createElement('img');
+    img.src=s.src;
+    img.draggable=false;
+    img.alt='pasted image';
+
+    const del=document.createElement('button');
+    del.className='sticker-delete';
+    del.innerHTML='×';
+    del.title='remove';
+    del.type='button';
+    del.addEventListener('click',e=>{e.stopPropagation();deleteSticker(s.id)});
+    del.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();deleteSticker(s.id)});
+
+    // resize handles — only bottom-right for simplicity, but all 4 corners
+    ['br','bl','tr','tl'].forEach(corner=>{
+      const handle=document.createElement('div');
+      handle.className='sticker-resize '+corner;
+      handle.addEventListener('mousedown',e=>startResize(e,s.id,corner));
+      handle.addEventListener('touchstart',e=>startResize(e,s.id,corner),{passive:false});
+      wrap.appendChild(handle);
+    });
+
+    wrap.append(img,del);
+    // drag via the main element
+    wrap.addEventListener('mousedown',e=>{
+      if(e.target.classList.contains('sticker-resize')||e.target.classList.contains('sticker-delete'))return;
+      startDrag(e,s.id);
+    });
+    wrap.addEventListener('touchstart',e=>{
+      if(e.target.classList.contains('sticker-resize')||e.target.classList.contains('sticker-delete'))return;
+      startDrag(e,s.id);
+    },{passive:false});
+
+    panelNotes.appendChild(wrap);
+  }
+
+  function deleteSticker(id){
+    stickers=stickers.filter(s=>s.id!==id);
+    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    if(el) el.remove();
+    saveStickers();
+  }
+
+  /* ── DRAG ────────────────────────────────────────────────── */
+  function startDrag(e,id){
+    e.preventDefault();
+    const stickerData=stickers.find(s=>s.id===id);
+    if(!stickerData)return;
+    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    if(!el)return;
+
+    el.classList.add('dragging','active');
+    const isTouch=e.type==='touchstart';
+    const startPt=isTouch?e.touches[0]:{clientX:e.clientX,clientY:e.clientY};
+    const origX=stickerData.x, origY=stickerData.y;
+
+    function onMove(ev){
+      ev.preventDefault();
+      const pt=ev.touches?ev.touches[0]:ev;
+      const dx=pt.clientX-startPt.clientX;
+      const dy=pt.clientY-startPt.clientY;
+      stickerData.x=Math.max(0,origX+dx);
+      stickerData.y=Math.max(0,origY+dy);
+      el.style.left=stickerData.x+'px';
+      el.style.top=stickerData.y+'px';
+    }
+    function onUp(){
+      el.classList.remove('dragging');
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onUp);
+      saveStickers();
+    }
+    document.addEventListener(isTouch?'touchmove':'mousemove',onMove,{passive:false});
+    document.addEventListener(isTouch?'touchend':'mouseup',onUp);
+  }
+
+  /* ── RESIZE ─────────────────────────────────────────────── */
+  function startResize(e,id,corner){
+    e.preventDefault();
+    e.stopPropagation();
+    const stickerData=stickers.find(s=>s.id===id);
+    if(!stickerData)return;
+    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    if(!el)return;
+
+    el.classList.add('active');
+    const isTouch=e.type==='touchstart';
+    const startPt=isTouch?e.touches[0]:{clientX:e.clientX,clientY:e.clientY};
+    const origW=stickerData.w, origH=stickerData.h;
+    const origX=stickerData.x, origY=stickerData.y;
+    const aspect=origH/origW;
+
+    function onMove(ev){
+      ev.preventDefault();
+      const pt=ev.touches?ev.touches[0]:ev;
+      const dx=pt.clientX-startPt.clientX;
+      const dy=pt.clientY-startPt.clientY;
+
+      let newW,newH,newX,newY;
+      if(corner==='br'){
+        newW=Math.max(40,origW+dx);
+        newH=Math.round(newW*aspect);
+        newX=origX; newY=origY;
+      }else if(corner==='bl'){
+        newW=Math.max(40,origW-dx);
+        newH=Math.round(newW*aspect);
+        newX=origX+(origW-newW); newY=origY;
+      }else if(corner==='tr'){
+        newW=Math.max(40,origW+dx);
+        newH=Math.round(newW*aspect);
+        newX=origX; newY=origY+(origH-newH);
+      }else{ // tl
+        newW=Math.max(40,origW-dx);
+        newH=Math.round(newW*aspect);
+        newX=origX+(origW-newW); newY=origY+(origH-newH);
+      }
+
+      stickerData.w=newW; stickerData.h=newH;
+      stickerData.x=Math.max(0,newX); stickerData.y=Math.max(0,newY);
+      el.style.width=newW+'px'; el.style.height=newH+'px';
+      el.style.left=stickerData.x+'px'; el.style.top=stickerData.y+'px';
+    }
+    function onUp(){
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onUp);
+      saveStickers();
+    }
+    document.addEventListener(isTouch?'touchmove':'mousemove',onMove,{passive:false});
+    document.addEventListener(isTouch?'touchend':'mouseup',onUp);
+  }
+
+  /* ── LOAD STICKERS ON INIT ──────────────────────────────── */
+  function renderAllStickers(){
+    // remove existing sticker elements
+    panelNotes.querySelectorAll('.sticker-img').forEach(el=>el.remove());
+    stickers.forEach(s=>createStickerEl(s));
+  }
+  stickers=loadStickers();
+  renderAllStickers();
+
+  /* ── DEACTIVATE sticker on outside click ────────────────── */
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.sticker-img')){
+      panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
     }
   });
 
