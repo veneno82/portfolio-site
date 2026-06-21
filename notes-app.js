@@ -17,7 +17,7 @@
         toggle=$('themeToggle'), pinnedBody=$('pinnedBody'), pinnedSection=$('pinnedSection'),
         pinnedHeader=$('pinnedHeader'), todoList=$('todoList'), todoForm=$('todoForm'),
         todoInput=$('todoInput'), todoCount=$('todoCount'), panelNotes=$('panelNotes'),
-        panelTodos=$('panelTodos'), docMeta=$('docMeta');
+        panelTodos=$('panelTodos'), docMeta=$('docMeta'), stickerLayer=$('stickerLayer');
 
   /* ── THEME ──────────────────────────────────────────────────── */
   toggle.addEventListener('click',()=>{
@@ -126,18 +126,18 @@
     if(!sel.rangeCount) return null;
     const range=sel.getRangeAt(0);
     const rect=range.getBoundingClientRect();
-    const panelRect=panelNotes.getBoundingClientRect();
+    const layerRect=stickerLayer.getBoundingClientRect();
     if(rect.width===0&&rect.height===0){
       // Collapsed caret — try caret position
       const span=document.createElement('span');
       span.textContent='\u200b';
       range.insertNode(span);
       const spanRect=span.getBoundingClientRect();
-      const pos={x:spanRect.left-panelRect.left+panelNotes.scrollLeft,y:spanRect.top-panelRect.top+panelNotes.scrollTop};
+      const pos={x:spanRect.left-layerRect.left,y:spanRect.top-layerRect.top};
       span.remove();
       return pos;
     }
-    return{x:rect.left-panelRect.left+panelNotes.scrollLeft,y:rect.top-panelRect.top+panelNotes.scrollTop};
+    return{x:rect.left-layerRect.left,y:rect.top-layerRect.top};
   }
   doc.addEventListener('paste',e=>{
     const items=e.clipboardData?.items;
@@ -238,10 +238,9 @@
     reader.onload=function(ev){
       const dataUrl=ev.target.result;
       // determine default position: center of the panel viewport
-      const panelRect=panelNotes.getBoundingClientRect();
-      const scrollY=panelNotes.scrollTop||window.scrollY||0;
-      const x=pos?pos.x:Math.max(20,panelRect.width/2-100);
-      const y=pos?pos.y:Math.max(80,scrollY+panelRect.height/2-100);
+      const layerRect=stickerLayer.getBoundingClientRect();
+      const x=pos?pos.x:Math.max(20,layerRect.width/2-100);
+      const y=pos?pos.y:Math.max(80,window.scrollY-layerRect.top+layerRect.height/2-100);
       const id='stk_'+(stickerIdCounter++);
       const s={id,src:dataUrl,x,y,w:200,h:0}; // h:0 = auto aspect ratio
       // Determine natural aspect ratio
@@ -302,7 +301,7 @@
       e.preventDefault();
       e.stopPropagation();
       // deactivate all others first
-      panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
+      stickerLayer.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
       wrap.classList.add('active');
     });
     // double-tap detection for touch
@@ -312,7 +311,7 @@
       const now=Date.now();
       if(now-lastTap<350){
         e.preventDefault();
-        panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
+        stickerLayer.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
         wrap.classList.add('active');
       }
       lastTap=now;
@@ -329,12 +328,12 @@
       startDrag(e,s.id);
     },{passive:false});
 
-    panelNotes.appendChild(wrap);
+    stickerLayer.appendChild(wrap);
   }
 
   function deleteSticker(id){
     stickers=stickers.filter(s=>s.id!==id);
-    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    const el=stickerLayer.querySelector(`[data-sticker-id="${id}"]`);
     if(el) el.remove();
     saveStickers();
   }
@@ -344,7 +343,7 @@
     e.preventDefault();
     const stickerData=stickers.find(s=>s.id===id);
     if(!stickerData)return;
-    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    const el=stickerLayer.querySelector(`[data-sticker-id="${id}"]`);
     if(!el)return;
 
     el.classList.add('dragging','active');
@@ -380,7 +379,7 @@
     e.stopPropagation();
     const stickerData=stickers.find(s=>s.id===id);
     if(!stickerData)return;
-    const el=panelNotes.querySelector(`[data-sticker-id="${id}"]`);
+    const el=stickerLayer.querySelector(`[data-sticker-id="${id}"]`);
     if(!el)return;
 
     el.classList.add('active');
@@ -434,7 +433,7 @@
   /* ── LOAD STICKERS ON INIT ──────────────────────────────── */
   function renderAllStickers(){
     // remove existing sticker elements
-    panelNotes.querySelectorAll('.sticker-img').forEach(el=>el.remove());
+    stickerLayer.querySelectorAll('.sticker-img').forEach(el=>el.remove());
     stickers.forEach(s=>createStickerEl(s));
   }
   stickers=loadStickers();
@@ -443,7 +442,7 @@
   /* ── DEACTIVATE sticker on outside click ────────────────── */
   document.addEventListener('click',e=>{
     if(!e.target.closest('.sticker-img')){
-      panelNotes.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
+      stickerLayer.querySelectorAll('.sticker-img.active').forEach(el=>el.classList.remove('active'));
     }
   });
 
