@@ -956,28 +956,54 @@
     const next=JSON.parse(redoStack.pop());
     localStorage.setItem(TODO_KEY,JSON.stringify(next));flash();renderTodos()}
 
-  /* Sort: dividers stay in place, active tasks first, completed last */
+  /* Sort: dividers stay in place, active tasks first, completed last.
+     If all tasks under a divider are completed, the divider itself moves to the completed part. */
   function sortedTodos(items){
-    // Separate dividers, active tasks, and done tasks
-    const dividers=[];
-    const tasks=[];
-    items.forEach((t,i)=>{
-      if(t.type==='divider') dividers.push({item:t,origIdx:i});
-      else tasks.push(t);
+    const sections = [];
+    let currentSection = { divider: null, tasks: [] };
+    
+    items.forEach(t => {
+      if (t.type === 'divider') {
+        if (currentSection.divider !== null || currentSection.tasks.length > 0) {
+          sections.push(currentSection);
+        }
+        currentSection = { divider: t, tasks: [] };
+      } else {
+        currentSection.tasks.push(t);
+      }
     });
-    const active=tasks.filter(t=>!t.done);
-    const done=tasks.filter(t=>t.done);
-    // Rebuild: active tasks, then dividers in original relative order among remaining, then done
-    // Actually, keep it simple: dividers act as section headers, keep original order
-    // Just move completed tasks to the end
-    const result=[];
-    const doneItems=[];
-    items.forEach(t=>{
-      if(t.type==='divider') result.push(t);
-      else if(!t.done) result.push(t);
-      else doneItems.push(t);
+    if (currentSection.divider !== null || currentSection.tasks.length > 0) {
+      sections.push(currentSection);
+    }
+    
+    const activeItems = [];
+    const completedItems = [];
+    
+    sections.forEach(sec => {
+      const isCompletedSec = sec.divider !== null && 
+                             sec.tasks.length > 0 && 
+                             sec.tasks.every(t => t.done);
+                             
+      if (isCompletedSec) {
+        const compDivider = { ...sec.divider, done: true };
+        completedItems.push(compDivider);
+        sec.tasks.forEach(t => completedItems.push(t));
+      } else {
+        if (sec.divider !== null) {
+          const activeDivider = { ...sec.divider, done: false };
+          activeItems.push(activeDivider);
+        }
+        sec.tasks.forEach(t => {
+          if (!t.done) {
+            activeItems.push(t);
+          } else {
+            completedItems.push(t);
+          }
+        });
+      }
     });
-    return[...result,...doneItems];
+    
+    return [...activeItems, ...completedItems];
   }
 
   function renderTodos(){
@@ -1000,7 +1026,11 @@
 
       // ── DIVIDER ──
       if(it.type==='divider'){
-        const div=document.createElement('div');div.className='todo-divider';
+        if(it.done&&!shownDoneSep){shownDoneSep=true;
+          const sep=document.createElement('div');sep.className='todo-separator';
+          sep.textContent='completed';todoList.appendChild(sep)}
+
+        const div=document.createElement('div');div.className='todo-divider'+(it.done?' done':'');
         const label=document.createElement('span');label.className='todo-divider-label';
         label.contentEditable='true';label.spellcheck=false;label.textContent=it.label||'';
         label.addEventListener('blur',()=>{
