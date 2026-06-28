@@ -158,12 +158,13 @@
     .todo-act-btn{padding:4px 10px;font-size:11px;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg2);cursor:pointer;transition:all .15s}
     .todo-act-btn:hover{color:var(--fg);border-color:var(--fg2)}
     .todo-list{list-style:none;padding:0;margin:0;flex:1;position:relative}
-    .todo-item{display:flex;align-items:flex-start;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border);transition:background .2s,opacity .2s;position:relative;will-change:transform}
+    .todo-item{position:relative;border-bottom:1px solid var(--border);transition:background .2s,opacity .3s;will-change:transform}
+    .todo-item-inner{display:flex;align-items:flex-start;gap:8px;padding:8px 4px;width:100%;box-sizing:border-box}
     .todo-item:last-child,.todo-item:has(+ .todo-divider){border-bottom:none}
     .todo-item.done{background:var(--done-bg)}
     .todo-item.drag-over{background:var(--accent-soft)}
     .todo-item.dragging-source,.todo-divider.dragging-source{opacity:.22}
-    .todo-drag-ghost{pointer-events:none;z-index:9999;background:var(--paper);border:1px solid var(--border);border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.16);opacity:.94;will-change:top}
+    .todo-drag-ghost{pointer-events:none;z-index:9999;background:var(--paper);border:1px solid var(--accent);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.18);opacity:.95;will-change:top}
     .todo-check{flex-shrink:0;width:18px;height:18px;border:1.5px solid var(--fg2);border-radius:50%;cursor:pointer;margin-top:1px;position:relative;transition:all .15s;background:transparent;padding:0}
     .todo-check:hover{border-color:var(--accent)}
     .todo-check::after{content:'';position:absolute;top:2px;left:5px;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform .15s}
@@ -186,7 +187,8 @@
     .todo-separator{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--fg2);opacity:.5;padding:12px 4px 4px}
 
     /* TODO DIVIDERS */
-    .todo-divider{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 4px 4px;margin-top:6px;border-top:1px solid var(--border);cursor:default;position:relative;will-change:transform}
+    .todo-divider{position:relative;margin-top:6px;border-top:1px solid var(--border);cursor:default;transition:opacity .3s;will-change:transform}
+    .todo-divider-inner{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 4px 4px;width:100%;box-sizing:border-box}
     .todo-divider:first-child{margin-top:0;border-top:none}
     .todo-divider.done{opacity:.5}
     .todo-divider-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--fg2);white-space:nowrap;outline:none;min-width:20px}
