@@ -158,9 +158,11 @@
     .todo-act-btn{padding:4px 10px;font-size:11px;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg2);cursor:pointer;transition:all .15s}
     .todo-act-btn:hover{color:var(--fg);border-color:var(--fg2)}
     .todo-list{list-style:none;padding:0;margin:0;flex:1}
-    .todo-item{display:flex;align-items:flex-start;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border);transition:background .2s,opacity .3s}
+    .todo-item{display:flex;align-items:flex-start;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border);transition:background .2s,opacity .3s;position:relative}
     .todo-item:last-child,.todo-item:has(+ .todo-divider){border-bottom:none}
     .todo-item.done{background:var(--done-bg)}
+    .todo-item.drag-over{background:var(--accent-soft)}
+    .todo-item.dragging-source{opacity:.35}
     .todo-check{flex-shrink:0;width:18px;height:18px;border:1.5px solid var(--fg2);border-radius:50%;cursor:pointer;margin-top:1px;position:relative;transition:all .15s;background:transparent;padding:0}
     .todo-check:hover{border-color:var(--accent)}
     .todo-check::after{content:'';position:absolute;top:2px;left:5px;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform .15s}
@@ -172,6 +174,13 @@
     .todo-x{opacity:0;cursor:pointer;color:var(--fg2);font-size:16px;flex-shrink:0;padding:0 2px;background:none;border:none;font-family:inherit;transition:opacity .15s,color .15s;line-height:1}
     .todo-item:hover .todo-x{opacity:1}
     .todo-x:hover{color:#e55}
+    .todo-drag-handle{flex-shrink:0;width:16px;display:flex;align-items:center;justify-content:center;color:var(--fg2);opacity:0;cursor:grab;font-size:13px;line-height:1;padding:1px 0;touch-action:none;user-select:none;-webkit-user-select:none;margin-top:1px}
+    .todo-drag-handle:active{cursor:grabbing}
+    .todo-item:hover .todo-drag-handle{opacity:.4}
+    .todo-item:hover .todo-drag-handle:hover{opacity:1}
+    .todo-divider .todo-drag-handle{opacity:0}
+    .todo-divider:hover .todo-drag-handle{opacity:.4}
+    .todo-divider:hover .todo-drag-handle:hover{opacity:1}
     .todo-empty{font-size:13px;color:var(--fg2);font-style:italic;padding:20px 4px;opacity:.6;text-align:center}
     .todo-separator{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--fg2);opacity:.5;padding:12px 4px 4px}
 
@@ -211,6 +220,7 @@
     @media(hover:none){
       .todo-x{opacity:1!important}
       .todo-item{padding:10px 4px}
+      .todo-drag-handle{opacity:.4!important}
     }
   </style>
 </head>
@@ -330,8 +340,6 @@
         <button type="button" id="dividerTomorrowBtn" title="Add tomorrow's date as divider">tomorrow</button>
       </div>
       <div class="todo-actions" id="todoActions">
-        <button class="todo-act-btn" id="todoIndentBtn" title="Indent selected" type="button">→ indent</button>
-        <button class="todo-act-btn" id="todoOutdentBtn" title="Outdent selected" type="button">← outdent</button>
         <button class="todo-act-btn" id="todoUndoBtn" title="Undo" type="button">↩ undo</button>
       </div>
       <ul class="todo-list" id="todoList"></ul>

@@ -1,13 +1,14 @@
 {
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/notes", "destination": "/notes.html" },
+    { "source": "/tool/notes", "destination": "/notes.html" },
     { "source": "/archive", "destination": "/archive.html" },
     { "source": "/project/:id", "destination": "/project.html?id=:id" }
   ],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": false },
-    { "source": "/notes.html", "destination": "/notes", "permanent": false },
+    { "source": "/notes.html", "destination": "/tool/notes", "permanent": true },
+    { "source": "/notes", "destination": "/tool/notes", "permanent": true },
     { "source": "/archive.html", "destination": "/archive", "permanent": false }
   ]
 }
