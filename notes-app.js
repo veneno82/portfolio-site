@@ -1,7 +1,8 @@
 (function () {
   /* ── CONSTANTS ─────────────────────────────────────────────── */
   const DOC_KEY = 'mb_notes_doc', META_KEY = 'mb_notes_doc_meta', PIN_KEY = 'mb_notes_pinned',
-    TODO_KEY = 'mb_notes_todos', TODO_TS_KEY = 'mb_notes_todos_ts', TODO_PENDING_KEY = 'mb_notes_todos_pending', THEME_KEY = 'mb_theme',
+    TODO_KEY = 'mb_notes_todos', TODO_TS_KEY = 'mb_notes_todos_ts', TODO_PENDING_KEY = 'mb_notes_todos_pending',
+    TODO_DELETED_KEY = 'mb_notes_todos_deleted', THEME_KEY = 'mb_theme',
     SWATCH_KEY = 'mb_color_swatches', HL_SWATCH_KEY = 'mb_hl_swatches', PIN_COLOR_KEY = 'mb_pin_color',
     ARCHIVE_KEY = 'mb_archive_doc', ARCHIVE_TS_KEY = 'mb_archive_ts',
     STICKER_KEY = 'mb_notes_stickers';
@@ -971,7 +972,64 @@
   const undoStack = [], redoStack = [], MAX_UNDO = 40;
   let focusedTodoIdx = null;
 
-  function loadTodos() { try { return JSON.parse(localStorage.getItem(TODO_KEY) || '[]') } catch (_) { return [] } }
+  function normalizeTodoText(text) {
+    return String(text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+  function loadDeletedTodos() { try { return JSON.parse(localStorage.getItem(TODO_DELETED_KEY) || '[]') } catch (_) { return [] } }
+  function saveDeletedTodos(deleted) {
+    const cutoff = Date.now() - 1000 * 60 * 60 * 24 * 30;
+    const next = deleted.filter(t => t && t.ts > cutoff).slice(-200);
+    localStorage.setItem(TODO_DELETED_KEY, JSON.stringify(next));
+    return next;
+  }
+  function rememberDeletedTodo(todo) {
+    if (!todo) return;
+    const deleted = saveDeletedTodos(loadDeletedTodos());
+    deleted.push({
+      id: todo.id || '',
+      text: todo.type === 'divider' ? '' : normalizeTodoText(todo.text),
+      done: !!todo.done,
+      ts: Date.now()
+    });
+    saveDeletedTodos(deleted);
+  }
+  function sanitizeTodos(items) {
+    if (!Array.isArray(items)) return { items: [], changed: true };
+    const deleted = saveDeletedTodos(loadDeletedTodos());
+    const deletedIds = new Set(deleted.map(t => t.id).filter(Boolean));
+    const deletedDoneText = new Set(deleted.filter(t => t.done && t.text).map(t => t.text));
+    const doneTextCounts = new Map();
+
+    items.forEach(t => {
+      if (t && t.type !== 'divider' && t.done) {
+        const text = normalizeTodoText(t.text);
+        if (text) doneTextCounts.set(text, (doneTextCounts.get(text) || 0) + 1);
+      }
+    });
+    const corruptDoneText = new Set(
+      Array.from(doneTextCounts.entries()).filter(([, count]) => count >= 3).map(([text]) => text)
+    );
+
+    const clean = items.filter(t => {
+      if (!t || deletedIds.has(t.id)) return false;
+      if (t.type !== 'divider' && t.done) {
+        const text = normalizeTodoText(t.text);
+        if (text && (deletedDoneText.has(text) || corruptDoneText.has(text))) return false;
+      }
+      return true;
+    });
+    return { items: clean, changed: clean.length !== items.length };
+  }
+  function loadTodosRaw() { try { return JSON.parse(localStorage.getItem(TODO_KEY) || '[]') } catch (_) { return [] } }
+  function loadTodos() { return sanitizeTodos(loadTodosRaw()).items }
+  function repairLocalTodos() {
+    const clean = sanitizeTodos(loadTodosRaw());
+    if (!clean.changed) return;
+    const ts = Date.now();
+    localStorage.setItem(TODO_KEY, JSON.stringify(clean.items));
+    localStorage.setItem(TODO_TS_KEY, String(ts));
+    queueTodoCloudSave(clean.items, ts);
+  }
   function loadPendingTodoSave() { try { return JSON.parse(localStorage.getItem(TODO_PENDING_KEY) || 'null') } catch (_) { return null } }
   async function writeTodosCloud(items, ts) {
     try {
@@ -993,10 +1051,18 @@
   }
   function retryPendingTodoSave() {
     const pending = loadPendingTodoSave();
-    if (pending && Array.isArray(pending.items) && pending.ts) writeTodosCloud(pending.items, pending.ts);
+    if (pending && Array.isArray(pending.items) && pending.ts) {
+      const clean = sanitizeTodos(pending.items);
+      if (clean.changed) {
+        pending.items = clean.items;
+        localStorage.setItem(TODO_PENDING_KEY, JSON.stringify(pending));
+      }
+      writeTodosCloud(pending.items, pending.ts);
+    }
     return pending;
   }
   function saveTodos(items, push) {
+    items = sanitizeTodos(items).items;
     if (push !== false) {
       const prev = localStorage.getItem(TODO_KEY) || '[]'; undoStack.push(prev);
       if (undoStack.length > MAX_UNDO) undoStack.shift(); redoStack.length = 0
@@ -1356,6 +1422,7 @@
       const cur = loadTodos();
       const idx = cur.findIndex(t => t.id === id);
       if (idx === -1) return;
+      rememberDeletedTodo(cur[idx]);
       cur.splice(idx, 1);
       saveTodos(cur);
       renderTodos();
@@ -1703,8 +1770,17 @@
       const localTs = Number(localStorage.getItem(TODO_TS_KEY)) || 0;
       const cloudTs = Number(data.ts) || 0;
       if (pending && pending.ts >= cloudTs) return;
+      const cloud = sanitizeTodos(data.items);
+      if (cloud.changed) {
+        const ts = Date.now();
+        localStorage.setItem(TODO_KEY, JSON.stringify(cloud.items));
+        localStorage.setItem(TODO_TS_KEY, String(ts));
+        renderTodos();
+        queueTodoCloudSave(cloud.items, ts);
+        return;
+      }
       if (data.items != null && cloudTs > localTs) {
-        localStorage.setItem(TODO_KEY, JSON.stringify(data.items));
+        localStorage.setItem(TODO_KEY, JSON.stringify(cloud.items));
         localStorage.setItem(TODO_TS_KEY, String(cloudTs));
         renderTodos();
       } else if (!isPolling && localTs > cloudTs) {
@@ -1713,6 +1789,7 @@
     } catch (_) { }
   }
 
+  repairLocalTodos();
   renderTodos();
   loadTodosCloud(false);
   setInterval(() => loadTodosCloud(true), 30000);
