@@ -93,7 +93,7 @@
     const COMMANDS = {
       help: () => 'commands:\n  home   — back to portfolio\n  notes  — open notes\n  github — open github\n  clear  — clear output\n  close  — close palette',
       home:  () => { window.location.href = '/'; return ''; },
-      notes: () => { window.location.href = '/notes'; return ''; },
+      notes: () => { window.location.href = '/tool/notes'; return ''; },
       github: () => { window.open('https://github.com/britomauro', '_blank'); return ''; },
       clear: () => { out.textContent = ''; return ''; },
       close: () => { close(); return ''; }

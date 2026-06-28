@@ -956,61 +956,185 @@
     const next=JSON.parse(redoStack.pop());
     localStorage.setItem(TODO_KEY,JSON.stringify(next));flash();renderTodos()}
 
-  /* Sort: dividers stay in place, active tasks first, completed last.
-     If all tasks under a divider are completed, the divider itself moves to the completed part. */
+  /* ── SORT ────────────────────────────────────────────────────────
+     If all tasks under a divider are completed, the divider +
+     its tasks move to the completed section at the bottom.
+     When a task is unchecked, origIdx puts it back in place.      */
   function sortedTodos(items){
-    const sections = [];
-    let currentSection = { divider: null, tasks: [] };
-    
-    items.forEach(t => {
-      if (t.type === 'divider') {
-        if (currentSection.divider !== null || currentSection.tasks.length > 0) {
-          sections.push(currentSection);
-        }
-        currentSection = { divider: t, tasks: [] };
-      } else {
-        currentSection.tasks.push(t);
+    const sections=[];
+    let cur={divider:null,tasks:[]};
+    items.forEach(t=>{
+      if(t.type==='divider'){
+        if(cur.divider!==null||cur.tasks.length>0) sections.push(cur);
+        cur={divider:t,tasks:[]};
+      }else{
+        cur.tasks.push(t);
       }
     });
-    if (currentSection.divider !== null || currentSection.tasks.length > 0) {
-      sections.push(currentSection);
-    }
-    
-    const activeItems = [];
-    const completedItems = [];
-    
-    sections.forEach(sec => {
-      const isCompletedSec = sec.divider !== null && 
-                             sec.tasks.length > 0 && 
-                             sec.tasks.every(t => t.done);
-                             
-      if (isCompletedSec) {
-        const compDivider = { ...sec.divider, done: true };
-        completedItems.push(compDivider);
-        sec.tasks.forEach(t => completedItems.push(t));
-      } else {
-        if (sec.divider !== null) {
-          const activeDivider = { ...sec.divider, done: false };
-          activeItems.push(activeDivider);
-        }
-        sec.tasks.forEach(t => {
-          if (!t.done) {
-            activeItems.push(t);
-          } else {
-            completedItems.push(t);
-          }
-        });
+    if(cur.divider!==null||cur.tasks.length>0) sections.push(cur);
+
+    const active=[],completed=[];
+    sections.forEach(sec=>{
+      const allDone=sec.divider!==null&&sec.tasks.length>0&&sec.tasks.every(t=>t.done);
+      if(allDone){
+        completed.push({...sec.divider,done:true});
+        sec.tasks.forEach(t=>completed.push(t));
+      }else{
+        if(sec.divider!==null) active.push({...sec.divider,done:false});
+        sec.tasks.forEach(t=>{ if(!t.done) active.push(t); else completed.push(t); });
       }
     });
-    
-    return [...activeItems, ...completedItems];
+    return[...active,...completed];
   }
 
+  /* Toggle done: stamp origIdx so we can restore on uncheck */
+  function toggleTodoDone(id){
+    const items=loadTodos();
+    const idx=items.findIndex(t=>t.id===id);
+    if(idx===-1) return;
+    const t=items[idx];
+    if(!t.done){
+      // marking done — remember where it was
+      t.done=true;
+      t.origIdx=idx;
+    }else{
+      // un-marking — restore to original position
+      t.done=false;
+      const target=t.origIdx!=null?t.origIdx:idx;
+      delete t.origIdx;
+      items.splice(idx,1);
+      const clampedTarget=Math.min(target,items.length);
+      items.splice(clampedTarget,0,t);
+      saveTodos(items);
+      renderTodos();
+      return;
+    }
+    saveTodos(sortedTodos(items));
+    renderTodos();
+  }
+
+  /* ── DRAG-TO-REORDER ─────────────────────────────────────────── */
+  let dragState=null;
+
+  function getItemEls(){
+    return Array.from(todoList.children).filter(el=>
+      el.classList.contains('todo-item')||el.classList.contains('todo-divider'));
+  }
+
+  function getDragIndex(el){
+    const els=getItemEls();
+    return els.indexOf(el);
+  }
+
+  /* Get the data-id of a rendered row element */
+  function getElId(el){
+    return el.dataset.todoId||null;
+  }
+
+  /* Move id from its current position in items array to before the element with beforeId (null = end) */
+  function reorderItem(id,beforeId){
+    const items=loadTodos();
+    const fromIdx=items.findIndex(t=>t.id===id);
+    if(fromIdx===-1) return;
+    const item=items.splice(fromIdx,1)[0];
+    if(beforeId==null){
+      items.push(item);
+    }else{
+      const toIdx=items.findIndex(t=>t.id===beforeId);
+      items.splice(toIdx===-1?items.length:toIdx,0,item);
+    }
+    saveTodos(items);
+    renderTodos();
+  }
+
+  /* Create a floating ghost element that follows the cursor/finger */
+  function createGhost(sourceEl,x,y){
+    const rect=sourceEl.getBoundingClientRect();
+    const ghost=sourceEl.cloneNode(true);
+    ghost.id='todo-drag-ghost';
+    ghost.style.cssText=`
+      position:fixed;left:${rect.left}px;top:${rect.top}px;
+      width:${rect.width}px;pointer-events:none;z-index:9999;
+      background:var(--paper);border:1px solid var(--border);
+      border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.15);
+      opacity:.92;transition:none;
+    `;
+    document.body.appendChild(ghost);
+    return {ghost,offX:x-rect.left,offY:y-rect.top};
+  }
+
+  function startTodoDrag(e,sourceEl){
+    // Don't start drag from text/input
+    if(e.target.classList.contains('todo-text')||
+       e.target.classList.contains('todo-divider-label')||
+       e.target.classList.contains('todo-check')||
+       e.target.classList.contains('todo-x')||
+       e.target.classList.contains('todo-divider-x')) return;
+
+    const isTouch=e.type==='touchstart';
+    const pt=isTouch?e.touches[0]:e;
+    e.preventDefault();
+
+    sourceEl.classList.add('dragging-source');
+    const {ghost,offX,offY}=createGhost(sourceEl,pt.clientX,pt.clientY);
+
+    let currentOver=null;
+
+    function moveTo(cx,cy){
+      ghost.style.left=(cx-offX)+'px';
+      ghost.style.top=(cy-offY)+'px';
+
+      // Find which item we're hovering over
+      ghost.style.display='none';
+      const elBelow=document.elementFromPoint(cx,cy);
+      ghost.style.display='';
+
+      const itemEl=elBelow?elBelow.closest('.todo-item,.todo-divider'):null;
+      if(itemEl&&itemEl!==sourceEl&&todoList.contains(itemEl)){
+        if(currentOver!==itemEl){
+          if(currentOver) currentOver.classList.remove('drag-over');
+          currentOver=itemEl;
+          currentOver.classList.add('drag-over');
+        }
+      }else{
+        if(currentOver){currentOver.classList.remove('drag-over');currentOver=null;}
+      }
+    }
+
+    function onMove(ev){
+      const p=ev.touches?ev.touches[0]:ev;
+      moveTo(p.clientX,p.clientY);
+    }
+
+    function onUp(ev){
+      sourceEl.classList.remove('dragging-source');
+      ghost.remove();
+      if(currentOver){
+        currentOver.classList.remove('drag-over');
+        const sourceId=getElId(sourceEl);
+        const overId=getElId(currentOver);
+        if(sourceId&&overId&&sourceId!==overId){
+          reorderItem(sourceId,overId);
+        }
+      }
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onUp);
+      dragState=null;
+    }
+
+    dragState={sourceEl,ghost,currentOver};
+    document.addEventListener(isTouch?'touchmove':'mousemove',onMove,{passive:false});
+    document.addEventListener(isTouch?'touchend':'mouseup',onUp);
+  }
+
+  /* ── RENDER ───────────────────────────────────────────────────── */
   function renderTodos(){
     let items=loadTodos();
     items.forEach(t=>{
       if(t.type==='divider'){if(!t.id)t.id=Math.random().toString(36).slice(2,9);return}
-      if(t.indent===undefined)t.indent=0;if(!t.id)t.id=Math.random().toString(36).slice(2,9);
+      if(!t.id)t.id=Math.random().toString(36).slice(2,9);
     });
     const sorted=sortedTodos(items);
     const activeCount=sorted.filter(t=>t.type!=='divider'&&!t.done).length;
@@ -1021,6 +1145,7 @@
       const e=document.createElement('li');e.className='todo-empty';
       e.textContent='no tasks yet — add one above';todoList.appendChild(e);return}
     let shownDoneSep=false;
+
     sorted.forEach((it)=>{
       const realIdx=items.findIndex(t=>t.id===it.id);
 
@@ -1030,7 +1155,15 @@
           const sep=document.createElement('div');sep.className='todo-separator';
           sep.textContent='completed';todoList.appendChild(sep)}
 
-        const div=document.createElement('div');div.className='todo-divider'+(it.done?' done':'');
+        const div=document.createElement('div');
+        div.className='todo-divider'+(it.done?' done':'');
+        div.dataset.todoId=it.id;
+
+        const grip=document.createElement('span');grip.className='todo-drag-handle';
+        grip.textContent='⠿';grip.title='drag to reorder';
+        grip.addEventListener('mousedown',e=>startTodoDrag(e,div));
+        grip.addEventListener('touchstart',e=>startTodoDrag(e,div),{passive:false});
+
         const label=document.createElement('span');label.className='todo-divider-label';
         label.contentEditable='true';label.spellcheck=false;label.textContent=it.label||'';
         label.addEventListener('blur',()=>{
@@ -1040,10 +1173,12 @@
           }
         });
         label.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();label.blur()}});
+
         const x=document.createElement('button');x.type='button';x.className='todo-divider-x';
         x.textContent='×';x.title='delete section';
         x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);saveTodos(cur);renderTodos()});
-        div.append(label,x);
+
+        div.append(grip,label,x);
         todoList.appendChild(div);
         return;
       }
@@ -1052,14 +1187,21 @@
       if(it.done&&!shownDoneSep){shownDoneSep=true;
         const sep=document.createElement('div');sep.className='todo-separator';
         sep.textContent='completed';todoList.appendChild(sep)}
-      const li=document.createElement('li');li.className='todo-item'+(it.done?' done':'');
-      li.style.paddingLeft=(12+(it.indent||0)*24)+'px';
+
+      const li=document.createElement('li');
+      li.className='todo-item'+(it.done?' done':'');
+      li.style.paddingLeft='4px';
       li.dataset.idx=realIdx;
+      li.dataset.todoId=it.id;
+
+      const grip=document.createElement('span');grip.className='todo-drag-handle';
+      grip.textContent='⠿';grip.title='drag to reorder';
+      grip.addEventListener('mousedown',e=>startTodoDrag(e,li));
+      grip.addEventListener('touchstart',e=>startTodoDrag(e,li),{passive:false});
 
       const check=document.createElement('button');check.type='button';check.className='todo-check';
       check.setAttribute('aria-label',it.done?'mark incomplete':'mark complete');
-      check.addEventListener('click',()=>{const cur=loadTodos();cur[realIdx].done=!cur[realIdx].done;
-        saveTodos(sortedTodos(cur));renderTodos()});
+      check.addEventListener('click',()=>toggleTodoDone(it.id));
 
       const text=document.createElement('span');text.className='todo-text';
       text.contentEditable='true';text.spellcheck=true;text.textContent=it.text;
@@ -1069,18 +1211,6 @@
           cur[realIdx].text=text.textContent.trim();saveTodos(cur)}focusedTodoIdx=null});
       text.addEventListener('keydown',e=>{
         if(e.key==='Enter'){e.preventDefault();text.blur()}
-        if(e.key==='Tab'){e.preventDefault();
-          const cur=loadTodos();const t=cur[realIdx];
-          if(e.shiftKey){if(t.indent>0){t.indent--;saveTodos(cur);renderTodos()}}
-          else{if(t.indent<3){t.indent++;saveTodos(cur);renderTodos()}}}
-      });
-      // double-space indent for mobile
-      let lastSpace=0;
-      text.addEventListener('beforeinput',e=>{
-        if(e.data===' '){const now=Date.now();
-          if(now-lastSpace<400){e.preventDefault();
-            const cur=loadTodos();if(cur[realIdx].indent<3){cur[realIdx].indent++;saveTodos(cur);renderTodos()}}
-          lastSpace=now}else{lastSpace=0}
       });
 
       const x=document.createElement('button');x.type='button';x.className='todo-x';
@@ -1088,20 +1218,17 @@
       x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);
         saveTodos(cur);renderTodos()});
 
-      li.append(check,text,x);todoList.appendChild(li);
+      li.append(grip,check,text,x);todoList.appendChild(li);
     });
   }
 
-  /* Add task — populate top to bottom (at the end of current active section) */
+  /* Add task */
   todoForm.addEventListener('submit',e=>{e.preventDefault();
     const text=todoInput.value.trim();if(!text)return;
     const items=loadTodos();
-    const newTask={id:Math.random().toString(36).slice(2,9),text,done:false,indent:0,ts:Date.now()};
-    // Find first divider that is not at the absolute top (index > 0)
+    const newTask={id:Math.random().toString(36).slice(2,9),text,done:false,ts:Date.now()};
     let insertIdx=items.findIndex((t,idx)=>idx>0&&t.type==='divider');
-    // If none, look for the first completed task
     if(insertIdx===-1) insertIdx=items.findIndex(t=>t.done);
-    // Insert task
     if(insertIdx===-1) items.push(newTask);
     else items.splice(insertIdx,0,newTask);
     saveTodos(items);todoInput.value='';renderTodos()});
@@ -1118,17 +1245,11 @@
     saveTodos(items);renderTodos();
   }
 
-  // Smart "tomorrow" date: if current time is 1am–6am, user hasn't slept yet,
-  // so "next day" = today's calendar date. Otherwise "next day" = tomorrow.
   function getNextDayLabel(){
     const now=new Date();
     const hour=now.getHours();
     const target=new Date(now);
-    if(hour>=7||hour<1){
-      // Normal hours: tomorrow
-      target.setDate(target.getDate()+1);
-    }
-    // 1am–6am: "tomorrow" is today (user hasn't slept yet)
+    if(hour>=7||hour<1){ target.setDate(target.getDate()+1); }
     const days=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
     const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     return days[target.getDay()]+' '+months[target.getMonth()]+' '+target.getDate();
@@ -1138,24 +1259,14 @@
     const label=dividerInput.value.trim();
     if(label){addDivider(label);dividerInput.value=''}
   });
-
   dividerInput.addEventListener('keydown',e=>{
     if(e.key==='Enter'){e.preventDefault();
       const label=dividerInput.value.trim();
       if(label){addDivider(label);dividerInput.value=''}}
   });
+  dividerTomorrowBtn.addEventListener('click',()=>{ addDivider(getNextDayLabel()); });
 
-  dividerTomorrowBtn.addEventListener('click',()=>{
-    addDivider(getNextDayLabel());
-  });
-
-  /* Indent/Outdent/Undo buttons (mobile only, but always wired) */
-  $('todoIndentBtn').addEventListener('click',()=>{
-    if(focusedTodoIdx===null)return;const cur=loadTodos();
-    if(cur[focusedTodoIdx]&&cur[focusedTodoIdx].indent<3){cur[focusedTodoIdx].indent++;saveTodos(cur);renderTodos()}});
-  $('todoOutdentBtn').addEventListener('click',()=>{
-    if(focusedTodoIdx===null)return;const cur=loadTodos();
-    if(cur[focusedTodoIdx]&&cur[focusedTodoIdx].indent>0){cur[focusedTodoIdx].indent--;saveTodos(cur);renderTodos()}});
+  /* Undo button (mobile) */
   $('todoUndoBtn').addEventListener('click',todoUndo);
 
   /* Ctrl+Z / Ctrl+Y in todo panel */
