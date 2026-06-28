@@ -1069,7 +1069,8 @@
   const pendingTodoStateIds = new Set();
   const TODO_LONG_PRESS_MS = 320;
   const TODO_LONG_PRESS_CANCEL_PX = 9;
-  const TODO_STRIKETHROUGH_SPEED = 2.5; // 1 = default, lower is faster, higher is slower
+  const TODO_STRIKETHROUGH_SPEED = 5; // 1 = default, lower is faster, higher is slower
+  const TODO_MULTILINE_STRIKETHROUGH_SPEED = 3.25;
 
   function getItemEls() {
     return Array.from(todoList.children).filter(el =>
@@ -1211,6 +1212,7 @@
     const rects = Array.from(range.getClientRects()).filter(rect => rect.width > 1 && rect.height > 1);
     range.detach?.();
 
+    const speed = rects.length > 1 ? TODO_MULTILINE_STRIKETHROUGH_SPEED : TODO_STRIKETHROUGH_SPEED;
     let delay = 0;
     rects.forEach(rect => {
       const strike = document.createElement('span');
@@ -1219,7 +1221,7 @@
       strike.style.top = (rect.top - textRect.top + rect.height * .56) + 'px';
       strike.style.width = rect.width + 'px';
       if (animate) {
-        const duration = Math.max(170, Math.min(340, rect.width * 3.1)) * TODO_STRIKETHROUGH_SPEED;
+        const duration = Math.max(170, Math.min(340, rect.width * 3.1)) * speed;
         strike.style.transform = 'scaleX(0)';
         strike.style.transition = `transform ${duration}ms cubic-bezier(.16,1,.3,1) ${delay}ms`;
         delay += Math.max(120, duration * .72);
