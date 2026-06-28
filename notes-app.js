@@ -1023,6 +1023,8 @@
   panelTodos.tabIndex=-1;
   const pendingTodoEnterIds=new Set();
   const pendingTodoStateIds=new Set();
+  const TODO_LONG_PRESS_MS=320;
+  const TODO_LONG_PRESS_CANCEL_PX=9;
 
   function getItemEls(){
     return Array.from(todoList.children).filter(el=>
@@ -1036,6 +1038,56 @@
 
   function clamp(n,min,max){
     return Math.max(min,Math.min(max,n));
+  }
+
+  function isTodoDragBlockedTarget(target){
+    return !!target.closest?.('.todo-check,.todo-x,.todo-divider-x');
+  }
+
+  function isTouchTodoPointer(e){
+    return e.pointerType==='touch'||e.pointerType==='pen'||
+      window.matchMedia?.('(hover: none), (pointer: coarse)').matches;
+  }
+
+  function triggerTodoHaptic(){
+    try{
+      if(window.Tactus?.impact){window.Tactus.impact('medium');return}
+      if(window.Tactus?.selection){window.Tactus.selection();return}
+      if(window.WebHaptics?.impact){window.WebHaptics.impact('medium');return}
+      if(window.WebHaptics?.selection){window.WebHaptics.selection();return}
+      if(navigator.vibrate) navigator.vibrate(12);
+    }catch(_){}
+  }
+
+  function bindTodoHoldDrag(sourceEl){
+    sourceEl.addEventListener('pointerdown',e=>{
+      if(!isTouchTodoPointer(e)||e.button>0||isTodoDragBlockedTarget(e.target)) return;
+      const startX=e.clientX,startY=e.clientY;
+      let timer=null,started=false;
+
+      const cleanup=()=>{
+        window.clearTimeout(timer);
+        document.removeEventListener('pointermove',onMove);
+        document.removeEventListener('pointerup',onCancel);
+        document.removeEventListener('pointercancel',onCancel);
+      };
+      const onCancel=()=>cleanup();
+      const onMove=ev=>{
+        const dx=ev.clientX-startX,dy=ev.clientY-startY;
+        if(Math.hypot(dx,dy)>TODO_LONG_PRESS_CANCEL_PX) cleanup();
+      };
+
+      timer=window.setTimeout(()=>{
+        cleanup();
+        if(started||!document.body.contains(sourceEl)) return;
+        started=true;
+        startTodoDrag(e,sourceEl,{haptic:true});
+      },TODO_LONG_PRESS_MS);
+
+      document.addEventListener('pointermove',onMove,{passive:true});
+      document.addEventListener('pointerup',onCancel);
+      document.addEventListener('pointercancel',onCancel);
+    },{passive:true});
   }
 
   function snapshotRows(){
@@ -1096,6 +1148,49 @@
     }, 200);
   }
 
+  function clearTodoStrike(row){
+    row.querySelector('.todo-strike-layer')?.replaceChildren();
+  }
+
+  function renderTodoStrike(row,animate){
+    const text=row.querySelector('.todo-text');
+    const layer=row.querySelector('.todo-strike-layer');
+    if(!text||!layer) return;
+
+    layer.replaceChildren();
+    if(!row.classList.contains('done')||!text.textContent.trim()) return;
+
+    const range=document.createRange();
+    range.selectNodeContents(text);
+    const textRect=text.getBoundingClientRect();
+    const rects=Array.from(range.getClientRects()).filter(rect=>rect.width>1&&rect.height>1);
+    range.detach?.();
+
+    let delay=0;
+    rects.forEach(rect=>{
+      const strike=document.createElement('span');
+      strike.className='todo-strikethrough';
+      strike.style.left=(rect.left-textRect.left)+'px';
+      strike.style.top=(rect.top-textRect.top+rect.height*.56)+'px';
+      strike.style.width=rect.width+'px';
+      if(animate){
+        const duration=Math.max(170,Math.min(340,rect.width*3.1));
+        strike.style.transform='scaleX(0)';
+        strike.style.transition=`transform ${duration}ms cubic-bezier(.16,1,.3,1) ${delay}ms`;
+        delay+=Math.max(120,duration*.72);
+        requestAnimationFrame(()=>{strike.style.transform='scaleX(1)'});
+      }
+      layer.appendChild(strike);
+    });
+  }
+
+  function layoutTodoStrikes(animateId){
+    getItemEls().forEach(row=>{
+      if(!row.classList.contains('todo-item')) return;
+      renderTodoStrike(row,animateId&&getElId(row)===animateId);
+    });
+  }
+
   function animateTodoStateChange(id){
     pendingTodoStateIds.add(id);
     requestAnimationFrame(()=>{
@@ -1112,6 +1207,8 @@
           {opacity:1}
         ],{duration:180,easing:'ease-out'});
       }
+      if(row.classList.contains('done')) renderTodoStrike(row,true);
+      else clearTodoStrike(row);
     });
   }
 
@@ -1165,13 +1262,10 @@
     return ghost;
   }
 
-  function startTodoDrag(e,sourceEl){
+  function startTodoDrag(e,sourceEl,opts){
     // Don't start drag from text/input
-    if(e.target.classList.contains('todo-text')||
-       e.target.classList.contains('todo-divider-label')||
-       e.target.classList.contains('todo-check')||
-       e.target.classList.contains('todo-x')||
-       e.target.classList.contains('todo-divider-x')) return;
+    if(!isTouchTodoPointer(e)&&e.target.closest?.('.todo-text,.todo-divider-label')) return;
+    if(isTodoDragBlockedTarget(e.target)) return;
 
     e.preventDefault();
 
@@ -1197,6 +1291,7 @@
       if(el!==sourceEl) el.style.transition='transform 160ms cubic-bezier(.25,.8,.25,1)';
     });
     dragState={sourceEl,ghost};
+    if(opts?.haptic) triggerTodoHaptic();
     try{sourceEl.setPointerCapture(e.pointerId)}catch(_){}
 
     function computeInsertIdx(cy){
@@ -1322,6 +1417,7 @@
 
         inner.append(grip,label,x);
         div.appendChild(inner);
+        bindTodoHoldDrag(div);
         todoList.appendChild(div);
         if(pendingTodoEnterIds.delete(it.id)) animateElementIn(div);
         return;
@@ -1347,25 +1443,32 @@
       check.setAttribute('aria-label',it.done?'mark incomplete':'mark complete');
       check.addEventListener('click',()=>toggleTodoDone(it.id));
 
+      const textWrap=document.createElement('span');textWrap.className='todo-text-wrap';
       const text=document.createElement('span');text.className='todo-text';
       text.contentEditable='true';text.spellcheck=true;text.textContent=it.text;
       text.addEventListener('focus',()=>{focusedTodoIdx=realIdx});
       text.addEventListener('blur',()=>{const cur=loadTodos();
         if(cur[realIdx]&&text.textContent.trim()!==cur[realIdx].text){
-          cur[realIdx].text=text.textContent.trim();saveTodos(cur)}focusedTodoIdx=null});
+          cur[realIdx].text=text.textContent.trim();saveTodos(cur)}
+        requestAnimationFrame(()=>renderTodoStrike(li,false));
+        focusedTodoIdx=null});
       text.addEventListener('keydown',e=>{
         if(e.key==='Enter'){e.preventDefault();text.blur()}
       });
+      const strikeLayer=document.createElement('span');strikeLayer.className='todo-strike-layer';
+      textWrap.append(text,strikeLayer);
 
       const x=document.createElement('button');x.type='button';x.className='todo-x';
       x.textContent='×';x.title='delete';
       x.addEventListener('click',()=>deleteTodoById(it.id,li));
 
-      inner.append(grip,check,text,x);
+      inner.append(grip,check,textWrap,x);
       li.appendChild(inner);
+      bindTodoHoldDrag(li);
       todoList.appendChild(li);
       if(pendingTodoEnterIds.delete(it.id)) animateElementIn(li);
     });
+    requestAnimationFrame(()=>layoutTodoStrikes(false));
   }
 
   /* Add task */
@@ -1417,6 +1520,12 @@
 
   /* Undo button (mobile) */
   $('todoUndoBtn').addEventListener('click',todoUndo);
+
+  let todoStrikeResizeFrame=0;
+  window.addEventListener('resize',()=>{
+    cancelAnimationFrame(todoStrikeResizeFrame);
+    todoStrikeResizeFrame=requestAnimationFrame(()=>layoutTodoStrikes(false));
+  });
 
   /* Ctrl+Z / Ctrl+Y in todo panel */
   panelTodos.addEventListener('keydown',e=>{
