@@ -1185,15 +1185,18 @@
   function triggerTodoHaptic(kind) {
     try {
       if (kind === 'complete') {
+        if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); return }
+        if (window.Capacitor?.Plugins?.Haptics?.impact) { window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' }); return }
+        if (window.Haptics?.impact) { window.Haptics.impact('light'); return }
+        if (window.Tactus?.impact) { window.Tactus.impact('light'); return }
+        if (window.WebHaptics?.impact) { window.WebHaptics.impact('light'); return }
         if (window.Telegram?.WebApp?.HapticFeedback?.selectionChanged) { window.Telegram.WebApp.HapticFeedback.selectionChanged(); return }
         if (window.Capacitor?.Plugins?.Haptics?.selectionChanged) { window.Capacitor.Plugins.Haptics.selectionChanged(); return }
         if (window.Haptics?.selectionChanged) { window.Haptics.selectionChanged(); return }
         if (window.Tactus?.selection) { window.Tactus.selection(); return }
         if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
         if (window.webkit?.messageHandlers?.hapticFeedback?.postMessage) { window.webkit.messageHandlers.hapticFeedback.postMessage('selection'); return }
-        if (window.Tactus?.impact) { window.Tactus.impact('light'); return }
-        if (window.WebHaptics?.impact) { window.WebHaptics.impact('light'); return }
-        if (navigator.vibrate) navigator.vibrate(8);
+        if (navigator.vibrate) navigator.vibrate(10);
         return;
       }
       if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('medium'); return }
@@ -1205,6 +1208,15 @@
       if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
       if (navigator.vibrate) navigator.vibrate(14);
     } catch (_) { }
+  }
+
+  let lastTodoCompleteHaptic = 0;
+  function triggerTodoCompleteHaptic(e) {
+    if (e && !isTouchTodoPointer(e)) return;
+    const now = Date.now();
+    if (now - lastTodoCompleteHaptic < 220) return;
+    lastTodoCompleteHaptic = now;
+    triggerTodoHaptic('complete');
   }
 
   function lockTodoEditable(row) {
@@ -1656,10 +1668,11 @@
 
       const check = document.createElement('button'); check.type = 'button'; check.className = 'todo-check';
       check.setAttribute('aria-label', it.done ? 'mark incomplete' : 'mark complete');
-      check.addEventListener('pointerdown', e => {
-        if (isTouchTodoPointer(e)) triggerTodoHaptic('complete');
+      check.addEventListener('pointerdown', triggerTodoCompleteHaptic);
+      check.addEventListener('click', e => {
+        triggerTodoCompleteHaptic(e);
+        toggleTodoDone(it.id);
       });
-      check.addEventListener('click', () => toggleTodoDone(it.id));
 
       const textWrap = document.createElement('span'); textWrap.className = 'todo-text-wrap';
       const text = document.createElement('span'); text.className = 'todo-text';
