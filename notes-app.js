@@ -1,7 +1,7 @@
 (function () {
   /* ── CONSTANTS ─────────────────────────────────────────────── */
   const DOC_KEY = 'mb_notes_doc', META_KEY = 'mb_notes_doc_meta', PIN_KEY = 'mb_notes_pinned',
-    TODO_KEY = 'mb_notes_todos', TODO_TS_KEY = 'mb_notes_todos_ts', THEME_KEY = 'mb_theme',
+    TODO_KEY = 'mb_notes_todos', TODO_TS_KEY = 'mb_notes_todos_ts', TODO_PENDING_KEY = 'mb_notes_todos_pending', THEME_KEY = 'mb_theme',
     SWATCH_KEY = 'mb_color_swatches', HL_SWATCH_KEY = 'mb_hl_swatches', PIN_COLOR_KEY = 'mb_pin_color',
     ARCHIVE_KEY = 'mb_archive_doc', ARCHIVE_TS_KEY = 'mb_archive_ts',
     STICKER_KEY = 'mb_notes_stickers';
@@ -972,6 +972,30 @@
   let focusedTodoIdx = null;
 
   function loadTodos() { try { return JSON.parse(localStorage.getItem(TODO_KEY) || '[]') } catch (_) { return [] } }
+  function loadPendingTodoSave() { try { return JSON.parse(localStorage.getItem(TODO_PENDING_KEY) || 'null') } catch (_) { return null } }
+  async function writeTodosCloud(items, ts) {
+    try {
+      const r = await fetch('/api/todos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, ts })
+      });
+      if (!r.ok) throw new Error('todo save failed');
+      const pending = loadPendingTodoSave();
+      if (pending && pending.ts === ts) localStorage.removeItem(TODO_PENDING_KEY);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  function queueTodoCloudSave(items, ts) {
+    localStorage.setItem(TODO_PENDING_KEY, JSON.stringify({ items, ts }));
+    writeTodosCloud(items, ts);
+  }
+  function retryPendingTodoSave() {
+    const pending = loadPendingTodoSave();
+    if (pending && Array.isArray(pending.items) && pending.ts) writeTodosCloud(pending.items, pending.ts);
+    return pending;
+  }
   function saveTodos(items, push) {
     if (push !== false) {
       const prev = localStorage.getItem(TODO_KEY) || '[]'; undoStack.push(prev);
@@ -981,10 +1005,7 @@
     localStorage.setItem(TODO_KEY, JSON.stringify(items));
     localStorage.setItem(TODO_TS_KEY, String(ts));
     flash();
-    fetch('/api/todos', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, ts })
-    }).catch(() => { });
+    queueTodoCloudSave(items, ts);
   }
 
   function todoUndo() {
@@ -1675,15 +1696,19 @@
 
   /* Cloud sync for todos */
   async function loadTodosCloud(isPolling) {
+    const pending = retryPendingTodoSave();
     try {
       const r = await fetch('/api/todos'); if (!r.ok) return;
       const data = await r.json();
       const localTs = Number(localStorage.getItem(TODO_TS_KEY)) || 0;
-      const shouldSync = isPolling ? (data.ts && data.ts > localTs) : (data.ts != null);
-      if (shouldSync && data.items != null) {
+      const cloudTs = Number(data.ts) || 0;
+      if (pending && pending.ts >= cloudTs) return;
+      if (data.items != null && cloudTs > localTs) {
         localStorage.setItem(TODO_KEY, JSON.stringify(data.items));
-        if (data.ts) localStorage.setItem(TODO_TS_KEY, String(data.ts));
+        localStorage.setItem(TODO_TS_KEY, String(cloudTs));
         renderTodos();
+      } else if (!isPolling && localTs > cloudTs) {
+        writeTodosCloud(loadTodos(), localTs);
       }
     } catch (_) { }
   }

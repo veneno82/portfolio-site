@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
     const { items = [], ts = Date.now() } = body;
-    await Promise.all([
+    const writes = await Promise.all([
       fetch(url, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -36,6 +36,9 @@ export default async function handler(req, res) {
         body: JSON.stringify(['SET', 'todos_ts', String(ts)])
       })
     ]);
+    if (writes.some(r => !r.ok)) {
+      return res.status(502).json({ error: 'KV write failed' });
+    }
     return res.json({ ok: true });
   }
 
