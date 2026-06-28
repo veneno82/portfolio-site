@@ -1,5 +1,6 @@
 {
   "trailingSlash": false,
+  "cleanUrls": false,
   "rewrites": [
     { "source": "/tool/notes", "destination": "/notes.html" },
     { "source": "/archive", "destination": "/archive.html" },
@@ -8,7 +9,6 @@
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": false },
     { "source": "/notes.html", "destination": "/tool/notes", "permanent": true },
-    { "source": "/notes", "destination": "/tool/notes", "permanent": true },
     { "source": "/archive.html", "destination": "/archive", "permanent": false }
   ]
 }
