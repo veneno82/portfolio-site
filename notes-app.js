@@ -1069,7 +1069,7 @@
   const pendingTodoStateIds = new Set();
   const TODO_LONG_PRESS_MS = 320;
   const TODO_LONG_PRESS_CANCEL_PX = 9;
-  const TODO_STRIKETHROUGH_SPEED = 0.35; // 1 = default, lower is faster, higher is slower
+  const TODO_STRIKETHROUGH_SPEED = 2.5; // 1 = default, lower is faster, higher is slower
 
   function getItemEls() {
     return Array.from(todoList.children).filter(el =>
