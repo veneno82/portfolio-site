@@ -1126,6 +1126,7 @@
     if (idx === -1) return;
     const t = items[idx];
     if (!t.done) {
+      triggerTodoCompleteHaptic();
       // marking done — remember where it was
       t.done = true;
       t.origIdx = idx;
@@ -1156,8 +1157,8 @@
   const pendingTodoStateIds = new Set();
   const TODO_LONG_PRESS_MS = 320;
   const TODO_LONG_PRESS_CANCEL_PX = 22;
-  const TODO_STRIKETHROUGH_SPEED = 5; // 1 = default, lower is faster, higher is slower
-  const TODO_MULTILINE_STRIKETHROUGH_SPEED = 3.25;
+  const TODO_STRIKETHROUGH_SPEED = 5 / .75; // duration multiplier; larger is slower
+  const TODO_MULTILINE_STRIKETHROUGH_SPEED = 3.25 * .75;
 
   function getItemEls() {
     return Array.from(todoList.children).filter(el =>
@@ -1185,6 +1186,11 @@
   function triggerTodoHaptic(kind) {
     try {
       if (kind === 'complete') {
+        if (window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred) { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); return }
+        if (window.Capacitor?.Plugins?.Haptics?.notification) { window.Capacitor.Plugins.Haptics.notification({ type: 'SUCCESS' }); return }
+        if (window.Haptics?.notification) { window.Haptics.notification('success'); return }
+        if (window.Tactus?.notification) { window.Tactus.notification('success'); return }
+        if (window.WebHaptics?.notification) { window.WebHaptics.notification('success'); return }
         if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); return }
         if (window.Capacitor?.Plugins?.Haptics?.impact) { window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' }); return }
         if (window.Haptics?.impact) { window.Haptics.impact('light'); return }
@@ -1196,7 +1202,7 @@
         if (window.Tactus?.selection) { window.Tactus.selection(); return }
         if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
         if (window.webkit?.messageHandlers?.hapticFeedback?.postMessage) { window.webkit.messageHandlers.hapticFeedback.postMessage('selection'); return }
-        if (navigator.vibrate) navigator.vibrate(10);
+        if (navigator.vibrate) navigator.vibrate([8, 24, 8]);
         return;
       }
       if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('medium'); return }
@@ -1258,24 +1264,44 @@
       if (!isTouchTodoPointer(e) || e.button > 0 || isTodoDragBlockedTarget(e.target)) return;
       e.preventDefault();
       const startX = e.clientX, startY = e.clientY;
+      let lastX = startX, lastY = startY;
       const editableTarget = e.target.closest?.('.todo-text,.todo-divider-label');
       let timer = null, started = false;
       let moved = false;
       let unlocked = false;
       let unlockEditable = null;
+      let pointerCaptured = false;
+
+      sourceEl.classList.add('todo-hold-pending');
+      try {
+        sourceEl.setPointerCapture(e.pointerId);
+        pointerCaptured = true;
+      } catch (_) { }
 
       const unlock = () => {
         if (unlocked) return;
         unlocked = true;
         unlockEditable?.();
+        sourceEl.classList.remove('todo-hold-pending');
       };
 
-      const cleanup = restoreEditable => {
+      const releasePointer = () => {
+        if (!pointerCaptured) return;
+        pointerCaptured = false;
+        try { sourceEl.releasePointerCapture(e.pointerId) } catch (_) { }
+      };
+
+      const cleanup = opts => {
+        const restoreEditable = opts?.restoreEditable !== false;
+        const keepPending = opts?.keepPending === true;
+        const release = opts?.releasePointer !== false;
         window.clearTimeout(timer);
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onCancel);
         document.removeEventListener('pointercancel', onCancel);
-        if (restoreEditable !== false) unlock();
+        if (release) releasePointer();
+        if (restoreEditable) unlock();
+        else if (!keepPending) sourceEl.classList.remove('todo-hold-pending');
       };
       const onCancel = () => {
         const shouldFocusEditable = !started && !moved && editableTarget && sourceEl.contains(editableTarget);
@@ -1283,6 +1309,9 @@
         if (shouldFocusEditable) requestAnimationFrame(() => focusTodoEditableAtEnd(editableTarget));
       };
       const onMove = ev => {
+        if (ev.cancelable) ev.preventDefault();
+        lastX = ev.clientX;
+        lastY = ev.clientY;
         const dx = ev.clientX - startX, dy = ev.clientY - startY;
         if (Math.hypot(dx, dy) > TODO_LONG_PRESS_CANCEL_PX) {
           moved = true;
@@ -1291,16 +1320,34 @@
       };
 
       timer = window.setTimeout(() => {
-        cleanup(false);
         if (started || !document.body.contains(sourceEl)) return;
         started = true;
         unlockEditable = lockTodoEditable(sourceEl);
         clearTodoSelection(sourceEl);
-        const didStart = startTodoDrag(e, sourceEl, { haptic: 'drag', onDone: unlock });
-        if (!didStart) unlock();
+        cleanup({ restoreEditable: false, keepPending: true, releasePointer: false });
+        const dragStartEvent = {
+          clientX: lastX,
+          clientY: lastY,
+          pointerId: e.pointerId,
+          pointerType: e.pointerType,
+          button: e.button,
+          target: e.target,
+          preventDefault: () => { try { e.preventDefault() } catch (_) { } }
+        };
+        const didStart = startTodoDrag(dragStartEvent, sourceEl, {
+          haptic: 'drag',
+          onDone: () => {
+            releasePointer();
+            unlock();
+          }
+        });
+        if (!didStart) {
+          releasePointer();
+          unlock();
+        }
       }, TODO_LONG_PRESS_MS);
 
-      document.addEventListener('pointermove', onMove, { passive: true });
+      document.addEventListener('pointermove', onMove, { passive: false });
       document.addEventListener('pointerup', onCancel);
       document.addEventListener('pointercancel', onCancel);
     }, { passive: false });
