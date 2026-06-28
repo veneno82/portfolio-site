@@ -950,11 +950,11 @@
   function todoUndo(){if(!undoStack.length)return;
     redoStack.push(localStorage.getItem(TODO_KEY)||'[]');
     const prev=JSON.parse(undoStack.pop());
-    localStorage.setItem(TODO_KEY,JSON.stringify(prev));flash();renderTodos()}
+    saveTodos(prev,false);renderTodos()}
   function todoRedo(){if(!redoStack.length)return;
     undoStack.push(localStorage.getItem(TODO_KEY)||'[]');
     const next=JSON.parse(redoStack.pop());
-    localStorage.setItem(TODO_KEY,JSON.stringify(next));flash();renderTodos()}
+    saveTodos(next,false);renderTodos()}
 
   /* ── SORT ────────────────────────────────────────────────────────
      If all tasks under a divider are completed, the divider +
@@ -1015,15 +1015,12 @@
 
   /* ── DRAG-TO-REORDER ─────────────────────────────────────────── */
   let dragState=null;
+  panelTodos.tabIndex=-1;
+  const pendingTodoEnterIds=new Set();
 
   function getItemEls(){
     return Array.from(todoList.children).filter(el=>
       el.classList.contains('todo-item')||el.classList.contains('todo-divider'));
-  }
-
-  function getDragIndex(el){
-    const els=getItemEls();
-    return els.indexOf(el);
   }
 
   /* Get the data-id of a rendered row element */
@@ -1031,36 +1028,109 @@
     return el.dataset.todoId||null;
   }
 
-  /* Move id from its current position in items array to before the element with beforeId (null = end) */
-  function reorderItem(id,beforeId){
+  function clamp(n,min,max){
+    return Math.max(min,Math.min(max,n));
+  }
+
+  function snapshotRows(){
+    const m=new Map();
+    getItemEls().forEach(el=>m.set(getElId(el),el.getBoundingClientRect()));
+    return m;
+  }
+
+  function animateRowChanges(first){
+    getItemEls().forEach(el=>{
+      if(el===dragState?.sourceEl) return;
+      const prev=first.get(getElId(el));
+      if(!prev) return;
+      const next=el.getBoundingClientRect();
+      const dy=prev.top-next.top;
+      if(!dy) return;
+      el.style.transition='none';
+      el.style.transform=`translate3d(0,${dy}px,0)`;
+      requestAnimationFrame(()=>{
+        el.style.transition='transform .18s cubic-bezier(.2,.8,.2,1)';
+        el.style.transform='';
+        window.setTimeout(()=>{el.style.transition='';},210);
+      });
+    });
+  }
+
+  function animateTodoEnter(row){
+    const h=row.getBoundingClientRect().height;
+    row.style.overflow='hidden';
+    row.style.height='0px';
+    row.style.opacity='0';
+    row.style.transform='translate3d(0,-8px,0) scale(.98)';
+    requestAnimationFrame(()=>{
+      row.style.transition='height .2s ease-out, opacity .15s ease-out, transform .15s ease-out';
+      row.style.height=h+'px';
+      row.style.opacity='1';
+      row.style.transform='';
+      window.setTimeout(()=>{
+        row.style.height='';
+        row.style.overflow='';
+        row.style.opacity='';
+        row.style.transition='';
+        row.style.transform='';
+      },220);
+    });
+  }
+
+  function deleteTodoById(id,row){
+    const runDelete=()=>{
+      const cur=loadTodos();
+      const idx=cur.findIndex(t=>t.id===id);
+      if(idx===-1) return;
+      cur.splice(idx,1);
+      saveTodos(cur);
+      renderTodos();
+    };
+    if(!row){runDelete();return}
+    const h=row.getBoundingClientRect().height;
+    row.style.overflow='hidden';
+    row.style.height=h+'px';
+    row.style.transition='height .18s ease-out, opacity .15s ease-out, transform .15s ease-out';
+    requestAnimationFrame(()=>{
+      row.style.height='0px';
+      row.style.opacity='0';
+      row.style.transform='translate3d(0,8px,0) scale(.98)';
+    });
+    window.setTimeout(runDelete,190);
+  }
+
+  function moveRowInDom(row,targetIndex){
+    const first=snapshotRows();
+    const rows=getItemEls().filter(el=>el!==row);
+    const before=rows[targetIndex]||null;
+    if(before) todoList.insertBefore(row,before);
+    else todoList.appendChild(row);
+    animateRowChanges(first);
+  }
+
+  function commitRenderedOrder(){
+    const orderIds=getItemEls().map(getElId).filter(Boolean);
     const items=loadTodos();
-    const fromIdx=items.findIndex(t=>t.id===id);
-    if(fromIdx===-1) return;
-    const item=items.splice(fromIdx,1)[0];
-    if(beforeId==null){
-      items.push(item);
-    }else{
-      const toIdx=items.findIndex(t=>t.id===beforeId);
-      items.splice(toIdx===-1?items.length:toIdx,0,item);
-    }
-    saveTodos(items);
-    renderTodos();
+    const byId=new Map(items.map(t=>[t.id,t]));
+    const next=orderIds.map(id=>byId.get(id)).filter(Boolean);
+    items.forEach(t=>{if(!orderIds.includes(t.id)) next.push(t)});
+    if(JSON.stringify(items)===JSON.stringify(next)) return false;
+    saveTodos(next);
+    return true;
   }
 
   /* Create a floating ghost element that follows the cursor/finger */
-  function createGhost(sourceEl,x,y){
+  function createGhost(sourceEl){
     const rect=sourceEl.getBoundingClientRect();
     const ghost=sourceEl.cloneNode(true);
     ghost.id='todo-drag-ghost';
+    ghost.classList.add('todo-drag-ghost');
     ghost.style.cssText=`
       position:fixed;left:${rect.left}px;top:${rect.top}px;
-      width:${rect.width}px;pointer-events:none;z-index:9999;
-      background:var(--paper);border:1px solid var(--border);
-      border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.15);
-      opacity:.92;transition:none;
+      width:${rect.width}px;transition:none;
     `;
     document.body.appendChild(ghost);
-    return {ghost,offX:x-rect.left,offY:y-rect.top};
+    return ghost;
   }
 
   function startTodoDrag(e,sourceEl){
@@ -1071,62 +1141,63 @@
        e.target.classList.contains('todo-x')||
        e.target.classList.contains('todo-divider-x')) return;
 
-    const isTouch=e.type==='touchstart';
-    const pt=isTouch?e.touches[0]:e;
     e.preventDefault();
 
+    const rows=getItemEls();
+    if(rows.length<2) return;
+    const sourceRect=sourceEl.getBoundingClientRect();
+    const firstRect=rows[0].getBoundingClientRect();
+    const lastRect=rows[rows.length-1].getBoundingClientRect();
+    const areaTop=firstRect.top;
+    const areaBottom=lastRect.bottom;
+    const offsetY=e.clientY-sourceRect.top;
+    const minTop=areaTop;
+    const maxTop=Math.max(areaTop,areaBottom-sourceRect.height);
+    const startOrder=rows.map(getElId).join('|');
+
     sourceEl.classList.add('dragging-source');
-    const {ghost,offX,offY}=createGhost(sourceEl,pt.clientX,pt.clientY);
+    const ghost=createGhost(sourceEl);
+    dragState={sourceEl,ghost,startOrder};
+    try{sourceEl.setPointerCapture(e.pointerId)}catch(_){}
 
-    let currentOver=null;
+    function moveTo(cy){
+      const top=clamp(cy-offsetY,minTop,maxTop);
+      ghost.style.top=top+'px';
 
-    function moveTo(cx,cy){
-      ghost.style.left=(cx-offX)+'px';
-      ghost.style.top=(cy-offY)+'px';
-
-      // Find which item we're hovering over
-      ghost.style.display='none';
-      const elBelow=document.elementFromPoint(cx,cy);
-      ghost.style.display='';
-
-      const itemEl=elBelow?elBelow.closest('.todo-item,.todo-divider'):null;
-      if(itemEl&&itemEl!==sourceEl&&todoList.contains(itemEl)){
-        if(currentOver!==itemEl){
-          if(currentOver) currentOver.classList.remove('drag-over');
-          currentOver=itemEl;
-          currentOver.classList.add('drag-over');
-        }
-      }else{
-        if(currentOver){currentOver.classList.remove('drag-over');currentOver=null;}
-      }
+      const centerY=top+(sourceRect.height/2);
+      const otherRows=getItemEls().filter(el=>el!==sourceEl);
+      let targetIndex=0;
+      otherRows.forEach(el=>{
+        const r=el.getBoundingClientRect();
+        if(centerY>r.top+(r.height/2)) targetIndex++;
+      });
+      const currentIndex=getItemEls().indexOf(sourceEl);
+      if(targetIndex!==currentIndex) moveRowInDom(sourceEl,targetIndex);
     }
 
     function onMove(ev){
-      const p=ev.touches?ev.touches[0]:ev;
-      moveTo(p.clientX,p.clientY);
+      ev.preventDefault();
+      moveTo(ev.clientY);
     }
 
     function onUp(ev){
+      ev.preventDefault();
+      try{sourceEl.releasePointerCapture(e.pointerId)}catch(_){}
       sourceEl.classList.remove('dragging-source');
       ghost.remove();
-      if(currentOver){
-        currentOver.classList.remove('drag-over');
-        const sourceId=getElId(sourceEl);
-        const overId=getElId(currentOver);
-        if(sourceId&&overId&&sourceId!==overId){
-          reorderItem(sourceId,overId);
-        }
-      }
-      document.removeEventListener('mousemove',onMove);
-      document.removeEventListener('mouseup',onUp);
-      document.removeEventListener('touchmove',onMove);
-      document.removeEventListener('touchend',onUp);
+      const endOrder=getItemEls().map(getElId).join('|');
+      const changed=endOrder!==startOrder&&commitRenderedOrder();
       dragState=null;
+      document.removeEventListener('pointermove',onMove);
+      document.removeEventListener('pointerup',onUp);
+      document.removeEventListener('pointercancel',onUp);
+      if(changed) renderTodos();
+      panelTodos.focus({preventScroll:true});
     }
 
-    dragState={sourceEl,ghost,currentOver};
-    document.addEventListener(isTouch?'touchmove':'mousemove',onMove,{passive:false});
-    document.addEventListener(isTouch?'touchend':'mouseup',onUp);
+    document.addEventListener('pointermove',onMove,{passive:false});
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
   }
 
   /* ── RENDER ───────────────────────────────────────────────────── */
@@ -1161,8 +1232,7 @@
 
         const grip=document.createElement('span');grip.className='todo-drag-handle';
         grip.textContent='⠿';grip.title='drag to reorder';
-        grip.addEventListener('mousedown',e=>startTodoDrag(e,div));
-        grip.addEventListener('touchstart',e=>startTodoDrag(e,div),{passive:false});
+        grip.addEventListener('pointerdown',e=>startTodoDrag(e,div));
 
         const label=document.createElement('span');label.className='todo-divider-label';
         label.contentEditable='true';label.spellcheck=false;label.textContent=it.label||'';
@@ -1176,10 +1246,11 @@
 
         const x=document.createElement('button');x.type='button';x.className='todo-divider-x';
         x.textContent='×';x.title='delete section';
-        x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);saveTodos(cur);renderTodos()});
+        x.addEventListener('click',()=>deleteTodoById(it.id,div));
 
         div.append(grip,label,x);
         todoList.appendChild(div);
+        if(pendingTodoEnterIds.delete(it.id)) animateTodoEnter(div);
         return;
       }
 
@@ -1196,8 +1267,7 @@
 
       const grip=document.createElement('span');grip.className='todo-drag-handle';
       grip.textContent='⠿';grip.title='drag to reorder';
-      grip.addEventListener('mousedown',e=>startTodoDrag(e,li));
-      grip.addEventListener('touchstart',e=>startTodoDrag(e,li),{passive:false});
+      grip.addEventListener('pointerdown',e=>startTodoDrag(e,li));
 
       const check=document.createElement('button');check.type='button';check.className='todo-check';
       check.setAttribute('aria-label',it.done?'mark incomplete':'mark complete');
@@ -1215,10 +1285,10 @@
 
       const x=document.createElement('button');x.type='button';x.className='todo-x';
       x.textContent='×';x.title='delete';
-      x.addEventListener('click',()=>{const cur=loadTodos();cur.splice(realIdx,1);
-        saveTodos(cur);renderTodos()});
+      x.addEventListener('click',()=>deleteTodoById(it.id,li));
 
       li.append(grip,check,text,x);todoList.appendChild(li);
+      if(pendingTodoEnterIds.delete(it.id)) animateTodoEnter(li);
     });
   }
 
@@ -1231,6 +1301,7 @@
     if(insertIdx===-1) insertIdx=items.findIndex(t=>t.done);
     if(insertIdx===-1) items.push(newTask);
     else items.splice(insertIdx,0,newTask);
+    pendingTodoEnterIds.add(newTask.id);
     saveTodos(items);todoInput.value='';renderTodos()});
 
   /* ── DIVIDERS ─────────────────────────────────────────────── */
@@ -1241,7 +1312,9 @@
   function addDivider(label){
     if(!label)return;
     const items=loadTodos();
-    items.unshift({id:Math.random().toString(36).slice(2,9),type:'divider',label});
+    const divider={id:Math.random().toString(36).slice(2,9),type:'divider',label};
+    items.unshift(divider);
+    pendingTodoEnterIds.add(divider.id);
     saveTodos(items);renderTodos();
   }
 
