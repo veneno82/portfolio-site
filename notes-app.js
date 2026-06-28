@@ -1068,7 +1068,7 @@
   const pendingTodoEnterIds = new Set();
   const pendingTodoStateIds = new Set();
   const TODO_LONG_PRESS_MS = 320;
-  const TODO_LONG_PRESS_CANCEL_PX = 9;
+  const TODO_LONG_PRESS_CANCEL_PX = 22;
   const TODO_STRIKETHROUGH_SPEED = 5; // 1 = default, lower is faster, higher is slower
   const TODO_MULTILINE_STRIKETHROUGH_SPEED = 3.25;
 
@@ -1098,13 +1098,20 @@
   function triggerTodoHaptic(kind) {
     try {
       if (kind === 'complete') {
+        if (window.Telegram?.WebApp?.HapticFeedback?.selectionChanged) { window.Telegram.WebApp.HapticFeedback.selectionChanged(); return }
+        if (window.Capacitor?.Plugins?.Haptics?.selectionChanged) { window.Capacitor.Plugins.Haptics.selectionChanged(); return }
+        if (window.Haptics?.selectionChanged) { window.Haptics.selectionChanged(); return }
         if (window.Tactus?.selection) { window.Tactus.selection(); return }
         if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
+        if (window.webkit?.messageHandlers?.hapticFeedback?.postMessage) { window.webkit.messageHandlers.hapticFeedback.postMessage('selection'); return }
         if (window.Tactus?.impact) { window.Tactus.impact('light'); return }
         if (window.WebHaptics?.impact) { window.WebHaptics.impact('light'); return }
         if (navigator.vibrate) navigator.vibrate(8);
         return;
       }
+      if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('medium'); return }
+      if (window.Capacitor?.Plugins?.Haptics?.impact) { window.Capacitor.Plugins.Haptics.impact({ style: 'MEDIUM' }); return }
+      if (window.Haptics?.impact) { window.Haptics.impact('medium'); return }
       if (window.Tactus?.impact) { window.Tactus.impact('medium'); return }
       if (window.WebHaptics?.impact) { window.WebHaptics.impact('medium'); return }
       if (window.Tactus?.selection) { window.Tactus.selection(); return }
@@ -1150,17 +1157,18 @@
   function bindTodoHoldDrag(sourceEl) {
     sourceEl.addEventListener('pointerdown', e => {
       if (!isTouchTodoPointer(e) || e.button > 0 || isTodoDragBlockedTarget(e.target)) return;
+      e.preventDefault();
       const startX = e.clientX, startY = e.clientY;
       const editableTarget = e.target.closest?.('.todo-text,.todo-divider-label');
-      const unlockEditable = lockTodoEditable(sourceEl);
       let timer = null, started = false;
       let moved = false;
       let unlocked = false;
+      let unlockEditable = null;
 
       const unlock = () => {
         if (unlocked) return;
         unlocked = true;
-        unlockEditable();
+        unlockEditable?.();
       };
 
       const cleanup = restoreEditable => {
@@ -1187,6 +1195,7 @@
         cleanup(false);
         if (started || !document.body.contains(sourceEl)) return;
         started = true;
+        unlockEditable = lockTodoEditable(sourceEl);
         clearTodoSelection(sourceEl);
         const didStart = startTodoDrag(e, sourceEl, { haptic: 'drag', onDone: unlock });
         if (!didStart) unlock();
@@ -1195,7 +1204,7 @@
       document.addEventListener('pointermove', onMove, { passive: true });
       document.addEventListener('pointerup', onCancel);
       document.addEventListener('pointercancel', onCancel);
-    }, { passive: true });
+    }, { passive: false });
   }
 
   function snapshotRows() {
@@ -1559,10 +1568,10 @@
 
       const check = document.createElement('button'); check.type = 'button'; check.className = 'todo-check';
       check.setAttribute('aria-label', it.done ? 'mark incomplete' : 'mark complete');
-      check.addEventListener('click', e => {
+      check.addEventListener('pointerdown', e => {
         if (isTouchTodoPointer(e)) triggerTodoHaptic('complete');
-        toggleTodoDone(it.id);
       });
+      check.addEventListener('click', () => toggleTodoDone(it.id));
 
       const textWrap = document.createElement('span'); textWrap.className = 'todo-text-wrap';
       const text = document.createElement('span'); text.className = 'todo-text';
