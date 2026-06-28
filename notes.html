@@ -167,9 +167,9 @@
     .todo-drag-ghost{pointer-events:none;z-index:9999;background:var(--paper);border:1px solid var(--accent);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.18);opacity:.95;will-change:top}
     .todo-check{flex-shrink:0;width:18px;height:18px;border:1.5px solid var(--fg2);border-radius:50%;cursor:pointer;margin-top:1px;position:relative;transition:all .15s;background:transparent;padding:0}
     .todo-check:hover{border-color:var(--accent)}
-    .todo-check::after{content:'';position:absolute;top:2px;left:5px;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform .15s}
+    .todo-check::after{content:'';position:absolute;top:50%;left:50%;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:translate(-50%,-58%) rotate(45deg) scale(0);transform-origin:center;transition:transform .15s}
     .todo-item.done .todo-check{background:var(--accent);border-color:var(--accent)}
-    .todo-item.done .todo-check::after{transform:rotate(45deg) scale(1)}
+    .todo-item.done .todo-check::after{transform:translate(-50%,-58%) rotate(45deg) scale(1)}
     .todo-text-wrap{position:relative;flex:1;min-width:0}
     .todo-text{display:block;font-size:14px;line-height:1.5;color:var(--fg);outline:none;min-height:20px;word-break:break-word;border:none;background:transparent;font-family:inherit;padding:0;resize:none;transition:color .18s ease-out,opacity .18s ease-out}
     .todo-text:focus{outline:none}
