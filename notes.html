@@ -170,9 +170,12 @@
     .todo-check::after{content:'';position:absolute;top:2px;left:5px;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform .15s}
     .todo-item.done .todo-check{background:var(--accent);border-color:var(--accent)}
     .todo-item.done .todo-check::after{transform:rotate(45deg) scale(1)}
-    .todo-text{flex:1;font-size:14px;line-height:1.5;color:var(--fg);outline:none;min-height:20px;word-break:break-word;border:none;background:transparent;font-family:inherit;padding:0;resize:none;transition:color .18s ease-out,opacity .18s ease-out}
+    .todo-text-wrap{position:relative;flex:1;min-width:0}
+    .todo-text{display:block;font-size:14px;line-height:1.5;color:var(--fg);outline:none;min-height:20px;word-break:break-word;border:none;background:transparent;font-family:inherit;padding:0;resize:none;transition:color .18s ease-out,opacity .18s ease-out}
     .todo-text:focus{outline:none}
-    .todo-item.done .todo-text{text-decoration:line-through;color:var(--fg2);opacity:.65}
+    .todo-item.done .todo-text{color:var(--fg2);opacity:.65}
+    .todo-strike-layer{position:absolute;inset:0;pointer-events:none;color:var(--fg2);overflow:visible}
+    .todo-strikethrough{position:absolute;height:1.5px;background:currentColor;border-radius:999px;transform:scaleX(1);transform-origin:left center;opacity:.78;will-change:transform}
     .todo-x{opacity:0;cursor:pointer;color:var(--fg2);font-size:16px;flex-shrink:0;padding:0 2px;background:none;border:none;font-family:inherit;transition:opacity .15s,color .15s;line-height:1}
     .todo-item:hover .todo-x{opacity:1}
     .todo-x:hover{color:#e55}
@@ -220,10 +223,11 @@
       .nav-links-group{display:none}
       .doc{font-size:15px}
     }
-    @media(hover:none){
+    @media(hover:none),(pointer:coarse){
       .todo-x{opacity:1!important}
       .todo-item{padding:10px 4px}
-      .todo-drag-handle{opacity:.4!important}
+      .todo-drag-handle{display:none!important}
+      .todo-item,.todo-divider{touch-action:pan-y;-webkit-tap-highlight-color:transparent}
     }
   </style>
 </head>
