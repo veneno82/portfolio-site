@@ -1126,7 +1126,6 @@
     if (idx === -1) return;
     const t = items[idx];
     if (!t.done) {
-      triggerTodoCompleteHaptic();
       // marking done — remember where it was
       t.done = true;
       t.origIdx = idx;
@@ -1178,55 +1177,8 @@
     return !!target.closest?.('.todo-check,.todo-x,.todo-divider-x');
   }
 
-  function isTouchTodoPointer(e) {
-    return e.pointerType === 'touch' || e.pointerType === 'pen' ||
-      window.matchMedia?.('(hover: none), (pointer: coarse)').matches;
-  }
-
   function getTodoTouchPoint(e) {
     return e.touches?.[0] || e.changedTouches?.[0] || null;
-  }
-
-  function triggerTodoHaptic(kind) {
-    try {
-      if (kind === 'complete') {
-        if (window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred) { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); return }
-        if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('medium'); return }
-        if (window.Capacitor?.Plugins?.Haptics?.impact) { window.Capacitor.Plugins.Haptics.impact({ style: 'MEDIUM' }); return }
-        if (window.Haptics?.impact) { window.Haptics.impact('medium'); return }
-        if (window.Tactus?.impact) { window.Tactus.impact('medium'); return }
-        if (window.WebHaptics?.impact) { window.WebHaptics.impact('medium'); return }
-        if (window.Capacitor?.Plugins?.Haptics?.notification) { window.Capacitor.Plugins.Haptics.notification({ type: 'SUCCESS' }); return }
-        if (window.Haptics?.notification) { window.Haptics.notification('success'); return }
-        if (window.Tactus?.notification) { window.Tactus.notification('success'); return }
-        if (window.WebHaptics?.notification) { window.WebHaptics.notification('success'); return }
-        if (window.Telegram?.WebApp?.HapticFeedback?.selectionChanged) { window.Telegram.WebApp.HapticFeedback.selectionChanged(); return }
-        if (window.Capacitor?.Plugins?.Haptics?.selectionChanged) { window.Capacitor.Plugins.Haptics.selectionChanged(); return }
-        if (window.Haptics?.selectionChanged) { window.Haptics.selectionChanged(); return }
-        if (window.Tactus?.selection) { window.Tactus.selection(); return }
-        if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
-        if (window.webkit?.messageHandlers?.hapticFeedback?.postMessage) { window.webkit.messageHandlers.hapticFeedback.postMessage('success'); return }
-        if (navigator.vibrate) navigator.vibrate([8, 24, 8]);
-        return;
-      }
-      if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) { window.Telegram.WebApp.HapticFeedback.impactOccurred('medium'); return }
-      if (window.Capacitor?.Plugins?.Haptics?.impact) { window.Capacitor.Plugins.Haptics.impact({ style: 'MEDIUM' }); return }
-      if (window.Haptics?.impact) { window.Haptics.impact('medium'); return }
-      if (window.Tactus?.impact) { window.Tactus.impact('medium'); return }
-      if (window.WebHaptics?.impact) { window.WebHaptics.impact('medium'); return }
-      if (window.Tactus?.selection) { window.Tactus.selection(); return }
-      if (window.WebHaptics?.selection) { window.WebHaptics.selection(); return }
-      if (navigator.vibrate) navigator.vibrate(14);
-    } catch (_) { }
-  }
-
-  let lastTodoCompleteHaptic = 0;
-  function triggerTodoCompleteHaptic(e) {
-    if (e && !isTouchTodoPointer(e)) return;
-    const now = Date.now();
-    if (now - lastTodoCompleteHaptic < 220) return;
-    lastTodoCompleteHaptic = now;
-    triggerTodoHaptic('complete');
   }
 
   function lockTodoEditable(row) {
@@ -1266,7 +1218,6 @@
   function bindTodoHoldDrag(sourceEl) {
     const beginHold = (e, cfg) => {
       if (isTodoDragBlockedTarget(e.target)) return;
-      if (cfg.preventStartDefault !== false) e.preventDefault?.();
       const startX = cfg.startX, startY = cfg.startY;
       let lastX = startX, lastY = startY;
       const editableTarget = e.target.closest?.('.todo-text,.todo-divider-label');
@@ -1274,14 +1225,9 @@
       let moved = false;
       let unlocked = false;
       let unlockEditable = null;
-      let pointerCaptured = false;
 
-      sourceEl.classList.add('todo-hold-pending');
-      if (cfg.capturePointer !== false) {
-        try {
-          sourceEl.setPointerCapture(cfg.pointerId);
-          pointerCaptured = true;
-        } catch (_) { }
+      if (cfg.capturePointer) {
+        try { sourceEl.setPointerCapture(cfg.pointerId) } catch (_) { }
       }
 
       const unlock = () => {
@@ -1292,22 +1238,17 @@
       };
 
       const releasePointer = () => {
-        if (!pointerCaptured) return;
-        pointerCaptured = false;
+        if (!cfg.capturePointer) return;
         try { sourceEl.releasePointerCapture(cfg.pointerId) } catch (_) { }
       };
 
-      const cleanup = opts => {
-        const restoreEditable = opts?.restoreEditable !== false;
-        const keepPending = opts?.keepPending === true;
-        const release = opts?.releasePointer !== false;
+      const cleanup = () => {
         window.clearTimeout(timer);
         document.removeEventListener(cfg.moveEvent, onMove);
         document.removeEventListener(cfg.upEvent, onCancel);
         document.removeEventListener(cfg.cancelEvent, onCancel);
-        if (release) releasePointer();
-        if (restoreEditable) unlock();
-        else if (!keepPending) sourceEl.classList.remove('todo-hold-pending');
+        releasePointer();
+        unlock();
       };
       const onCancel = () => {
         const shouldFocusEditable = !started && !moved && editableTarget && sourceEl.contains(editableTarget);
@@ -1321,7 +1262,6 @@
         lastY = point.clientY;
         const dx = lastX - startX, dy = lastY - startY;
         const distance = Math.hypot(dx, dy);
-        if ((started || distance <= TODO_LONG_PRESS_CANCEL_PX) && ev.cancelable) ev.preventDefault();
         if (!started && distance > TODO_LONG_PRESS_CANCEL_PX) {
           moved = true;
           cleanup();
@@ -1333,7 +1273,9 @@
         started = true;
         unlockEditable = lockTodoEditable(sourceEl);
         clearTodoSelection(sourceEl);
-        cleanup({ restoreEditable: false, keepPending: true, releasePointer: false });
+        document.removeEventListener(cfg.moveEvent, onMove);
+        document.removeEventListener(cfg.upEvent, onCancel);
+        document.removeEventListener(cfg.cancelEvent, onCancel);
         const dragStartEvent = {
           clientX: lastX,
           clientY: lastY,
@@ -1344,7 +1286,6 @@
           preventDefault: () => { try { e.preventDefault() } catch (_) { } }
         };
         const didStart = startTodoDrag(dragStartEvent, sourceEl, {
-          haptic: 'drag',
           capturePointer: cfg.capturePointer,
           moveEvent: cfg.moveEvent,
           upEvent: cfg.upEvent,
@@ -1356,12 +1297,11 @@
           }
         });
         if (!didStart) {
-          releasePointer();
           unlock();
         }
       }, TODO_LONG_PRESS_MS);
 
-      document.addEventListener(cfg.moveEvent, onMove, { passive: false });
+      document.addEventListener(cfg.moveEvent, onMove, { passive: true });
       document.addEventListener(cfg.upEvent, onCancel);
       document.addEventListener(cfg.cancelEvent, onCancel);
     };
@@ -1377,7 +1317,6 @@
         pointerType: 'touch',
         button: 0,
         capturePointer: false,
-        preventStartDefault: false,
         moveEvent: 'touchmove',
         upEvent: 'touchend',
         cancelEvent: 'touchcancel',
@@ -1386,7 +1325,7 @@
     }, { passive: false });
 
     sourceEl.addEventListener('pointerdown', e => {
-      if (e.pointerType === 'touch' || !isTouchTodoPointer(e) || e.button > 0) return;
+      if (e.pointerType === 'touch' || e.button > 0) return;
       beginHold(e, {
         startX: e.clientX,
         startY: e.clientY,
@@ -1394,7 +1333,6 @@
         pointerType: e.pointerType,
         button: e.button,
         capturePointer: true,
-        preventStartDefault: true,
         moveEvent: 'pointermove',
         upEvent: 'pointerup',
         cancelEvent: 'pointercancel',
@@ -1579,7 +1517,8 @@
 
   function startTodoDrag(e, sourceEl, opts) {
     // Don't start drag from text/input
-    if (!isTouchTodoPointer(e) && e.target.closest?.('.todo-text,.todo-divider-label')) return false;
+    const touchDrag = e.pointerType === 'touch' || e.pointerType === 'pen';
+    if (!touchDrag && e.target.closest?.('.todo-text,.todo-divider-label')) return false;
     if (isTodoDragBlockedTarget(e.target)) return false;
 
     e.preventDefault();
@@ -1606,7 +1545,6 @@
       if (el !== sourceEl) el.style.transition = 'transform 160ms cubic-bezier(.25,.8,.25,1)';
     });
     dragState = { sourceEl, ghost };
-    if (opts?.haptic) triggerTodoHaptic(opts.haptic);
     if (opts?.capturePointer !== false) {
       try { sourceEl.setPointerCapture(e.pointerId) } catch (_) { }
     }
@@ -1693,11 +1631,6 @@
     return true;
   }
 
-  function startTodoDragFromHandle(e, sourceEl) {
-    if (e.pointerType === 'touch') return;
-    startTodoDrag(e, sourceEl);
-  }
-
   /* ── RENDER ───────────────────────────────────────────────────── */
   function renderTodos() {
     let items = loadTodos();
@@ -1735,7 +1668,7 @@
 
         const grip = document.createElement('span'); grip.className = 'todo-drag-handle';
         grip.textContent = '⠿'; grip.title = 'drag to reorder';
-        grip.addEventListener('pointerdown', e => startTodoDragFromHandle(e, div));
+        grip.addEventListener('pointerdown', e => startTodoDrag(e, div));
 
         const label = document.createElement('span'); label.className = 'todo-divider-label';
         label.contentEditable = 'true'; label.spellcheck = false; label.textContent = it.label || '';
@@ -1775,14 +1708,11 @@
 
       const grip = document.createElement('span'); grip.className = 'todo-drag-handle';
       grip.textContent = '⠿'; grip.title = 'drag to reorder';
-      grip.addEventListener('pointerdown', e => startTodoDragFromHandle(e, li));
+      grip.addEventListener('pointerdown', e => startTodoDrag(e, li));
 
       const check = document.createElement('button'); check.type = 'button'; check.className = 'todo-check';
       check.setAttribute('aria-label', it.done ? 'mark incomplete' : 'mark complete');
-      check.addEventListener('touchstart', () => { if (!it.done) triggerTodoCompleteHaptic() }, { passive: true });
-      check.addEventListener('pointerdown', e => { if (!it.done) triggerTodoCompleteHaptic(e) });
       check.addEventListener('click', e => {
-        if (!it.done) triggerTodoCompleteHaptic(e);
         toggleTodoDone(it.id);
       });
 
