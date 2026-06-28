@@ -989,6 +989,7 @@
 
   /* Toggle done: stamp origIdx so we can restore on uncheck */
   function toggleTodoDone(id){
+    const first=snapshotRows();
     const items=loadTodos();
     const idx=items.findIndex(t=>t.id===id);
     if(idx===-1) return;
@@ -1007,16 +1008,21 @@
       items.splice(clampedTarget,0,t);
       saveTodos(items);
       renderTodos();
+      animateRowChanges(first);
+      animateTodoStateChange(id);
       return;
     }
     saveTodos(sortedTodos(items));
     renderTodos();
+    animateRowChanges(first);
+    animateTodoStateChange(id);
   }
 
   /* ── DRAG-TO-REORDER ─────────────────────────────────────────── */
   let dragState=null;
   panelTodos.tabIndex=-1;
   const pendingTodoEnterIds=new Set();
+  const pendingTodoStateIds=new Set();
 
   function getItemEls(){
     return Array.from(todoList.children).filter(el=>
@@ -1074,6 +1080,25 @@
         row.style.transition='';
         row.style.transform='';
       },220);
+    });
+  }
+
+  function animateTodoStateChange(id){
+    pendingTodoStateIds.add(id);
+    requestAnimationFrame(()=>{
+      const row=getItemEls().find(el=>getElId(el)===id);
+      if(!row||!pendingTodoStateIds.delete(id)) return;
+      const text=row.querySelector('.todo-text');
+      row.animate?.([
+        {opacity:.72,filter:'blur(1px)'},
+        {opacity:1,filter:'blur(0px)'}
+      ],{duration:180,easing:'ease-out'});
+      if(text){
+        text.animate?.([
+          {opacity:.45},
+          {opacity:1}
+        ],{duration:180,easing:'ease-out'});
+      }
     });
   }
 
