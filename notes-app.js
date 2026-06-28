@@ -1062,25 +1062,38 @@
     });
   }
 
-  function animateTodoEnter(row){
-    const h=row.getBoundingClientRect().height;
-    row.style.overflow='hidden';
-    row.style.height='0px';
-    row.style.opacity='0';
-    row.style.transform='translate3d(0,-8px,0) scale(.98)';
-    requestAnimationFrame(()=>{
-      row.style.transition='height .2s ease-out, opacity .15s ease-out, transform .15s ease-out';
-      row.style.height=h+'px';
-      row.style.opacity='1';
-      row.style.transform='';
-      window.setTimeout(()=>{
-        row.style.height='';
-        row.style.overflow='';
-        row.style.opacity='';
-        row.style.transition='';
-        row.style.transform='';
-      },220);
-    });
+  function animateElementIn(el) {
+    const inner = el.querySelector('.todo-item-inner, .todo-divider-inner');
+    if (!inner) return;
+
+    el.style.overflow = 'hidden';
+    el.style.height = '0px';
+    el.style.opacity = '0';
+
+    inner.style.opacity = '0';
+    inner.style.transform = 'translateY(-8px) scale(0.98)';
+    inner.style.filter = 'blur(4px)';
+    inner.style.transition = 'transform 0.15s ease-out, opacity 0.15s ease-out, filter 0.15s ease-out';
+
+    el.offsetHeight;
+
+    const targetHeight = el.scrollHeight;
+
+    el.style.transition = 'height 0.2s ease-out, opacity 0.2s ease-out';
+    el.style.height = targetHeight + 'px';
+    el.style.opacity = '1';
+
+    inner.style.opacity = '1';
+    inner.style.transform = 'translateY(0) scale(1)';
+    inner.style.filter = 'blur(0px)';
+
+    setTimeout(() => {
+      el.style.height = '';
+      el.style.overflow = '';
+      el.style.opacity = '';
+      el.style.transition = '';
+      inner.style.transition = '';
+    }, 200);
   }
 
   function animateTodoStateChange(id){
@@ -1124,15 +1137,6 @@
     window.setTimeout(runDelete,190);
   }
 
-  function moveRowInDom(row,targetIndex){
-    const first=snapshotRows();
-    const rows=getItemEls().filter(el=>el!==row);
-    const before=rows[targetIndex]||null;
-    if(before) todoList.insertBefore(row,before);
-    else todoList.appendChild(row);
-    animateRowChanges(first);
-  }
-
   function commitRenderedOrder(){
     const orderIds=getItemEls().map(getElId).filter(Boolean);
     const items=loadTodos();
@@ -1152,7 +1156,10 @@
     ghost.classList.add('todo-drag-ghost');
     ghost.style.cssText=`
       position:fixed;left:${rect.left}px;top:${rect.top}px;
-      width:${rect.width}px;transition:none;
+      width:${rect.width}px;pointer-events:none;z-index:9999;
+      background:var(--paper);border:1px solid var(--accent);
+      border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.18);
+      opacity:.95;transition:none;list-style:none;box-sizing:border-box;
     `;
     document.body.appendChild(ghost);
     return ghost;
@@ -1168,36 +1175,63 @@
 
     e.preventDefault();
 
-    const rows=getItemEls();
-    if(rows.length<2) return;
-    const sourceRect=sourceEl.getBoundingClientRect();
-    const firstRect=rows[0].getBoundingClientRect();
-    const lastRect=rows[rows.length-1].getBoundingClientRect();
-    const areaTop=firstRect.top;
-    const areaBottom=lastRect.bottom;
-    const offsetY=e.clientY-sourceRect.top;
-    const minTop=areaTop;
-    const maxTop=Math.max(areaTop,areaBottom-sourceRect.height);
-    const startOrder=rows.map(getElId).join('|');
+    const allRows=getItemEls();
+    const sourceIdx=allRows.indexOf(sourceEl);
+    if(allRows.length<2||sourceIdx===-1) return;
+    const rect=sourceEl.getBoundingClientRect();
+    const sourceH=rect.height;
+    const listRect=todoList.getBoundingClientRect();
+    const origMidY=allRows.map(el=>{
+      const r=el.getBoundingClientRect();
+      return r.top+r.height/2;
+    });
+    const offY=e.clientY-rect.top;
+    let currentInsertIdx=sourceIdx;
 
     sourceEl.classList.add('dragging-source');
     const ghost=createGhost(sourceEl);
-    dragState={sourceEl,ghost,startOrder};
+    ghost.style.left=listRect.left+'px';
+    ghost.style.width=rect.width+'px';
+    sourceEl.style.opacity='0';
+    allRows.forEach(el=>{
+      if(el!==sourceEl) el.style.transition='transform 160ms cubic-bezier(.25,.8,.25,1)';
+    });
+    dragState={sourceEl,ghost};
     try{sourceEl.setPointerCapture(e.pointerId)}catch(_){}
 
-    function moveTo(cy){
-      const top=clamp(cy-offsetY,minTop,maxTop);
-      ghost.style.top=top+'px';
+    function computeInsertIdx(cy){
+      for(let i=0;i<allRows.length;i++){
+        if(i===sourceIdx) continue;
+        if(cy<origMidY[i]) return i;
+      }
+      return allRows.length;
+    }
 
-      const centerY=top+(sourceRect.height/2);
-      const otherRows=getItemEls().filter(el=>el!==sourceEl);
-      let targetIndex=0;
-      otherRows.forEach(el=>{
-        const r=el.getBoundingClientRect();
-        if(centerY>r.top+(r.height/2)) targetIndex++;
+    function applyShifts(insertIdx){
+      allRows.forEach((el,i)=>{
+        if(el===sourceEl){el.style.transform='';return}
+        let shift=0;
+        if(insertIdx<=sourceIdx){
+          if(i>=insertIdx&&i<sourceIdx) shift=sourceH;
+        }else{
+          if(i>sourceIdx&&i<insertIdx) shift=-sourceH;
+        }
+        el.style.transform=shift?`translateY(${shift}px)`:'';
       });
-      const currentIndex=getItemEls().indexOf(sourceEl);
-      if(targetIndex!==currentIndex) moveRowInDom(sourceEl,targetIndex);
+    }
+
+    applyShifts(currentInsertIdx);
+
+    function moveTo(cy){
+      const rawTop=cy-offY;
+      const clampedTop=clamp(rawTop,listRect.top,listRect.bottom-sourceH);
+      ghost.style.left=listRect.left+'px';
+      ghost.style.top=clampedTop+'px';
+      const newIdx=computeInsertIdx(clampedTop+sourceH/2);
+      if(newIdx!==currentInsertIdx){
+        currentInsertIdx=newIdx;
+        applyShifts(currentInsertIdx);
+      }
     }
 
     function onMove(ev){
@@ -1208,10 +1242,21 @@
     function onUp(ev){
       ev.preventDefault();
       try{sourceEl.releasePointerCapture(e.pointerId)}catch(_){}
+      allRows.forEach(el=>{
+        el.style.transition='';
+        el.style.transform='';
+      });
+      sourceEl.style.opacity='';
       sourceEl.classList.remove('dragging-source');
       ghost.remove();
-      const endOrder=getItemEls().map(getElId).join('|');
-      const changed=endOrder!==startOrder&&commitRenderedOrder();
+      const noChange=currentInsertIdx===sourceIdx||currentInsertIdx===sourceIdx+1;
+      let changed=false;
+      if(!noChange){
+        const beforeEl=currentInsertIdx>=allRows.length?null:allRows[currentInsertIdx];
+        if(beforeEl) todoList.insertBefore(sourceEl,beforeEl);
+        else todoList.appendChild(sourceEl);
+        changed=commitRenderedOrder();
+      }
       dragState=null;
       document.removeEventListener('pointermove',onMove);
       document.removeEventListener('pointerup',onUp);
@@ -1254,6 +1299,8 @@
         const div=document.createElement('div');
         div.className='todo-divider'+(it.done?' done':'');
         div.dataset.todoId=it.id;
+        const inner=document.createElement('div');
+        inner.className='todo-divider-inner';
 
         const grip=document.createElement('span');grip.className='todo-drag-handle';
         grip.textContent='⠿';grip.title='drag to reorder';
@@ -1273,9 +1320,10 @@
         x.textContent='×';x.title='delete section';
         x.addEventListener('click',()=>deleteTodoById(it.id,div));
 
-        div.append(grip,label,x);
+        inner.append(grip,label,x);
+        div.appendChild(inner);
         todoList.appendChild(div);
-        if(pendingTodoEnterIds.delete(it.id)) animateTodoEnter(div);
+        if(pendingTodoEnterIds.delete(it.id)) animateElementIn(div);
         return;
       }
 
@@ -1286,9 +1334,10 @@
 
       const li=document.createElement('li');
       li.className='todo-item'+(it.done?' done':'');
-      li.style.paddingLeft='4px';
       li.dataset.idx=realIdx;
       li.dataset.todoId=it.id;
+      const inner=document.createElement('div');
+      inner.className='todo-item-inner';
 
       const grip=document.createElement('span');grip.className='todo-drag-handle';
       grip.textContent='⠿';grip.title='drag to reorder';
@@ -1312,8 +1361,10 @@
       x.textContent='×';x.title='delete';
       x.addEventListener('click',()=>deleteTodoById(it.id,li));
 
-      li.append(grip,check,text,x);todoList.appendChild(li);
-      if(pendingTodoEnterIds.delete(it.id)) animateTodoEnter(li);
+      inner.append(grip,check,text,x);
+      li.appendChild(inner);
+      todoList.appendChild(li);
+      if(pendingTodoEnterIds.delete(it.id)) animateElementIn(li);
     });
   }
 
