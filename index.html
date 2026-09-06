@@ -451,59 +451,6 @@
       border-color: var(--fg2);
     }
 
-    .entry {
-      margin-bottom: 28px;
-    }
-
-    .entry:last-child {
-      margin-bottom: 0;
-    }
-
-    .entry-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 2px 12px;
-    }
-
-    .entry-company {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .entry-date {
-      font-size: 12px;
-      color: var(--fg2);
-      flex-shrink: 0;
-    }
-
-    .entry-role {
-      font-size: 13px;
-      color: var(--fg2);
-      margin: 3px 0 8px;
-    }
-
-    .bullets {
-      list-style: none;
-    }
-
-    .bullets li {
-      font-size: 13px;
-      color: var(--fg2);
-      padding-left: 14px;
-      position: relative;
-      margin-bottom: 3px;
-      line-height: 1.55;
-    }
-
-    .bullets li::before {
-      content: '–';
-      position: absolute;
-      left: 0;
-      color: var(--border);
-    }
-
     /* projects grid */
     .projects-grid {
       display: grid;
@@ -769,7 +716,6 @@
     <div class="nav-center">
       <div class="nav-links-group">
         <a href="#about">about</a>
-        <a href="#experience">experience</a>
       </div>
       <button class="asterisk-btn" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
         aria-label="Back to top">
@@ -812,9 +758,7 @@
         <span class="hero-name">Mauro Brito</span>
       </div>
       <div class="hero-bio">
-        I build things — from AI accelerator RTL on TSMC 16nm to self-balancing robots on custom PCBs to a
-        microcontroller game that won best in show. Currently a sophomore at UT Austin studying electrical and computer
-        engineering.
+        I like building things.
       </div>
       <a class="resume-btn" href="#" target="_blank">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -823,56 +767,6 @@
         </svg>
         resume
       </a>
-    </section>
-
-    <hr class="divider">
-
-    <section id="experience">
-      <div class="label">Experience</div>
-
-      <div class="entry">
-        <div class="entry-head">
-          <span class="entry-company">Longhorn Silicon</span>
-          <span class="entry-date">April 2026 – Present</span>
-        </div>
-        <div class="entry-role">RTL Design Engineer · Austin, TX</div>
-        <ul class="bullets">
-          <li>Prototyping SystemVerilog RTL modules for the cache engine of Lambda, an AI inference accelerator on TSMC
-            16nm targeting on-device LLMs up to 200M parameters.</li>
-          <li>Contributing to FSM and datapath logic for on-chip cache compression to meet memory requirements for LLM
-            workloads.</li>
-        </ul>
-      </div>
-
-      <div class="entry">
-        <div class="entry-head">
-          <span class="entry-company">Tyrion Integration Services</span>
-          <span class="entry-date">May 2025 – Aug. 2025</span>
-        </div>
-        <div class="entry-role">Embedded Systems Intern · Midland, TX</div>
-        <ul class="bullets">
-          <li>Configured low-power SCADA units for remote oilfield automation across the Permian Basin using ladder
-            logic and structured text in Codesys; attended to power budgets and brownout behavior for solar-powered
-            units.</li>
-          <li>Debugged real-time telemetry and data acquisition hardware; verified sensor-to-base communications over
-            Modbus and CAN.</li>
-          <li>Authored field install guides covering pinouts, enclosure routing, and grounding/EMI practices.</li>
-        </ul>
-      </div>
-
-      <div class="entry">
-        <div class="entry-head">
-          <span class="entry-company">Clark Robotics</span>
-          <span class="entry-date">Feb. 2022 – Aug. 2025</span>
-        </div>
-        <div class="entry-role">Development Lead · San Antonio, TX</div>
-        <ul class="bullets">
-          <li>Developed and integrated motion-planning in C++ for an autonomous robot at regional competitions, using
-            pathfinding algorithms to navigate dynamic obstacle courses.</li>
-          <li>Built navigation stack with PID controllers, waypoint tracking, and IMU/AprilTag pose corrections — 23%
-            faster median autonomous run than the field average, 94% completion rate.</li>
-        </ul>
-      </div>
     </section>
 
     <hr class="divider">
