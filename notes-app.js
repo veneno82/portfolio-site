@@ -1972,4 +1972,5 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTodosCloud(true) });
   window.addEventListener('pageshow', e => { if (e.persisted) loadTodosCloud(true) });
   window.addEventListener('online', () => loadTodosCloud(true));
+  window.__notesReady = true;
 })();

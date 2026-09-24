@@ -1,11 +1,12 @@
 // Vercel Routing Middleware: keeps the notes, archive and their APIs private.
+// (notes-app.js is deliberately not gated: it holds no data, and gating it
+// meant a browser could end up with the login page cached as the script.)
 // Anyone without a valid login cookie gets sent to /login (pages) or a 401 (APIs).
 // Login lives in api/login.js; the cookie token must match api/_auth.js.
 export const config = {
   matcher: [
     '/tool/:path*',
     '/notes.html',
-    '/notes-app.js',
     '/archive',
     '/archive.html',
     '/api/notes',
@@ -55,7 +56,7 @@ export default async function middleware(request) {
     });
   }
   let next = url.pathname;
-  if (next === '/notes.html' || next === '/notes-app.js') next = '/tool/notes';
+  if (next === '/notes.html') next = '/tool/notes';
   if (next === '/archive.html') next = '/archive';
   return new Response(null, {
     status: 302, headers: { ...headers, Location: '/login?next=' + encodeURIComponent(next) }

@@ -356,7 +356,20 @@
     </div>
   </div></main>
 
-  <script src="/notes-app.js"></script>
+  <script src="/notes-app.js?v=2"></script>
+  <script>
+  // If notes-app.js didn't run, say so instead of showing an empty page.
+  if (!window.__notesReady) {
+    fetch('/api/notes', { cache: 'no-store' }).then(function (r) {
+      var loggedOut = r.status === 401;
+      var b = document.createElement('a');
+      b.href = loggedOut ? '/login?next=/tool/notes' : 'javascript:location.reload()';
+      b.textContent = loggedOut ? 'logged out, tap to log in' : 'notes didn\'t load, tap to retry';
+      b.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;padding:10px 16px;border-radius:10px;background:#d33;color:#fff;font:14px -apple-system,sans-serif;text-decoration:none';
+      document.body.appendChild(b);
+    });
+  }
+  </script>
   <script src="/site.js"></script>
 </body>
 </html>
