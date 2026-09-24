@@ -63,7 +63,7 @@
       '<div id="term-output"></div>' +
       '<div id="term-input-row">' +
         '<span id="term-prompt">$</span>' +
-        '<input id="term-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command — try \'help\'">' +
+        '<input id="term-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command, try \'help\'">' +
       '</div>';
     document.body.appendChild(t);
   }
@@ -91,7 +91,7 @@
     });
 
     const COMMANDS = {
-      help: () => 'commands:\n  home   — back to portfolio\n  notes  — open notes\n  github — open github\n  clear  — clear output\n  close  — close palette',
+      help: () => 'commands:\n  home   - back to portfolio\n  notes  - open notes\n  github - open github\n  clear  - clear output\n  close  - close palette',
       home:  () => { window.location.href = '/'; return ''; },
       notes: () => { window.location.href = '/tool/notes'; return ''; },
       github: () => { window.open('https://github.com/britomauro', '_blank'); return ''; },

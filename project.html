@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>project — Mauro Brito</title>
+  <title>project | Mauro Brito</title>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <base href="/">
   <script>
@@ -251,6 +251,36 @@
       max-width: 680px;
     }
 
+    .about-block ul {
+      font-size: 15px;
+      color: var(--fg);
+      line-height: 1.75;
+      margin: 0 0 14px 20px;
+      max-width: 660px;
+    }
+
+    .about-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .about-links a {
+      display: inline-block;
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 13px;
+      transition: border-color 0.15s;
+    }
+
+    .about-links a:hover {
+      border-color: var(--fg2);
+    }
+
     .files-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -310,7 +340,7 @@
       padding: 18px 4px;
     }
 
-    /* Video embed — spans full row of the files grid */
+    /* Video embed: spans full row of the files grid */
     .media-video {
       grid-column: 1 / -1;
       display: flex;
@@ -424,7 +454,7 @@
       pointer-events: none;
     }
 
-    /* schematics/diagrams: show the whole drawing — no cropping */
+    /* schematics/diagrams: show the whole drawing, no cropping */
     .media-card[data-type="schematic"] .media-thumb img,
     .media-card[data-type="diagram"] .media-thumb img {
       object-fit: contain;
@@ -699,7 +729,8 @@
         margin: 36px 0 10px;
       }
 
-      .about-block p {
+      .about-block p,
+      .about-block ul {
         font-size: 14px;
       }
     }
@@ -785,7 +816,7 @@
     }
     .viewer-fs-btn:hover { opacity: 1; color: var(--fg); }
 
-    /* "Expanded" mode — pseudo-fullscreen overlay that fills the browser viewport
+    /* "Expanded" mode: pseudo-fullscreen overlay that fills the browser viewport
        without invoking the real Fullscreen API (so the Chrome chrome stays put). */
     .viewer-wrap.expanded {
       position: fixed;
@@ -928,7 +959,7 @@
           '<p>that link doesn’t map to any project i’ve built (yet).</p>' +
           '<a class="back-btn" href="/#projects">back to projects</a>' +
           '</div>';
-        document.title = 'not found — Mauro Brito';
+        document.title = 'not found | Mauro Brito';
         return;
       }
 
@@ -936,14 +967,14 @@
         main.innerHTML =
           '<div class="not-found">' +
           '<h1>coming soon</h1>' +
-          '<p>this project isn\'t up yet — check back later.</p>' +
+          '<p>this project isn\'t up yet, check back later.</p>' +
           '<a class="back-btn" href="/#projects">back to projects</a>' +
           '</div>';
-        document.title = 'coming soon — Mauro Brito';
+        document.title = 'coming soon | Mauro Brito';
         return;
       }
 
-      document.title = proj.name + ' — Mauro Brito';
+      document.title = proj.name + ' | Mauro Brito';
 
       // ---- header ----
       const head = document.createElement('div');
@@ -1015,7 +1046,7 @@
         mv.addEventListener('error', dismissLoader);
       }
 
-      // Camera coordinates overlay (bottom-left) — updates on every camera-change
+      // Camera coordinates overlay (bottom-left): updates on every camera-change
       if (mv && mvCoords) {
         function updateCoords() {
           try {
@@ -1044,7 +1075,7 @@
         });
       }
 
-      // "Expand" toggle — overlay that fills the browser viewport instead of
+      // "Expand" toggle: overlay that fills the browser viewport instead of
       // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
       if (mvFsBtn) {
         function setExpanded(on) {
@@ -1135,10 +1166,34 @@
       aboutBlock.className = 'about-block';
       const longDesc = Array.isArray(proj.longDesc) ? proj.longDesc : [proj.longDesc || proj.desc];
       longDesc.forEach(p => {
+        // an array inside longDesc renders as a bullet list
+        if (Array.isArray(p)) {
+          const ul = document.createElement('ul');
+          p.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            ul.appendChild(li);
+          });
+          aboutBlock.appendChild(ul);
+          return;
+        }
         const el = document.createElement('p');
         el.textContent = p;
         aboutBlock.appendChild(el);
       });
+      if (Array.isArray(proj.links) && proj.links.length) {
+        const links = document.createElement('div');
+        links.className = 'about-links';
+        proj.links.forEach(l => {
+          const a = document.createElement('a');
+          a.href = l.href;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = l.label;
+          links.appendChild(a);
+        });
+        aboutBlock.appendChild(links);
+      }
       main.appendChild(aboutBlock);
 
       // ---- files & media ----
@@ -1151,7 +1206,7 @@
       if (!media.length) {
         const empty = document.createElement('div');
         empty.className = 'files-empty';
-        empty.textContent = 'no files uploaded yet — schematics, photos, and demo clips coming soon.';
+        empty.textContent = 'no files uploaded yet: schematics, photos, and demo clips coming soon.';
         main.appendChild(empty);
       } else {
         const mediaGrid = document.createElement('div');
@@ -1308,7 +1363,7 @@
             btnNext.style.display = single ? 'none' : '';
             lbCounter.style.display = single ? 'none' : '';
             // Position buttons at the vertical center of the media element,
-            // not the viewport — the image is rarely at exactly 50vh.
+            // not the viewport, the image is rarely at exactly 50vh.
             alignBtns(el);
           }
 

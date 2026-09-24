@@ -1,12 +1,15 @@
-// Serverless function — proxies reads/writes to Upstash Redis for todo items.
+// Serverless function: proxies reads/writes to Upstash Redis for todo items.
 // Env vars (KV_REST_API_URL, KV_REST_API_TOKEN) are injected by Vercel
 // automatically when the Upstash store is linked to this project.
+import { requireAuth } from './_auth.js';
+
 export default async function handler(req, res) {
+  if (!requireAuth(req, res)) return;
   const url   = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
   if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
 
-  // GET /api/todos — return saved items + timestamp
+  // GET /api/todos: return saved items + timestamp
   if (req.method === 'GET') {
     const [dRes, tRes] = await Promise.all([
       fetch(`${url}/get/todos_data`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -19,7 +22,7 @@ export default async function handler(req, res) {
     return res.json({ items, ts: Number(t.result) || 0 });
   }
 
-  // POST /api/todos — persist items + timestamp
+  // POST /api/todos: persist items + timestamp
   if (req.method === 'POST') {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
