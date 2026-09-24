@@ -259,6 +259,69 @@
       z-index: 200;
     }
 
+    /* hand drawn "pick some cool colors" doodle pointing at the palette button */
+    .palette-hint {
+      position: absolute;
+      top: calc(100% + 2px);
+      right: 6px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      color: var(--fg);
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.3s;
+    }
+
+    .palette-hint span {
+      font-family: 'Caveat', cursive;
+      font-size: 21px;
+      font-weight: 500;
+      line-height: 1;
+      transform: rotate(-5deg);
+      margin-bottom: -4px;
+    }
+
+    .palette-hint svg {
+      width: 58px;
+      height: 46px;
+      overflow: visible;
+    }
+
+    .palette-hint path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      animation: hint-draw 0.9s 0.4s ease-out forwards;
+    }
+
+    .palette-hint path.head {
+      animation-delay: 1.15s;
+      animation-duration: 0.3s;
+    }
+
+    @keyframes hint-draw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .palette-hint path { animation: none; stroke-dashoffset: 0; }
+    }
+
+    @media (max-width: 520px) {
+      .palette-hint span { font-size: 16px; margin-bottom: -2px; }
+      .palette-hint svg { width: 36px; height: 28px; }
+    }
+
+    .palette-hint.gone,
+    .palette-pop.open + .palette-hint {
+      opacity: 0;
+    }
+
     .palette-pop.open {
       display: flex;
     }
@@ -721,6 +784,13 @@
           <div class="palette-row"><span>4</span><input type="color" data-i="3"></div>
           <button class="palette-reset" id="paletteReset">reset</button>
         </div>
+        <div class="palette-hint" id="paletteHint" aria-hidden="true">
+          <span>pick some cool colors</span>
+          <svg viewBox="0 0 58 46">
+            <path d="M3 41 C 14 42, 27 39, 35 31 C 43 23, 44 13, 49 5" />
+            <path class="head" d="M40.5 9.5 L 49 4.5 L 52.5 14" />
+          </svg>
+        </div>
       </div>
       <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
     </div>
@@ -1027,6 +1097,14 @@
           syncIcon();
         });
       }
+      // the doodle only makes sense at the top of the page
+      const paletteHint = document.getElementById('paletteHint');
+      if (paletteHint) {
+        const updateHint = () => paletteHint.classList.toggle('gone', window.scrollY > 40);
+        window.addEventListener('scroll', updateHint, { passive: true });
+        updateHint();
+      }
+
       if (paletteBtn && palettePop) {
         paletteBtn.addEventListener('click', e => {
           e.stopPropagation();
