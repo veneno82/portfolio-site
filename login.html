@@ -12,44 +12,37 @@
     [data-theme="dark"]{--fg:#f0f0f2;--fg2:#b8b8bc;--border:rgba(255,255,255,.14);--surface:rgba(255,255,255,.05);--paper:#0e0e10;--accent:#5a9fff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:var(--fg);background:var(--paper);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-    form{width:100%;max-width:300px;display:flex;flex-direction:column;gap:12px}
-    h1{font-size:28px;font-weight:600;letter-spacing:-.02em}
-    input{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);outline:none}
+    form{width:100%;max-width:280px}
+    input{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);outline:none;transition:border-color .2s}
     input:focus{border-color:var(--accent)}
-    button{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--fg);color:var(--paper);cursor:pointer}
-    button:disabled{opacity:.6;cursor:default}
-    .err{font-size:13px;color:#d33;min-height:18px}
-    a{font-size:13px;color:var(--fg2);text-decoration:none}
+    input.locked{border-color:#d33}
   </style>
 </head>
 <body>
   <form id="loginForm">
-    <h1>private</h1>
-    <input id="pw" type="password" autocomplete="current-password" placeholder="password" required autofocus>
-    <button id="go" type="submit">log in</button>
-    <div class="err" id="err"></div>
-    <a href="/">back to the site</a>
+    <input id="pw" type="password" autocomplete="current-password" aria-label="password" required autofocus>
   </form>
   <script>
   (function(){
-    const form=document.getElementById('loginForm'), pw=document.getElementById('pw'),
-      go=document.getElementById('go'), err=document.getElementById('err');
+    const form=document.getElementById('loginForm'), pw=document.getElementById('pw');
     // only follow local paths so ?next= can't bounce anyone to another site
     let next=new URLSearchParams(location.search).get('next')||'/tool/notes';
     if(!/^\/(?!\/)/.test(next)) next='/tool/notes';
 
-    form.addEventListener('submit',async e=>{
-      e.preventDefault();
-      go.disabled=true; err.textContent='';
+    // check the password as you type (after a short pause) and let you in
+    // the moment it's right, no button needed
+    let timer=null, entering=false;
+    async function check(){
+      if(entering||!pw.value) return;
       try{
         const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({password:pw.value})});
-        if(r.ok){location.replace(next);return}
-        const data=await r.json().catch(()=>({}));
-        err.textContent=data.error||'something went wrong';
-      }catch(_){err.textContent='no connection'}
-      go.disabled=false; pw.select();
-    });
+        if(r.ok){entering=true;location.replace(next);return}
+        pw.classList.toggle('locked',r.status===429);
+      }catch(_){}
+    }
+    pw.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(check,300)});
+    form.addEventListener('submit',e=>{e.preventDefault();clearTimeout(timer);check()});
   })();
   </script>
 </body>

@@ -3,7 +3,9 @@
 import { COOKIE_NAME, sessionToken, readBody, kv, kvConfigured } from './_auth.js';
 import { timingSafeEqual, createHash } from 'crypto';
 
-const MAX_FAILS = 10;          // per IP
+// the login page checks as you type, so every pause while typing counts as
+// one attempt; this still caps guessing at 100 tries per 15 minutes per IP
+const MAX_FAILS = 100;         // per IP
 const LOCKOUT_SECONDS = 15 * 60;
 
 function sameString(a, b) {
