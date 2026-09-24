@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>archive — Mauro Brito</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>archive | Mauro Brito</title>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
   <style>
@@ -86,7 +87,7 @@
     </div>
     <div class="doc-rule"></div>
 
-    <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="nothing archived yet — select text in notes and press ctrl+shift+- to archive"></div>
+    <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="nothing archived yet, select text in notes and press ctrl+shift+- to archive"></div>
   </main>
 
   <a class="notes-fab" href="/tool/notes">📝 notes</a>
@@ -125,41 +126,85 @@
     }
     refreshMeta();
 
-    /* LOAD */
+    /* LOAD: show this device's copy right away, then check the cloud */
+    const DIRTY_KEY='mb_archive_dirty';
     let initial=localStorage.getItem(ARCHIVE_KEY);
     if(initial) doc.innerHTML=initial;
 
-    /* SAVE */
-    let saveTimer=null;
-    function persistArchive(){
+    function goLogin(){location.href='/login?next='+encodeURIComponent(location.pathname)}
+    function showStatus(t,ms){savedEl.textContent=t;savedEl.classList.add('flash');
+      clearTimeout(flashT);flashT=setTimeout(()=>savedEl.classList.remove('flash'),ms||1500)}
+    function isDirty(){return localStorage.getItem(DIRTY_KEY)==='1'}
+
+    /* SAVE: sends the cloud version this copy is based on. If the archive
+       changed somewhere else first, the server says 409 and we reload it. */
+    let saveTimer=null,pushing=false,pushAgain=false,pulling=false,edits=0;
+    function persistArchive(keepalive){
+      clearTimeout(saveTimer);saveTimer=null;
       try{
-        const ts=Date.now();
         localStorage.setItem(ARCHIVE_KEY,doc.innerHTML);
-        localStorage.setItem(ARCHIVE_TS_KEY,String(ts));
-        flash();
-        refreshMeta();
-        fetch('/api/archive',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({content:doc.innerHTML,ts})}).catch(()=>{});
+        localStorage.setItem(DIRTY_KEY,'1');
       }catch(_){savedEl.textContent='save failed'}
+      edits++;
+      pushArchive(keepalive);
+    }
+    async function pushArchive(keepalive){
+      if(pushing){pushAgain=true;return}
+      pushing=true;
+      const sentEdits=edits;
+      const body=JSON.stringify({content:doc.innerHTML,baseTs:Number(localStorage.getItem(ARCHIVE_TS_KEY))||0});
+      try{
+        const r=await fetch('/api/archive',{method:'POST',headers:{'Content-Type':'application/json'},body,
+          cache:'no-store',keepalive:!!keepalive&&body.length<60000});
+        if(r.status===401){goLogin();return}
+        if(r.status===409){await pullArchive(true);return}
+        if(!r.ok)throw new Error('save failed');
+        const data=await r.json();
+        localStorage.setItem(ARCHIVE_TS_KEY,String(data.ts));
+        if(edits===sentEdits)localStorage.removeItem(DIRTY_KEY);
+        refreshMeta();
+        if(!saveTimer)flash();
+      }catch(_){showStatus('offline, saved on this device',2500)}
+      finally{pushing=false;if(pushAgain){pushAgain=false;pushArchive()}}
     }
     function scheduleSave(){savedEl.textContent='saving…';clearTimeout(saveTimer);saveTimer=setTimeout(persistArchive,400)}
     doc.addEventListener('input',scheduleSave);
 
     /* CLOUD SYNC */
-    async function loadArchiveCloud(){
+    async function pullArchive(afterConflict){
+      if(pulling)return;
+      if(!afterConflict&&(pushing||saveTimer))return;
+      pulling=true;
       try{
-        const r=await fetch('/api/archive');if(!r.ok)return;
+        const r=await fetch('/api/archive',{cache:'no-store'});
+        if(r.status===401){goLogin();return}
+        if(!r.ok)return;
         const data=await r.json();
-        const localTs=Number(localStorage.getItem(ARCHIVE_TS_KEY))||0;
-        if(data.ts>localTs){
-          if(data.content){doc.innerHTML=data.content;localStorage.setItem(ARCHIVE_KEY,data.content)}
-          localStorage.setItem(ARCHIVE_TS_KEY,String(data.ts));
-          refreshMeta();
+        const cloudTs=Number(data.ts)||0;
+        const baseTs=Number(localStorage.getItem(ARCHIVE_TS_KEY))||0;
+        if(cloudTs===baseTs){
+          if(isDirty()){pulling=false;await pushArchive()}
+          return;
         }
+        if(isDirty()||afterConflict)showStatus('archive changed on another device, reloaded',3000);
+        const content=data.content||'';
+        if(doc.innerHTML!==content)doc.innerHTML=content;
+        localStorage.setItem(ARCHIVE_KEY,content);
+        localStorage.setItem(ARCHIVE_TS_KEY,String(cloudTs));
+        localStorage.removeItem(DIRTY_KEY);
+        refreshMeta();
       }catch(_){}
+      finally{pulling=false}
     }
-    loadArchiveCloud();
-    window.addEventListener('pagehide',()=>{if(saveTimer){clearTimeout(saveTimer);persistArchive()}});
+    function checkCloud(){if(!document.hidden)pullArchive(false)}
+    function flushArchive(){if(saveTimer)persistArchive(true)}
+    pullArchive(false);
+    setInterval(checkCloud,30000);
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)flushArchive();else checkCloud()});
+    window.addEventListener('pageshow',e=>{if(e.persisted)checkCloud()});
+    window.addEventListener('focus',checkCloud);
+    window.addEventListener('online',checkCloud);
+    window.addEventListener('pagehide',flushArchive);
 
     /* PASTE & AUTO LINK DETECTION */
     doc.addEventListener('paste',e=>{

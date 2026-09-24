@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /tool/
+Disallow: /notes.html
+Disallow: /archive
+Disallow: /login
+Disallow: /api/
