@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>notes — Mauro Brito</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>notes | Mauro Brito</title>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
   <style>
@@ -131,7 +132,7 @@
     .doc blockquote{border-left:2px solid var(--border);padding-left:14px;color:var(--fg2);margin:0 0 .6em 0}
     .doc blockquote + blockquote{margin-top:-.6em}
 
-    /* COLLAPSIBLE BLOCKS — minimal inline arrow */
+    /* COLLAPSIBLE BLOCKS: minimal inline arrow */
     .collapse-wrap{display:block;margin:0;padding:0;position:relative}
     .collapse-arrow{display:inline-block;cursor:pointer;user-select:none;font-size:10px;color:var(--fg2);margin-right:4px;padding:2px 4px;border-radius:3px;transition:color .15s,background .15s;vertical-align:middle;line-height:1;pointer-events:auto}
     .collapse-arrow:hover{color:var(--accent);background:var(--accent-soft)}
@@ -324,12 +325,12 @@
         <div class="pinned-body" id="pinnedBody" contenteditable="true" spellcheck="true"></div>
       </div>
 
-      <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="start writing — autosaves as you type"></div>
+      <div id="doc" class="doc" contenteditable="true" spellcheck="true" data-placeholder="start writing, autosaves as you type"></div>
 
       <div class="doc-footer" id="docFooter">
         cmd/ctrl+b bold · cmd/ctrl+i italic · cmd/ctrl+u underline · cmd/ctrl+shift+x strikethrough · cmd/ctrl+shift+h highlight · cmd/ctrl+shift+c text color<br>
         * + space = bullet list · tab indent · shift+tab outdent · select text + ▶⋯ = collapsible block<br>
-        cmd/ctrl+shift+- = archive selected text · cmd/ctrl+z undo · cmd/ctrl+shift+z redo — autosaves everywhere
+        cmd/ctrl+shift+- = archive selected text · cmd/ctrl+z undo · cmd/ctrl+shift+z redo · autosaves everywhere
       </div>
       <a class="archive-link" href="/archive">archive</a>
     </div>
@@ -341,7 +342,7 @@
         <span class="todo-count" id="todoCount">0</span>
       </div>
       <form class="todo-add" id="todoForm">
-        <input id="todoInput" type="text" placeholder="add a task — enter to submit" autocomplete="off">
+        <input id="todoInput" type="text" placeholder="add a task, enter to submit" autocomplete="off">
       </form>
       <div class="todo-divider-add" id="dividerForm">
         <input id="dividerInput" type="text" placeholder="section label" autocomplete="off">

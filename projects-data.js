@@ -3,18 +3,29 @@ window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'com
 
 window.PROJECTS = {
   dime: {
-    name: 'Dime — Inverted Pendulum',
+    name: 'Dime (Inverted Pendulum)',
     previewImg: 'project%20media/dimepic.png',
-    meta: 'C++, ESP32, KiCad · Summer 2024',
-    desc: 'Self-balancing robot on custom PCBs with nested PID controllers.',
+    meta: 'C++, Raspberry Pi, ODrive · Summer 2024',
+    desc: 'A two wheeled robot that balances itself using model predictive control.',
     longDesc: [
-      'Dime is a two-wheeled self-balancing robot built around a custom ESP32 carrier board. Two nested PID loops — one for tilt angle, another for wheel velocity — keep it upright while letting it accept position commands over Wi-Fi.',
-      'The mainboard fuses an MPU-6050 IMU with high-resolution magnetic encoders, runs a complementary filter to estimate tilt, and drives a pair of brushed DC motors through an onboard H-bridge with current sensing. A second daughterboard handles power conversion from a 3S Li-ion pack.',
-      'Tuning was the hard part: too much P and it oscillated, too little D and it fell. The final loop runs at 500 Hz on the ESP32, with telemetry streamed to a small browser dashboard for live PID gain tweaking.'
+      "Dime is a two wheeled robot that balances itself. Instead of the usual PID loop it uses model predictive control (MPC), which basically looks a little bit into the future and picks the best move. It also runs on brushless drone motors instead of cheap DC motors, which makes it a lot more agile.",
+      "The Pi reads the IMU and the gamepad, runs the controller 200 times a second, and tells the ODrive how much current to send to each motor. Everything mounts on a piece of 2040 V-slot aluminum cut to 250mm, with 3D printed mounts for the electronics.",
+      "Getting MPC right took forever. For a while a plain PID was honestly balancing it better, but once it was dialed in it could take a solid shove and settle right back without overshooting. It still has a tiny wobble when it's standing still that more tuning should fix.",
+      "The main hardware:",
+      [
+        'Raspberry Pi 3B',
+        'ODrive 3.5 motor controller',
+        'BMI160 IMU',
+        '2x Tarot 4108 brushless motors',
+        '2x CUI AMT102 encoders',
+        'Logitech F710 wireless gamepad',
+        '5V 3A BEC to power the Pi',
+        '2040 V-slot aluminum frame with 3D printed mounts'
+      ]
     ],
     media: [
-      { kind: 'image', type: 'photo',   src: 'project%20media/dimepic.png',         name: 'Dime, assembled',       caption: 'final build standing upright on the bench during a balancing test.' },
-      { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Control loop diagram', caption: 'nested PID — outer tilt-angle loop wraps an inner wheel-velocity loop at 500 Hz.', span: 'wide' }
+      { kind: 'image', type: 'photo',   src: 'project%20media/dimepic.png',         name: 'Dime, assembled',       caption: 'the finished robot.' },
+      { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Exploded view diagram', caption: 'every part of the robot, pulled apart.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/dime3dmodeluncompressed.glb',
@@ -51,16 +62,20 @@ window.PROJECTS = {
     name: 'Geometry Dash Clone',
     previewImg: 'project%20media/GD%20pic%202.jpg',
     meta: 'C, MSPM0G3507 · Spring 2026',
-    desc: 'Beat-synced platformer. Voted "Best Game" at ECE319K showcase.',
+    desc: 'Geometry Dash on a microcontroller. Won 1st place in ECE319K.',
     longDesc: [
-      'A from-scratch Geometry Dash clone running bare-metal on a TI MSPM0G3507. Beat-synced level generation, hardware-accelerated sprite blits, and a custom audio engine driving a piezo via DMA-paced PWM.',
-      'The render loop pushes pixels to a 320×240 SPI LCD at 60 FPS by double-buffering in SRAM. Collisions are sub-pixel against an obstacle list, and difficulty scales with the BPM of the loaded track.',
-      'Won "Best Game" at the UT Austin ECE319K end-of-semester showcase, beating ~70 teams. Source includes the level editor used to author the demo tracks.'
+      "A DIY Geometry Dash clone running on a TI MSPM0G3507. Features beat synced levels, hand made sprites, sub-pixel collision detection and an ergonomic handheld embedded controller (the breadboard).",
+      "It has three levels (Stereo Madness, Dry Out and Jumper), cube mode and ship mode (you fly the ship with a slide pot), a few skins, and you can play it in English or Spanish. It all runs at 30 FPS on a tiny 160x128 LCD.",
+      "Getting the music to be read by the archaic card reader on the LCD screen was very infuriating, but rewarding. The songs stream off the SD card through the 12 bit DAC, and the jump and death sounds live in flash so they play instantly.",
+      "It ended up taking 1st place in the ECE319K final project competition across every section in Spring 2026. A top 100 Geometry Dash player also beat my hardest level on it, which is in the video below."
+    ],
+    links: [
+      { label: 'source on github', href: 'https://github.com/veneno82/Geometry-dash-MSPM0-clone' }
     ],
     media: [
-      { kind: 'video', type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'running on the MSPM0G3507 at the ECE319K showcase.', span: 'wide' },
-      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%20png.jpg', name: 'Gameplay on hardware', caption: 'level running on the MSPM0 dev board — 320×240 SPI LCD at 60 FPS.' },
-      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%202.jpg',   name: 'Showcase day',         caption: 'on the floor at the ECE319K end-of-semester showcase.' }
+      { kind: 'video', type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'the showcase, plus a top 100 player beating my hardest level.', span: 'wide' },
+      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%20png.jpg', name: 'Gameplay on hardware', caption: 'a level running on the LCD.' },
+      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%202.jpg',   name: 'Showcase day',         caption: 'at the ECE319K showcase.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
@@ -100,17 +115,17 @@ window.PROJECTS = {
   pihole: {
     name: 'Pi-hole Adblocker',
     previewImg: 'project%20media/pi%20hole%20setup.png',
-    meta: 'Raspberry Pi, DNS, Linux',
-    desc: 'Network-wide DNS sinkhole on a Raspberry Pi.',
+    meta: 'Raspberry Pi Zero 2 W, Linux',
+    desc: 'A network wide ad blocker on a Raspberry Pi Zero.',
     longDesc: [
-      'A Raspberry Pi 4 running Pi-hole as the LAN DNS sinkhole, blocking ads and trackers for every device on the network without per-device clients.',
-      'Configured with custom blocklists, a static lease in the home router, and a Cloudflare-over-HTTPS upstream. About 28% of all DNS queries on the network get black-holed at the resolver.',
-      'The "PCB" here is the actual Raspberry Pi 4 board model — nostalgic rendering of the layout I keep behind the TV.'
+      "A Raspberry Pi Zero running Pi-hole, a network wide ad blocker.",
+      "The setup is simple: a Raspberry Pi Zero 2 W with an Adafruit PiOLED (128x32) on top for logs. A simple ethernet to USB-C adapter from my router to the Pi lets it act as a middleman between the devices on the network and the router, and it intercepts any requests that are deemed ads.",
+      "Every device on the network gets ad blocking without having to install anything."
     ],
     media: [
-      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20setup.png',       name: 'Hardware setup',  caption: 'the Pi 4 living behind the TV — the actual box doing all the DNS sinkholing.' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/pi-hole-dash.png',         name: 'Admin dashboard', caption: 'live query log + per-domain block stats.' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20performance.png', name: 'Performance',     caption: '96 MB RAM, near-zero CPU time, handling 30K+ requests — barely breaking a sweat.' }
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20setup.png',       name: 'Hardware setup',  caption: 'the Pi Zero with the OLED showing its stats.' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi-hole-dash.png',         name: 'Admin dashboard', caption: 'the Pi-hole dashboard.' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/pi%20hole%20performance.png', name: 'Performance',     caption: 'CPU and memory usage over a week.' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/PiHole%20render%20FINAL.glb',
@@ -138,18 +153,17 @@ window.PROJECTS = {
   motor: {
     previewImg: 'project%20media/bldc%20pic%20png.jpg',
     name: 'Motor Driver Board',
-    meta: 'KiCad, H-Bridge, MOSFETs',
-    desc: 'Custom H-bridge motor driver with gate drive and current sensing.',
+    meta: 'KiCad, TMC2209',
+    desc: 'A simple linear BLDC motor driver.',
     longDesc: [
-      'A four-MOSFET H-bridge designed for 12 V brushed DC motors up to ~10 A continuous. Synchronous rectification, dedicated gate driver IC, and high-side current sensing through a low-Ω shunt.',
-      'Layout uses 2 oz copper power planes for the bridge and a separate signal ground for the gate driver. Bulk electrolytics decouple motor commutation spikes; ceramics sit right at the gate driver pins.',
-      'Designed in KiCad, fabbed by JLCPCB. Drives the wheels on the Dime balancing robot.'
+      "This is a simple linear BLDC motor driver. It uses a TMC2209 to handle the rotation.",
+      "The main goal for this project was originally to control a high speed projectile mechanism that was unfortunately never built. Maybe one day."
     ],
     media: [
-      { kind: 'image', type: 'photo',     src: 'project%20media/bldc%20pic%20png.jpg',              name: 'Fabbed board',    caption: 'assembled board fresh off JLCPCB — 2 oz copper power planes for the bridge.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE.png',         name: 'Render — top',    caption: 'KiCad 3D render, top side. Bulk caps flank the H-bridge MOSFETs.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render — bottom', caption: 'bottom side — separate signal ground for the gate driver, stitched with vias.' },
-      { kind: 'image', type: 'schematic', src: 'project%20media/BLDC%20schematic.png',               name: 'Schematic',       caption: 'four-MOSFET H-bridge with dedicated gate driver IC and high-side current sense shunt.', span: 'wide' }
+      { kind: 'image', type: 'photo',     src: 'project%20media/bldc%20pic%20png.jpg',              name: 'Fabbed board',   caption: 'the assembled board.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE.png',         name: 'Render, top',    caption: 'KiCad render, top side.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/bldc%20render%20IMAGE%20(back).png', name: 'Render, bottom', caption: 'KiCad render, bottom side.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/BLDC%20schematic.png',               name: 'Schematic',      caption: 'the full schematic.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/bldc%201%20compressed.glb',
@@ -186,19 +200,27 @@ window.PROJECTS = {
 
   sensor: {
     previewImg: 'project%20media/can2usb%20pic%20png.png',
-    name: 'Sensor Module Board',
-    meta: 'KiCad, I²C, STM32',
-    desc: 'Compact multi-sensor breakout — IMU, baro, and temp/humidity over I²C.',
+    name: 'CAN Bootloader',
+    meta: 'C, CAN, KiCad',
+    desc: 'The bootloader my robotics team used on all of our CAN boards.',
     longDesc: [
-      'A small four-layer sensor breakout that aggregates an IMU, a barometric pressure sensor, and a temperature/humidity probe behind a single STM32G0 bridge MCU. Talks to a host over UART or USB-CDC, exposes raw and fused data.',
-      'The G0 runs a Madgwick fusion filter at 200 Hz and time-stamps every packet against a hardware timer so downstream consumers see jitter-free sample intervals. There\'s a tiny SPI flash for firmware updates over DFU.',
-      'Designed as a reusable building block for future projects — drone, weather logger, or anything that needs clean attitude/pressure data on a small footprint.'
+      "This is a general purpose bootloader that my robotics team used on all of our CAN boards. Normally, putting new code on a board means plugging a debugger straight into it, which gets old really fast when the board is buried inside a robot. With this we could send new firmware to every board over the same CAN wires the robot already uses to talk.",
+      "It also keeps a tiny config saved on each board (an ID, a name, what kind of board it is, and how many times it's been wiped) so we always knew which board was which.",
+      "What it does:",
+      [
+        "Flashes new firmware over CAN, no touching the board",
+        "It's fast. A typical firmware (a few hundred KB) goes over in a few seconds",
+        "Can flash a bunch of boards at once if they all need the same firmware",
+        "Keeps track of every board by its ID, name, type, and wipe count",
+        "On power up it waits a few seconds for commands before starting the actual program",
+        "Checks the program at boot, so a broken or half written firmware never runs"
+      ]
     ],
     media: [
-      { kind: 'image', type: 'photo',     src: 'project%20media/can2usb%20pic%20png.png',              name: 'Assembled module', caption: 'four-layer board, populated — sensor stack and STM32G0 bridge MCU.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE.png',         name: 'Render — top',     caption: 'top side render. USB-C on one end, breakout header on the other.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render — bottom',  caption: 'bottom side — passives and the tiny SPI flash for DFU firmware updates.' },
-      { kind: 'image', type: 'schematic', src: 'project%20media/can2usb%20schematic.png',               name: 'Schematic',        caption: 'I²C sensor bus, USB-CDC bridge, and the time-base hardware timer feeding sample timestamps.', span: 'wide' }
+      { kind: 'image', type: 'photo',     src: 'project%20media/can2usb%20pic%20png.png',              name: 'Assembled board', caption: 'the assembled board.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE.png',         name: 'Render, top',     caption: 'KiCad render, top side.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/can2usb%20render%20IMAGE%20(back).png', name: 'Render, bottom',  caption: 'KiCad render, bottom side.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/can2usb%20schematic.png',               name: 'Schematic',       caption: 'the full schematic.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/can2usb(blended).glb',
@@ -239,19 +261,19 @@ window.PROJECTS = {
   heart: {
     previewImg: 'project%20media/heartpcb%20pic%20png.png',
     name: 'Heart PCB',
-    meta: 'KiCad, Charlieplexed LEDs',
-    desc: 'Heart-shaped art PCB with animated LED patterns.',
+    meta: 'KiCad, ATtiny45, Charlieplexing',
+    desc: 'A heart shaped PCB with 20 charlieplexed LEDs.',
     longDesc: [
-      'A heart-shaped art PCB with charlieplexed surface-mount LEDs driven by an ATtiny. Five GPIOs control 20 LEDs with no external drivers — just careful pin sequencing in firmware.',
-      'The board outline is drawn directly in KiCad as a custom edge cut, with silkscreen accents echoing the heart shape. Designed as a Valentine\'s Day gift; a few extras live on my desk.',
-      'Animations include a slow heartbeat pulse, a sparkle pattern, and a chase that traces the outline.'
+      "Just a heart shaped PCB with 20 charlieplexed LEDs driven by an ATtiny45.",
+      "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors. An LED only lights up when current flows through it one way, so you can put two LEDs back to back between any two pins. To turn one on, I set one pin high, one pin low, and switch every other pin to an input so it basically disappears from the circuit.",
+      "With n pins you get n × (n - 1) LEDs, so 5 pins gets you all 20. Only one LED is actually on at any moment, but the ATtiny cycles through them so fast that your eyes see them all lit up at once."
     ],
     media: [
-      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'heartbeat-pulse pattern running live on the board.', poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'Lit up',         caption: 'all 20 charlieplexed SMD LEDs alive — only five GPIOs driving the entire array.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render — front', caption: 'KiCad 3D view, front. Custom heart-shaped edge cut with silkscreen accents.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render — back',  caption: 'back side — ATtiny, current-limit resistors, and the programming header.' },
-      { kind: 'image', type: 'schematic', src: 'project%20media/heartpcb%20schematic.png',               name: 'Schematic',      caption: 'charlieplex matrix — five GPIOs, twenty LEDs, zero external drivers.', span: 'wide' }
+      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'the board running.', poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'Lit up',         caption: 'all 20 LEDs on.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render, front',  caption: 'KiCad render, front side.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render, back',   caption: 'KiCad render, back side.' },
+      { kind: 'image', type: 'schematic', src: 'project%20media/heartpcb%20schematic.png',               name: 'Schematic',      caption: 'the full schematic.', span: 'wide' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/heartpcb.glb',

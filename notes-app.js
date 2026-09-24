@@ -5,7 +5,8 @@
     TODO_DELETED_KEY = 'mb_notes_todos_deleted', THEME_KEY = 'mb_theme',
     SWATCH_KEY = 'mb_color_swatches', HL_SWATCH_KEY = 'mb_hl_swatches', PIN_COLOR_KEY = 'mb_pin_color',
     ARCHIVE_KEY = 'mb_archive_doc', ARCHIVE_TS_KEY = 'mb_archive_ts',
-    STICKER_KEY = 'mb_notes_stickers';
+    STICKER_KEY = 'mb_notes_stickers', ARCHIVE_PENDING_KEY = 'mb_archive_pending',
+    BASE_TS_KEY = 'mb_notes_base_ts', BASE_HASH_KEY = 'mb_notes_base_hash';
 
   // 5 default swatches: mint, blue, purple, pink, orange
   const DEFAULT_SWATCHES = ['#3ecf8e', '#3478f6', '#8944e0', '#e54f8a', '#e87d2f'];
@@ -78,22 +79,55 @@
   }
   refreshMeta();
 
+  /* ── CLOUD SYNC ─────────────────────────────────────────────
+     Each save tells the server which cloud version it was built on
+     (baseTs). If another device saved in between, the server answers 409
+     instead of overwriting, and we pull the newer copy. Any local edits that
+     lose that race get copied into the archive, so nothing is dropped.
+     We also re-check the cloud whenever the page comes back into view,
+     so a tab left open overnight can't save stale notes over newer ones. */
+  function hashStr(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) }
+    return (h >>> 0).toString(16) + ':' + str.length;
+  }
+  function stickerPayload() {
+    return stickers.map(s => ({ id: s.id, src: s.src, x: s.x, y: s.y, w: s.w, h: s.h, panel: s.panel, relX: s.relX }));
+  }
+  function localState() { return { content: doc.innerHTML, pinned: pinnedBody.innerHTML, stickers: stickerPayload() } }
+  function stateHash(st) { return hashStr(st.content + '\u0000' + st.pinned + '\u0000' + JSON.stringify(st.stickers)) }
+  function getBaseTs() { return Number(localStorage.getItem(BASE_TS_KEY)) || 0 }
+  function setBase(ts, hash) {
+    try { localStorage.setItem(BASE_TS_KEY, String(ts)); localStorage.setItem(BASE_HASH_KEY, hash) } catch (_) { }
+  }
+  function hasUnsyncedEdits() { return stateHash(localState()) !== localStorage.getItem(BASE_HASH_KEY) }
+  function goLogin() { location.href = '/login?next=' + encodeURIComponent(location.pathname) }
+  function showStatus(text, ms) {
+    savedEl.textContent = text; savedEl.classList.add('flash');
+    clearTimeout(flashT); flashT = setTimeout(() => savedEl.classList.remove('flash'), ms || 1500);
+  }
+  function stampDate(ts) {
+    return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  function archiveSeparator(label) {
+    return '<div style="font-size:11px;color:var(--fg2);opacity:.5;margin:12px 0 4px;border-top:1px solid var(--border);padding-top:6px">' + label + '</div>';
+  }
+
   let saveTimer = null;
-  let syncing = false; // guard: don't save while loading cloud data
-  function persistNotes() {
+  let syncing = false;     // true while cloud data is being written into the page
+  let cloudReady = false;  // saves wait until the first cloud check is done
+  let pushing = false, pushAgain = false, pulling = false;
+
+  function persistNotes(keepalive) {
     if (syncing) return;
+    clearTimeout(saveTimer); saveTimer = null;
     try {
-      const ts = Date.now();
       localStorage.setItem(DOC_KEY, doc.innerHTML);
       localStorage.setItem(PIN_KEY, pinnedBody.innerHTML);
-      localStorage.setItem(META_KEY, String(ts));
-      flash();
+      localStorage.setItem(META_KEY, String(Date.now()));
       refreshMeta();
-      fetch('/api/notes', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: doc.innerHTML, pinned: pinnedBody.innerHTML, stickers: stickers.map(s => ({ id: s.id, src: s.src, x: s.x, y: s.y, w: s.w, h: s.h })), ts })
-      }).catch(() => { });
     } catch (_) { savedEl.textContent = 'save failed' }
+    pushNotes(keepalive);
   }
   function scheduleNoteSave() {
     if (syncing) return;
@@ -102,46 +136,102 @@
   doc.addEventListener('input', scheduleNoteSave);
   pinnedBody.addEventListener('input', scheduleNoteSave);
 
-  /* Initial load: always trust cloud as source of truth.
-     localStorage is shown first for speed, then cloud overwrites if available. */
-  async function loadNotesCloud(isPolling) {
+  async function pushNotes(keepalive) {
+    if (!cloudReady) return; // the first cloud check pushes anything left over
+    if (pushing) { pushAgain = true; return }
+    pushing = true;
+    const st = localState(), hash = stateHash(st);
+    const body = JSON.stringify({ content: st.content, pinned: st.pinned, stickers: st.stickers, baseTs: getBaseTs() });
     try {
-      const r = await fetch('/api/notes'); if (!r.ok) return;
+      const r = await fetch('/api/notes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body, cache: 'no-store',
+        keepalive: !!keepalive && body.length < 60000
+      });
+      if (r.status === 401) { goLogin(); return }
+      if (r.status === 409) { await pullNotes(true); return }
+      if (!r.ok) throw new Error('save failed');
       const data = await r.json();
-      const localTs = Number(localStorage.getItem(META_KEY)) || 0;
-      // On initial load, always use cloud data. On polling, only if cloud is newer.
-      const shouldSync = isPolling ? (data.ts && data.ts > localTs) : (data.ts != null);
-      if (shouldSync) {
-        syncing = true;
-        if (data.content != null) { doc.innerHTML = data.content; localStorage.setItem(DOC_KEY, data.content) }
-        if (data.pinned != null) { pinnedBody.innerHTML = data.pinned; localStorage.setItem(PIN_KEY, data.pinned) }
-        if (Array.isArray(data.stickers)) {
-          localStorage.setItem(STICKER_KEY, JSON.stringify(data.stickers));
-          stickers = data.stickers;
-          let migrated = false;
-          stickers.forEach(st => {
-            if (st.panel === undefined || st.relX === undefined) {
-              initializeStickerPanel(st);
-              migrated = true;
-            }
-          });
-          if (migrated) {
-            saveStickers();
-          }
-          renderAllStickers();
-        }
-        if (data.ts) localStorage.setItem(META_KEY, String(data.ts));
-        refreshMeta();
-        syncing = false;
-      }
-    } catch (_) { syncing = false }
+      setBase(data.ts, hash);
+      try { localStorage.setItem(META_KEY, String(data.ts)) } catch (_) { }
+      refreshMeta();
+      if (!saveTimer) flash();
+    } catch (_) {
+      showStatus('offline, saved on this device', 2500);
+    } finally {
+      pushing = false;
+      if (pushAgain) { pushAgain = false; pushNotes() }
+    }
   }
-  loadNotesCloud(false);
 
-  /* Periodic sync: poll every 30s to pick up changes from other devices */
-  setInterval(() => loadNotesCloud(true), 30000);
+  /* Pull the cloud copy. If our copy has edits the cloud never got, try to
+     push them; if the cloud moved on without them, keep the cloud version
+     and drop our edits into the archive. */
+  async function pullNotes(afterConflict) {
+    if (pulling) return;
+    if (!afterConflict && (pushing || saveTimer)) return; // a save is on its way, its reply decides
+    pulling = true;
+    try {
+      const r = await fetch('/api/notes', { cache: 'no-store' });
+      if (r.status === 401) { goLogin(); return }
+      if (!r.ok) return;
+      const data = await r.json();
+      const cloudTs = Number(data.ts) || 0;
+      const firstRun = localStorage.getItem(BASE_TS_KEY) === null;
+      const local = localState();
 
-  window.addEventListener('pagehide', () => { if (saveTimer) { clearTimeout(saveTimer); persistNotes() } });
+      if (!firstRun && cloudTs === getBaseTs()) {
+        // cloud hasn't changed since our last sync
+        if (hasUnsyncedEdits()) { pulling = false; await pushNotes(); }
+        return;
+      }
+
+      // cloud has something newer. keep our unsynced edits in the archive first
+      const cloudContent = data.content || '', cloudPinned = data.pinned || '';
+      const lostEdits = firstRun
+        ? (Number(localStorage.getItem(META_KEY)) || 0) > cloudTs && local.content.trim() !== ''
+        : hasUnsyncedEdits();
+      if (lostEdits && (local.content !== cloudContent || local.pinned !== cloudPinned)) {
+        let html = '';
+        if (local.content !== cloudContent) html += local.content;
+        if (local.pinned !== cloudPinned) html += '<div>pinned:</div>' + local.pinned;
+        queueArchive(archiveSeparator('unsynced copy (notes changed on another device first), saved ' + stampDate(Date.now())) + html);
+        showStatus('newer notes loaded, your copy is in archive', 4000);
+      } else if (afterConflict) {
+        showStatus('synced');
+      }
+
+      syncing = true;
+      if (doc.innerHTML !== cloudContent) doc.innerHTML = cloudContent;
+      if (pinnedBody.innerHTML !== cloudPinned) pinnedBody.innerHTML = cloudPinned;
+      try {
+        localStorage.setItem(DOC_KEY, cloudContent);
+        localStorage.setItem(PIN_KEY, cloudPinned);
+      } catch (_) { }
+      if (Array.isArray(data.stickers)) {
+        stickers = data.stickers;
+        stickers.forEach(st => {
+          if (st.panel === undefined || st.relX === undefined) initializeStickerPanel(st);
+        });
+        try { localStorage.setItem(STICKER_KEY, JSON.stringify(stickerPayload())) } catch (_) { }
+        renderAllStickers();
+      }
+      setBase(cloudTs, stateHash(localState()));
+      if (cloudTs) try { localStorage.setItem(META_KEY, String(cloudTs)) } catch (_) { }
+      refreshMeta();
+      syncing = false;
+    } catch (_) {
+      syncing = false;
+    } finally {
+      pulling = false;
+    }
+  }
+
+  function flushNotes() { if (saveTimer) persistNotes(true) }
+  function checkCloud() {
+    if (document.hidden) return;
+    pullNotes(false);
+    flushArchiveQueue();
+  }
 
   /* ── PASTE & AUTO LINK DETECTION (+ IMAGE STICKERS) ────────── */
   function getCaretStickerPos() {
@@ -151,7 +241,7 @@
     const rect = range.getBoundingClientRect();
     const layerRect = stickerLayer.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) {
-      // Collapsed caret — try caret position
+      // Collapsed caret: try caret position
       const span = document.createElement('span');
       span.textContent = '\u200b';
       range.insertNode(span);
@@ -261,19 +351,12 @@
     return [];
   }
   function saveStickers() {
-    try {
-      const data = stickers.map(s => ({ id: s.id, src: s.src, x: s.x, y: s.y, w: s.w, h: s.h, panel: s.panel, relX: s.relX }));
-      localStorage.setItem(STICKER_KEY, JSON.stringify(data));
-      flash();
-      // sync to cloud alongside notes
-      const ts = Date.now();
-      localStorage.setItem(META_KEY, String(ts));
-      refreshMeta();
-      fetch('/api/notes', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: doc.innerHTML, pinned: pinnedBody.innerHTML, stickers: data, ts })
-      }).catch(() => { });
-    } catch (_) { }
+    try { localStorage.setItem(STICKER_KEY, JSON.stringify(stickerPayload())) } catch (_) { }
+    if (syncing) return;
+    flash();
+    try { localStorage.setItem(META_KEY, String(Date.now())) } catch (_) { }
+    refreshMeta();
+    pushNotes();
   }
 
   function handleStickerImageFile(file, pos) {
@@ -338,7 +421,7 @@
     del.addEventListener('click', e => { e.stopPropagation(); deleteSticker(s.id) });
     del.addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); deleteSticker(s.id) });
 
-    // resize handles — only bottom-right for simplicity, but all 4 corners
+    // resize handles: only bottom-right for simplicity, but all 4 corners
     ['br', 'bl', 'tr', 'tl'].forEach(corner => {
       const handle = document.createElement('div');
       handle.className = 'sticker-resize ' + corner;
@@ -526,7 +609,7 @@
     }
   });
   if (migrated) {
-    saveStickers();
+    try { localStorage.setItem(STICKER_KEY, JSON.stringify(stickerPayload())) } catch (_) { }
   }
 
   renderAllStickers();
@@ -686,7 +769,7 @@
     if (this.value) {
       document.execCommand('fontName', false, this.value);
     } else {
-      // "Default" — remove font override by applying the body's default font
+      // "Default": remove font override by applying the body's default font
       document.execCommand('fontName', false, "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif");
     }
     scheduleNoteSave();
@@ -926,22 +1009,9 @@
     const html = tempDiv.innerHTML;
     if (!html.trim()) return;
 
-    // Add to archive with timestamp separator
-    const ts = Date.now();
-    const dateStr = new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-    const separator = '<div style="font-size:11px;color:var(--fg2);opacity:.5;margin:12px 0 4px;border-top:1px solid var(--border);padding-top:6px">archived ' + dateStr + '</div>';
-
-    // Load existing archive
-    let existing = localStorage.getItem(ARCHIVE_KEY) || '';
-    existing = separator + html + existing;
-    localStorage.setItem(ARCHIVE_KEY, existing);
-    localStorage.setItem(ARCHIVE_TS_KEY, String(ts));
-
-    // Sync to cloud
-    fetch('/api/archive', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: existing, ts })
-    }).catch(() => { });
+    // Add to archive with timestamp separator. The server puts it on top of
+    // the cloud archive, so an out of date copy on this device can't clobber it.
+    queueArchive(archiveSeparator('archived ' + stampDate(Date.now())) + html);
 
     // Delete from notes
     range.deleteContents();
@@ -957,6 +1027,54 @@
 
   // Expose for mobile button
   window._archiveSelection = archiveSelection;
+
+  /* Archive entries wait in a small queue until the server has them, so
+     archiving while offline still works once the connection is back. */
+  function loadArchiveQueue() {
+    try { const q = JSON.parse(localStorage.getItem(ARCHIVE_PENDING_KEY) || '[]'); return Array.isArray(q) ? q : [] } catch (_) { return [] }
+  }
+  function saveArchiveQueue(q) { try { localStorage.setItem(ARCHIVE_PENDING_KEY, JSON.stringify(q)) } catch (_) { } }
+  function queueArchive(entry) {
+    const q = loadArchiveQueue(); q.push(entry); saveArchiveQueue(q);
+    flushArchiveQueue();
+  }
+  let flushingArchive = false;
+  async function flushArchiveQueue() {
+    if (flushingArchive) return;
+    flushingArchive = true;
+    try {
+      let q = loadArchiveQueue();
+      while (q.length) {
+        const entry = q[0];
+        const r = await fetch('/api/archive', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prepend: entry }), cache: 'no-store'
+        });
+        if (r.status === 401) { goLogin(); return }
+        if (!r.ok) break;
+        q = loadArchiveQueue();
+        const i = q.indexOf(entry);
+        if (i !== -1) q.splice(i, 1);
+        saveArchiveQueue(q);
+      }
+    } catch (_) {
+    } finally {
+      flushingArchive = false;
+    }
+  }
+
+  /* ── START CLOUD SYNC ───────────────────────────────────────── */
+  pullNotes(false).finally(() => {
+    cloudReady = true;
+    if (hasUnsyncedEdits()) pushNotes();
+  });
+  flushArchiveQueue();
+  setInterval(checkCloud, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushNotes(); else checkCloud() });
+  window.addEventListener('pageshow', e => { if (e.persisted) checkCloud() });
+  window.addEventListener('focus', checkCloud);
+  window.addEventListener('online', checkCloud);
+  window.addEventListener('pagehide', flushNotes);
 
   /* ── FOCUS DOC ON LOAD ──────────────────────────────────────── */
   setTimeout(() => {
@@ -1035,8 +1153,9 @@
     try {
       const r = await fetch('/api/todos', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, ts })
+        body: JSON.stringify({ items, ts }), cache: 'no-store'
       });
+      if (r.status === 401) { goLogin(); return false }
       if (!r.ok) throw new Error('todo save failed');
       const pending = loadPendingTodoSave();
       if (pending && pending.ts === ts) localStorage.removeItem(TODO_PENDING_KEY);
@@ -1126,11 +1245,11 @@
     if (idx === -1) return;
     const t = items[idx];
     if (!t.done) {
-      // marking done — remember where it was
+      // marking done: remember where it was
       t.done = true;
       t.origIdx = idx;
     } else {
-      // un-marking — restore to original position
+      // un-marking: restore to original position
       t.done = false;
       const target = t.origIdx != null ? t.origIdx : idx;
       delete t.origIdx;
@@ -1645,7 +1764,7 @@
     todoList.innerHTML = '';
     if (!items.length) {
       const e = document.createElement('li'); e.className = 'todo-empty';
-      e.textContent = 'no tasks yet — add one above'; todoList.appendChild(e); return
+      e.textContent = 'no tasks yet, add one above'; todoList.appendChild(e); return
     }
     let shownDoneSep = false;
 
@@ -1820,7 +1939,9 @@
   async function loadTodosCloud(isPolling) {
     const pending = retryPendingTodoSave();
     try {
-      const r = await fetch('/api/todos'); if (!r.ok) return;
+      const r = await fetch('/api/todos', { cache: 'no-store' });
+      if (r.status === 401) { goLogin(); return }
+      if (!r.ok) return;
       const data = await r.json();
       const localTs = Number(localStorage.getItem(TODO_TS_KEY)) || 0;
       const cloudTs = Number(data.ts) || 0;
@@ -1847,5 +1968,8 @@
   repairLocalTodos();
   renderTodos();
   loadTodosCloud(false);
-  setInterval(() => loadTodosCloud(true), 30000);
+  setInterval(() => { if (!document.hidden) loadTodosCloud(true) }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTodosCloud(true) });
+  window.addEventListener('pageshow', e => { if (e.persisted) loadTodosCloud(true) });
+  window.addEventListener('online', () => loadTodosCloud(true));
 })();
