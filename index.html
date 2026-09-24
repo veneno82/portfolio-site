@@ -259,7 +259,7 @@
       z-index: 200;
     }
 
-    /* hand drawn "pick some cool colors" doodle pointing at the palette button */
+    /* "pick some cool colors" note with a hand drawn arrow pointing at the palette button */
     .palette-hint {
       position: absolute;
       top: calc(100% + 2px);
@@ -274,12 +274,9 @@
     }
 
     .palette-hint span {
-      font-family: 'Caveat', cursive;
-      font-size: 21px;
-      font-weight: 500;
+      font-size: 13px;
       line-height: 1;
-      transform: rotate(-5deg);
-      margin-bottom: -4px;
+      margin-bottom: -5px;
     }
 
     .palette-hint svg {
@@ -313,7 +310,7 @@
     }
 
     @media (max-width: 520px) {
-      .palette-hint span { font-size: 16px; margin-bottom: -2px; }
+      .palette-hint span { font-size: 12px; margin-bottom: -4px; }
       .palette-hint svg { width: 36px; height: 28px; }
     }
 
