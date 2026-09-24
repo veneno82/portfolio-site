@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>login · Mauro Brito</title>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <script>try{if(localStorage.getItem('mb_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(_){}</script>
+  <style>
+    :root{--fg:#141414;--fg2:#4a4a50;--border:rgba(0,0,0,.12);--surface:rgba(0,0,0,.04);--paper:#fdfdfb;--accent:#3478f6}
+    [data-theme="dark"]{--fg:#f0f0f2;--fg2:#b8b8bc;--border:rgba(255,255,255,.14);--surface:rgba(255,255,255,.05);--paper:#0e0e10;--accent:#5a9fff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:var(--fg);background:var(--paper);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    form{width:100%;max-width:300px;display:flex;flex-direction:column;gap:12px}
+    h1{font-size:28px;font-weight:600;letter-spacing:-.02em}
+    input{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);outline:none}
+    input:focus{border-color:var(--accent)}
+    button{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--fg);color:var(--paper);cursor:pointer}
+    button:disabled{opacity:.6;cursor:default}
+    .err{font-size:13px;color:#d33;min-height:18px}
+    a{font-size:13px;color:var(--fg2);text-decoration:none}
+  </style>
+</head>
+<body>
+  <form id="loginForm">
+    <h1>private</h1>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="password" required autofocus>
+    <button id="go" type="submit">log in</button>
+    <div class="err" id="err"></div>
+    <a href="/">back to the site</a>
+  </form>
+  <script>
+  (function(){
+    const form=document.getElementById('loginForm'), pw=document.getElementById('pw'),
+      go=document.getElementById('go'), err=document.getElementById('err');
+    // only follow local paths so ?next= can't bounce anyone to another site
+    let next=new URLSearchParams(location.search).get('next')||'/tool/notes';
+    if(!/^\/(?!\/)/.test(next)) next='/tool/notes';
+
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();
+      go.disabled=true; err.textContent='';
+      try{
+        const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({password:pw.value})});
+        if(r.ok){location.replace(next);return}
+        const data=await r.json().catch(()=>({}));
+        err.textContent=data.error||'something went wrong';
+      }catch(_){err.textContent='no connection'}
+      go.disabled=false; pw.select();
+    });
+  })();
+  </script>
+</body>
+</html>

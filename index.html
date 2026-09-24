@@ -128,7 +128,7 @@
       color: var(--fg);
     }
 
-    /* asterisk back-to-top — static frame by default, gif animates only on hover */
+    /* asterisk back-to-top: static frame by default, gif animates only on hover */
     .asterisk-btn {
       position: relative;
       background: none;
@@ -650,7 +650,7 @@
     /* ── Mobile phones ─────────────────────────────────────────── */
     @media (max-width: 520px) {
 
-      /* hide nav links — page is single-scroll, not needed on small screens */
+      /* hide nav links: page is single-scroll, not needed on small screens */
       .nav-links-group {
         display: none;
       }
@@ -751,7 +751,7 @@
       <div class="label">Education</div>
       <div>
         <div class="edu-school">The University of Texas at Austin</div>
-        <div class="edu-line">B.S. Electrical and Computer Engineering · Aug. 2024 – May 2028</div>
+        <div class="edu-line">B.S. Electrical and Computer Engineering · Aug. 2024 - May 2028</div>
         <div class="edu-line">GPA 3.7 / 4.0</div>
         <div class="edu-line" style="margin-top:8px;">Coursework: Linear Systems &amp; Signals, Circuits &amp;
           Electronics, Circuit Theory, Embedded Systems, Data Structures &amp; Algorithms</div>
@@ -766,7 +766,7 @@
       <div class="skills">
         <div>
           <div class="skill-cat">Languages</div>
-          <div class="skill-items">C / C++<br>Python · PyTorch<br>Java<br>JavaScript<br>SystemVerilog</div>
+          <div class="skill-items">C / C++<br>Python · PyTorch<br>Java<br>JavaScript<br>Verilog · SystemVerilog</div>
         </div>
         <div>
           <div class="skill-cat">Tools</div>
@@ -774,7 +774,7 @@
         </div>
         <div style="margin-top:4px;">
           <div class="skill-cat">Certifications</div>
-          <div class="skill-items">IT Specialist – Java<br>IT Specialist – Python</div>
+          <div class="skill-items">IT Specialist (Java)<br>IT Specialist (Python)</div>
         </div>
         <div style="margin-top:4px;">
           <div class="skill-cat">Spoken</div>
@@ -787,8 +787,8 @@
 
   <div class="contact-section" id="contact">
     <div class="label">Contact</div>
-    <p class="contact-blurb">open to internships, hardware projects, and research — or just want to talk embedded
-      systems, PCB design, or whatever else? shoot me a message, I'm around.</p>
+    <p class="contact-blurb">open to internships and research positions, or if you just wanna talk I'm around. shoot me a
+      message!</p>
     <div class="contact-links">
       <a href="https://github.com/britomauro" target="_blank">github</a>
       <a href="https://www.linkedin.com/in/britomauro" target="_blank">linkedin</a>
@@ -804,7 +804,7 @@
       const root = document.documentElement;
       const btn = document.getElementById('themeToggle');
 
-      // Dark:  monochrome liquid chrome — black → graphite → metallic grey → chrome highlight
+      // Dark:  monochrome liquid chrome: black → graphite → metallic grey → chrome highlight
       // Light: snow white → warm cream → pale blue tint → soft sky blue
       const PAL = {
         light: ['#d1e0ff', '#ffffff', '#9fb6d6', '#ffebeb'],
@@ -1139,7 +1139,7 @@
         grid.appendChild(a);
       });
 
-      // Mobile: skip Three.js entirely — show a static project photo per card
+      // Mobile: skip Three.js entirely: show a static project photo per card
       // so there's zero GPU/WebGL load. Desktop keeps the live 3D previews.
       var _mob = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
       if (_mob) {

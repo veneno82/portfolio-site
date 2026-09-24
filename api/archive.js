@@ -1,40 +1,45 @@
-// Serverless function — proxies reads/writes to Upstash Redis for archive.
+// Serverless function: reads/writes the notes archive in Upstash Redis.
 // Env vars (KV_REST_API_URL, KV_REST_API_TOKEN) are injected by Vercel
 // automatically when the Upstash store is linked to this project.
-export default async function handler(req, res) {
-  const url   = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
+import { requireAuth, readBody, kv, kvConfigured, casWrite } from './_auth.js';
 
-  // GET /api/archive — return saved archive content + timestamp
+const PREPEND_SCRIPT = `
+redis.call('SET', KEYS[1], ARGV[1] .. (redis.call('GET', KEYS[1]) or ''))
+redis.call('SET', KEYS[2], ARGV[2])
+return 1`;
+
+export default async function handler(req, res) {
+  if (!requireAuth(req, res)) return;
+  if (!kvConfigured()) return res.status(500).json({ error: 'KV not configured' });
+
+  // GET /api/archive: return saved archive content + timestamp
   if (req.method === 'GET') {
-    const [cRes, tRes] = await Promise.all([
-      fetch(`${url}/get/archive_doc`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${url}/get/archive_ts`,  { headers: { Authorization: `Bearer ${token}` } })
-    ]);
-    const c = await cRes.json();
-    const t = await tRes.json();
-    return res.json({ content: c.result || '', ts: Number(t.result) || 0 });
+    const [content, ts] = await Promise.all([kv(['GET', 'archive_doc']), kv(['GET', 'archive_ts'])]);
+    return res.json({ content: content || '', ts: Number(ts) || 0 });
   }
 
-  // POST /api/archive — persist archive content + timestamp
   if (req.method === 'POST') {
-    let body = req.body;
-    if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
-    const { content = '', ts = Date.now() } = body;
-    await Promise.all([
-      fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(['SET', 'archive_doc', content])
-      }),
-      fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(['SET', 'archive_ts', String(ts)])
-      })
-    ]);
-    return res.json({ ok: true });
+    const { prepend, content = '', baseTs } = readBody(req);
+
+    // { prepend }: put a new entry on top of whatever the cloud has right now
+    // (used when archiving from the notes page)
+    if (typeof prepend === 'string') {
+      const ts = Date.now();
+      try {
+        await kv(['EVAL', PREPEND_SCRIPT, '2', 'archive_doc', 'archive_ts', prepend, String(ts)]);
+      } catch (_) {
+        const cur = (await kv(['GET', 'archive_doc'])) || '';
+        await kv(['SET', 'archive_doc', prepend + cur]);
+        await kv(['SET', 'archive_ts', String(ts)]);
+      }
+      return res.json({ ok: true, ts });
+    }
+
+    // { content, baseTs }: replace the archive (edits on the archive page),
+    // refused with 409 if it changed since the client loaded it
+    const result = await casWrite('archive_ts', Number(baseTs) || 0, { archive_doc: content });
+    if (!result.ok) return res.status(409).json({ conflict: true, ts: result.ts });
+    return res.json({ ok: true, ts: result.ts });
   }
 
   res.status(405).end();

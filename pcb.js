@@ -116,7 +116,7 @@
 
     // Mobile fallback: large GLBs (10s of MB) blow past phone GPU memory budgets
     // and crash the page, especially with 6 preview cards each spinning up their
-    // own WebGL context. Per-project opt-in via cfg.mobileSkipGlb — when true on
+    // own WebGL context. Per-project opt-in via cfg.mobileSkipGlb: when true on
     // a touch device, we skip the GLB load entirely and use the procedural board.
     var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
     var skipForMobile = isMobile && cfg && cfg.mobileSkipGlb === true;
@@ -131,7 +131,7 @@
     renderer.setSize(W, H);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setClearColor(0x000000, 0);
-    // Procedural boards keep shadows; GLB models render without shadow maps —
+    // Procedural boards keep shadows; GLB models render without shadow maps:
     // self-shadowing on detailed meshes was producing the striped/banded artifacts.
     renderer.shadowMap.enabled = !resolvedGlbPath;
     if (resolvedGlbPath) {
@@ -147,7 +147,7 @@
     camera.lookAt(0, 0.3, 0);
 
     if (resolvedGlbPath) {
-      // No shadow casting — avoids stripe/banding artifacts on the model itself.
+      // No shadow casting: avoids stripe/banding artifacts on the model itself.
       scene.add(new THREE.HemisphereLight(0xffffff, 0x404044, 1.5));
       var sunG = new THREE.DirectionalLight(0xffffff, 2.2);
       sunG.position.set(3, 6, 4);
@@ -238,7 +238,7 @@
             model.position.y -= (pv.y || 0);
             model.position.z -= (pv.z || 0);
             model.position.y += 0.25;
-            // No shadow casting on GLB meshes — produced banding artifacts.
+            // No shadow casting on GLB meshes: produced banding artifacts.
             group.add(model);
             setLoaderPct(100);
             hideLoader();
