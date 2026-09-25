@@ -15,8 +15,7 @@
     { "source": "/archive.html", "destination": "/archive", "permanent": false },
     { "source": "/login.html", "destination": "/login", "permanent": false },
     { "source": "/scrolled-privacy.html", "destination": "/scrolled/privacy", "permanent": false },
-    { "source": "/scrolled-terms.html", "destination": "/scrolled/terms", "permanent": false },
-    { "source": "/scrolled", "destination": "/project/scrolled", "permanent": false }
+    { "source": "/scrolled-terms.html", "destination": "/scrolled/terms", "permanent": false }
   ],
   "headers": [
     {

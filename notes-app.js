@@ -1926,13 +1926,14 @@
     todoStrikeResizeFrame = requestAnimationFrame(() => layoutTodoStrikes(false));
   });
 
-  /* Ctrl+Z / Ctrl+Y in todo panel */
+  /* Ctrl+Z / Ctrl+Y in todo panel (e.key is 'Z' with shift or caps lock on) */
   panelTodos.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    const key = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && key === 'z') {
       if (e.shiftKey) { e.preventDefault(); todoRedo() }
       else { e.preventDefault(); todoUndo() }
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); todoRedo() }
+    if ((e.ctrlKey || e.metaKey) && key === 'y') { e.preventDefault(); todoRedo() }
   });
 
   /* Cloud sync for todos */
