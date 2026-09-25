@@ -37,8 +37,8 @@ window.PROJECTS = {
       { kind: 'image', src: 'project%20media/scrolled%20caught%20up.jpg', name: 'The ending',         caption: 'the paywall shows how a feed ends.' }
     ],
     legal: [
-      { label: 'Terms of Use',   href: '/scrolled/terms',   caption: 'coming before launch.' },
-      { label: 'Privacy Policy', href: '/scrolled/privacy', caption: 'coming before launch.' }
+      { label: 'Terms of Use',   href: '/scrolled/terms',   caption: 'effective september 25, 2026.' },
+      { label: 'Privacy Policy', href: '/scrolled/privacy', caption: 'effective september 25, 2026.' }
     ]
   },
 
@@ -306,7 +306,7 @@ window.PROJECTS = {
     longDesc: [
       "Just a heart shaped PCB with 20 charlieplexed LEDs driven by an ATtiny45.",
       "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors. An LED only lights up when current flows through it one way, so you can put two LEDs back to back between any two pins. To turn one on, I set one pin high, one pin low, and switch every other pin to an input so it basically disappears from the circuit.",
-      "With n pins you get n × (n - 1) LEDs, so 5 pins gets you all 20. Only one LED is actually on at any moment, but the ATtiny cycles through them so fast that your eyes see them all lit up at once."
+      "With n pins you get n × (n - 1) LEDs, so 5 pins gets you all 20. Only one LED is actually on at any moment, but the ATtiny cycles through them so fast that your eyes see them all lit up at once. Pretty cool stuff."
     ],
     media: [
       { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'the board running.', poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },

@@ -1,282 +1,261 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Use | Scrolled</title>
-  <meta name="description" content="Terms of use for Scrolled, the iOS app by Mauro Brito.">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <base href="/">
-  <script>
-    try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) { }
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scrolled Terms of Use</title>
+  <meta name="description" content="The terms for using Scrolled, the iPhone app.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/png" href="data:image/png;base64,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">
+  <!-- Standalone on purpose: no site scripts, fonts or links back into the portfolio.
+       The text comes from the Scrolled repo's docs/legal/terms-of-use.html. -->
   <style>
     :root {
-      --fg: #141414;
-      --fg2: #4a4a50;
-      --border: rgba(0, 0, 0, 0.10);
-      --surface: rgba(0, 0, 0, 0.04);
-      --nav-bg: rgba(255, 255, 255, 0.78);
-      --paper: #fdfdfb;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --link: #0066cc;
+      --rule: #d2d2d7;
+      --bg: #ffffff;
     }
 
-    [data-theme="dark"] {
-      --fg: #f0f0f2;
-      --fg2: #b8b8bc;
-      --border: rgba(255, 255, 255, 0.10);
-      --surface: rgba(255, 255, 255, 0.04);
-      --nav-bg: rgba(5, 5, 5, 0.80);
-      --paper: #0e0e10;
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #f5f5f7;
+        --muted: #a1a1a6;
+        --link: #2997ff;
+        --rule: #424245;
+        --bg: #000000;
+      }
     }
 
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-      color: var(--fg);
-      background: var(--paper);
-      font-size: 15px;
-      line-height: 1.65;
-      transition: background 0.35s, color 0.35s;
-      min-height: 100vh;
-    }
-
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 0 36px;
-      height: 52px;
-      background: var(--nav-bg);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 1px solid var(--border);
-      transition: background 0.35s, border-color 0.35s;
-    }
-
-    .nav-left { display: flex; align-items: center; gap: 20px; }
-    .nav-center { display: flex; align-items: center; gap: 22px; justify-content: center; }
-    .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
-
-    .nav-name {
-      font-size: 14px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.47059 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-weight: 500;
-      color: var(--fg);
-      letter-spacing: -0.01em;
-      text-decoration: none;
+      letter-spacing: -0.022em;
     }
 
-    .nav-link {
-      font-size: 13px;
-      color: var(--fg2);
-      text-decoration: none;
-      letter-spacing: 0.01em;
-      transition: color 0.15s;
-    }
-
-    .nav-link:hover { color: var(--fg); }
-
-    .pill-toggle {
-      position: relative;
-      width: 52px;
-      height: 28px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      cursor: pointer;
-      transition: background 0.25s, border-color 0.25s;
-      flex-shrink: 0;
-    }
-
-    .pill-toggle::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--fg2);
-      top: 3px;
-      left: 3px;
-      transition: transform 0.25s, background 0.25s;
-    }
-
-    [data-theme="dark"] .pill-toggle::after {
-      transform: translateX(24px);
-      background: var(--fg);
-    }
-
-    .pill-toggle:hover::after { background: var(--fg); }
-
-    main {
-      max-width: 720px;
+    .bar,
+    main,
+    .foot {
+      max-width: 692px;
       margin: 0 auto;
-      padding: 96px 44px 100px;
+      padding-left: 22px;
+      padding-right: 22px;
     }
 
-    .breadcrumb {
-      font-size: 12px;
-      color: var(--fg2);
-      letter-spacing: 0.04em;
-      margin-bottom: 14px;
-    }
+    header { border-bottom: 1px solid var(--rule); }
 
-    .breadcrumb a {
-      color: var(--fg2);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
-    }
-
-    .breadcrumb a:hover {
-      color: var(--fg);
-      border-color: var(--fg2);
-    }
-
-    .doc-title {
-      font-size: 30px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-
-    .doc-meta {
-      font-size: 13px;
-      color: var(--fg2);
-      margin-bottom: 36px;
-    }
-
-    /* the pasted document: headings, paragraphs and lists */
-    .doc-body h2 {
-      font-size: 18px;
-      font-weight: 600;
+    .bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      font-size: 17px;
+      font-weight: 700;
       letter-spacing: -0.01em;
-      margin: 36px 0 10px;
     }
 
-    .doc-body h3 {
-      font-size: 15px;
-      font-weight: 600;
-      margin: 24px 0 8px;
+    .bar img { width: 28px; height: 28px; display: block; }
+
+    main { padding-top: 56px; padding-bottom: 72px; }
+
+    h1 {
+      font-size: 40px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin: 0 0 10px;
     }
 
-    .doc-body p,
-    .doc-body li {
-      font-size: 15px;
-      line-height: 1.75;
+    .effective { color: var(--muted); margin: 0 0 36px; }
+    .effective em { font-style: normal; }
+
+    h2 {
+      font-size: 24px;
+      line-height: 1.17;
+      font-weight: 700;
+      letter-spacing: 0.009em;
+      margin: 44px 0 12px;
     }
 
-    .doc-body p { margin-bottom: 14px; }
-    .doc-body ul,
-    .doc-body ol { margin: 0 0 14px 20px; }
-    .doc-body a { color: var(--fg); }
-    .doc-body strong { font-weight: 600; }
+    p { margin: 0 0 16px; }
+    ul { margin: 0 0 16px; padding-left: 1.2em; }
+    li { margin: 0 0 8px; }
+    li::marker { color: var(--muted); }
+    strong { font-weight: 700; }
 
-    .doc-placeholder {
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      padding: 40px 24px;
-      text-align: center;
-      color: var(--fg2);
-      font-size: 13px;
-      font-style: italic;
-    }
+    a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
+    a:hover { text-decoration: underline; }
 
-    .doc-links {
+    footer { border-top: 1px solid var(--rule); }
+
+    .foot {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 48px;
+      gap: 6px 22px;
+      padding-top: 18px;
+      padding-bottom: 28px;
+      font-size: 12px;
+      line-height: 1.33;
+      letter-spacing: -0.01em;
     }
 
-    .doc-links a {
-      display: inline-block;
-      padding: 7px 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--fg);
-      text-decoration: none;
-      font-size: 13px;
-      transition: border-color 0.15s;
+    .foot a { color: var(--muted); }
+    .foot a[aria-current="page"] { color: var(--text); }
+
+    @media (max-width: 734px) {
+      main { padding-top: 40px; padding-bottom: 56px; }
+      h1 { font-size: 32px; line-height: 1.125; }
+      h2 { font-size: 21px; line-height: 1.19; margin-top: 36px; }
     }
 
-    .doc-links a:hover { border-color: var(--fg2); }
-
-    @media (max-width: 700px) {
-      nav { padding: 0 16px; }
-      main { padding: 84px 22px 80px; }
-      .doc-title { font-size: 24px; }
-    }
-
-    @media (max-width: 520px) {
-      main { padding: 76px 16px 60px; }
-      .doc-title { font-size: 22px; }
-      .doc-body p,
-      .doc-body li { font-size: 14px; }
+    @media print {
+      header, footer { display: none; }
+      main { padding: 0; max-width: none; }
+      a { color: inherit; }
     }
   </style>
 </head>
 
 <body>
-
-  <nav>
-    <div class="nav-left">
-      <a class="nav-name" href="/">mauro brito</a>
-    </div>
-    <div class="nav-center">
-      <a class="nav-link" href="/project/scrolled">&larr; scrolled</a>
-    </div>
-    <div class="nav-right">
-      <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
-    </div>
-  </nav>
+  <header>
+    <div class="bar"><img src="data:image/png;base64,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" alt="" width="28" height="28"><span>Scrolled</span></div>
+  </header>
 
   <main>
-    <div class="breadcrumb">
-      <a href="/#projects">projects</a> &nbsp;/&nbsp; <a href="/project/scrolled">scrolled</a> &nbsp;/&nbsp; <span>terms of use</span>
-    </div>
-    <h1 class="doc-title">Terms of Use</h1>
-    <!-- set the date when the terms go up, e.g. "last updated October 1, 2026" -->
-    <div class="doc-meta">Scrolled for iOS · last updated: not yet</div>
-
-    <article class="doc-body">
-      <!-- ================================================================
-           SCROLLED TERMS OF USE: the full text goes here, replacing the
-           placeholder div below. Use <h2> for sections, <p> for paragraphs
-           and <ul>/<li> for lists; the styles above already cover them.
-           ================================================================ -->
-      <div class="doc-placeholder">the terms of use go here. they'll be up before scrolled launches.</div>
+    <article>
+      <h1>Scrolled Terms of Use</h1>
+      <p class="effective"><em>Effective date: September 25, 2026</em></p>
+      <p>These terms are an agreement between you and Mauro Brito (&#8220;we&#8221;, &#8220;us&#8221;, &#8220;our&#8221;) about your use of Scrolled, our iPhone app, together with its widgets and extensions. By downloading or using Scrolled, you agree to them. If you don't agree, please don't use Scrolled.</p>
+      <p>Our Privacy Policy (<a href="/scrolled/privacy">www.maurobrito.me/scrolled/privacy</a>) explains how Scrolled handles your information.</p>
+      <h2>1. How these terms fit with Apple's</h2>
+      <p>You get Scrolled from Apple's App Store, so your licence to use it is granted under Apple's standard <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Licensed Application End User License Agreement</a> (the &#8220;Apple EULA&#8221;), which forms part of these terms. These terms add to the Apple EULA. If anything here conflicts with the Apple EULA, the Apple EULA applies. Your use of the App Store itself is covered by Apple's own terms.</p>
+      <h2>2. Who can use Scrolled</h2>
+      <p>You must be at least 13 years old, and old enough to use the services you open in Scrolled where you live. If you're under 18 (or under the age of majority where you live), you need a parent's or guardian's permission to use Scrolled and to buy a plan, and they accept these terms on your behalf.</p>
+      <h2>3. What Scrolled does</h2>
+      <p>Scrolled helps you spend less time on endless feeds. It:</p>
+      <ul>
+        <li>shows the websites of Instagram, TikTok, YouTube, X, Reddit and Facebook inside the app, and ends the feed when your daily allowance is used up;</li>
+        <li>can block the real apps and websites you choose, using Apple's Screen Time;</li>
+        <li>offers optional stricter settings, such as hard mode and uninstall protection;</li>
+        <li>shows stats and estimates about your time.</li>
+      </ul>
+      <p>We may change, add or remove features over time.</p>
+      <h2>4. Your licence</h2>
+      <p>As long as you follow these terms and the Apple EULA, you may use Scrolled on Apple devices you own or control, for your own personal, non-commercial use. Scrolled's design, code, text and artwork belong to us or our licensors, and the licence doesn't give you ownership of any of it. You may not:</p>
+      <ul>
+        <li>copy, modify or distribute Scrolled, or make works based on it, except as the law allows;</li>
+        <li>reverse engineer or decompile Scrolled, or try to extract its source code, except where the law allows it despite this restriction;</li>
+        <li>get around Scrolled's purchase checks, or use its paid features without a plan;</li>
+        <li>rent, lease, sell or sublicense Scrolled.</li>
+      </ul>
+      <h2>5. Plans, free trials and payment</h2>
+      <p>After setup, Scrolled needs a paid plan to use. Plans may include:</p>
+      <ul>
+        <li><strong>monthly</strong> and <strong>yearly</strong> subscriptions, which renew automatically; and</li>
+        <li>a <strong>lifetime</strong> one-time purchase, which never renews.</li>
+      </ul>
+      <p>The yearly plan may come with a free trial for eligible Apple IDs. The price, the length of any trial and what each plan includes are shown in the app before you buy, in your local currency, and may vary by country.</p>
+      <ul>
+        <li><strong>Payment.</strong> Payment is charged to your Apple ID when you confirm the purchase, or when a free trial ends.</li>
+        <li><strong>Auto-renewal.</strong> Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. The renewal is charged within the 24 hours before the period ends.</li>
+        <li><strong>Free trials.</strong> To avoid being charged, cancel at least 24 hours before the trial ends. If notifications are allowed, Scrolled tries to remind you before the trial ends, but the reminder is a courtesy; cancelling in time is up to you. Where applicable, any unused part of a free trial ends when you buy a subscription.</li>
+        <li><strong>Cancelling.</strong> Manage or cancel your subscription in your iPhone's Settings, under your Apple ID, then Subscriptions. Deleting Scrolled doesn't cancel a subscription. If you cancel, you keep access until the end of the period you've already paid for.</li>
+        <li><strong>Refunds.</strong> Apple handles all payments and refunds under its own policies, and we can't issue refunds ourselves. You can ask Apple for a refund at <a href="https://reportaproblem.apple.com">reportaproblem.apple.com</a>.</li>
+        <li><strong>Price changes.</strong> If a subscription's price changes, Apple will tell you in advance and, where required, ask for your consent, under Apple's rules.</li>
+        <li><strong>Restoring.</strong> If you reinstall Scrolled or move to a new iPhone, use &#8220;restore purchases&#8221; in the app while signed in with the same Apple ID.</li>
+      </ul>
+      <p>When a subscription ends or a purchase is refunded, Scrolled asks you to choose a plan again before you can keep using it.</p>
+      <h2>6. Third-party services</h2>
+      <p>Scrolled is an independent app. <strong>It is not affiliated with, endorsed by or sponsored by Instagram, Facebook or Meta, TikTok, YouTube or Google, X, or Reddit.</strong> Their names are trademarks of their owners and are used only to identify their services.</p>
+      <p>When you use these services in Scrolled, you're using their websites with your own accounts:</p>
+      <ul>
+        <li>You must follow their terms and rules. Your accounts, your content and your relationship with each service are between you and that service.</li>
+        <li>We don't control or check their content, and we're not responsible for their content, their availability, or what they do with your information.</li>
+        <li>Scrolled changes how their pages look and behave on your device. These services change their websites often, and a change on their side can stop a Scrolled feature working, partly or completely, without warning. They may also choose to limit access through apps like Scrolled. We'll try to keep Scrolled working, but we can't promise that any service will keep working in it.</li>
+        <li>Things you save or copy from these services, such as images, may be protected by other people's rights. It's up to you to use them lawfully.</li>
+      </ul>
+      <p>Links in these services can take you to other websites. We're not responsible for those websites either.</p>
+      <h2>7. Blocking and Screen Time</h2>
+      <p>Scrolled's blocking is done by Apple's Screen Time. Scrolled asks iOS to apply it, and iOS decides how it works. That means:</p>
+      <ul>
+        <li><strong>It isn't guaranteed.</strong> Blocking can fail or be bypassed, for example through iOS settings, a restore or reset of the device, an iOS update, a Screen Time error, or a change Apple makes. iOS also limits how many apps and websites can be blocked at once.</li>
+        <li><strong>iOS stays in charge.</strong> Screen Time permissions are controlled by iOS, and the device's owner can withdraw Scrolled's permission there, which removes Scrolled's restrictions.</li>
+        <li><strong>It's for your own device.</strong> Scrolled's blocking is a tool to help you with your own habits. It isn't a parental control or a way to control someone else's device, and you shouldn't rely on it where a failure could cause harm.</li>
+      </ul>
+      <h2>8. Hard mode and uninstall protection</h2>
+      <p>These settings are optional, and they only turn on when you choose them.</p>
+      <ul>
+        <li><strong>Hard mode</strong> makes turning blocking off slow on purpose. While it's on, you can add apps to your block list but not remove them, and turning blocking or hard mode off means typing a sentence and then waiting 24 hours. Blocking stays on while you wait.</li>
+        <li><strong>Uninstall protection</strong> asks iOS to stop apps from being deleted, so Scrolled can't be deleted to skip the wait. It comes on with hard mode, and can also be turned on by itself. iOS applies this setting to the whole device, so while it's on, <strong>other apps may not be deletable either</strong>.</li>
+        <li>You turn these on yourself, and you accept these effects when you do. Scrolled has no servers, so we can't shorten the wait or switch these settings off for you. Before turning them on, make sure you won't need to delete apps or change your blocking for the next day or so.</li>
+      </ul>
+      <h2>9. Not medical advice</h2>
+      <p>Scrolled is a self-help tool for managing your screen time. It isn't a medical device, and it doesn't give medical, psychological or other professional advice. The figures it shows, such as the life calendar, &#8220;time kept&#8221; and estimates of hours, are rough estimates based on your answers, Screen Time and published averages, not facts about your life. If you're worried about your wellbeing or your phone use, please talk to a qualified professional. If you're in crisis, contact your local emergency services.</p>
+      <h2>10. Acceptable use</h2>
+      <p>Don't use Scrolled to:</p>
+      <ul>
+        <li>break the law, or anyone else's rights;</li>
+        <li>break the terms of the services you open in it, or to scrape, automate or overload them;</li>
+        <li>harass, harm or monitor anyone, or restrict someone else's device without their permission;</li>
+        <li>interfere with Scrolled or get around its paywall.</li>
+      </ul>
+      <h2>11. Feedback</h2>
+      <p>If you send us ideas or feedback, we may use them to improve Scrolled without owing you anything for them.</p>
+      <h2>12. Disclaimers</h2>
+      <p>We work hard on Scrolled, but it's provided &#8220;as is&#8221; and &#8220;as available&#8221;. To the fullest extent the law allows, we make no promises or warranties about it, express or implied, including that it will be uninterrupted or error-free, that it will work with any third-party service, or that it will reduce your screen time or meet your goals, and we disclaim the implied warranties of merchantability, fitness for a particular purpose and non-infringement. Some places don't allow these exclusions, so some of them may not apply to you.</p>
+      <h2>13. Limitation of liability</h2>
+      <p>To the fullest extent the law allows:</p>
+      <ul>
+        <li>we're not liable for any indirect, incidental, special, consequential or punitive damages, or for lost data, lost profits, or losses caused by third-party services, by blocking that fails, or by settings you chose, such as hard mode or uninstall protection; and</li>
+        <li>our total liability for all claims relating to Scrolled is limited to the greater of the amount you paid for Scrolled in the 12 months before the claim and US$50.</li>
+      </ul>
+      <p>Nothing in these terms limits liability that can't be limited by law (for example, for death or personal injury caused by negligence, or for fraud), or takes away rights you have as a consumer under the law where you live.</p>
+      <h2>14. Ending</h2>
+      <p>You can stop using Scrolled at any time by deleting it; remember to cancel any subscription through Apple too. If you seriously or repeatedly break these terms, your licence ends. Parts of these terms that by their nature should continue after that (such as the disclaimers, the limits of liability and governing law) will continue.</p>
+      <h2>15. Changes to these terms</h2>
+      <p>We may update these terms when Scrolled or the law changes. We'll update the effective date at the top, and for significant changes we'll let you know in the app or on this page before they take effect. If you keep using Scrolled after that, the updated terms apply. If you don't agree with them, stop using Scrolled and cancel your subscription.</p>
+      <h2>16. Governing law and disputes</h2>
+      <p>These terms are governed by the laws of the State of Texas, United States, without regard to its conflict-of-law rules. If you have a problem with Scrolled, please contact us first; most things can be sorted out by email. If we can't resolve it within 30 days, the dispute will be handled by the courts of the State of Texas, United States. If the law where you live gives you the right to bring a claim in your local courts or under your local law, you keep that right.</p>
+      <h2>17. Apple</h2>
+      <p>These terms are between you and us, not Apple. In line with Apple's requirements:</p>
+      <ul>
+        <li>Apple is not responsible for Scrolled or its content.</li>
+        <li>Your licence is limited to using Scrolled on Apple-branded products you own or control, as allowed by the usage rules in Apple's Media Services Terms and Conditions (including through Family Sharing, where available).</li>
+        <li>We, not Apple, are solely responsible for maintaining and supporting Scrolled. Apple has no obligation to provide any maintenance or support for it.</li>
+        <li>If Scrolled fails to meet any warranty that applies to it, you can tell Apple, and Apple will refund the purchase price, if any. To the fullest extent the law allows, Apple has no other warranty obligation for Scrolled, and any other claims, losses, liabilities, damages, costs or expenses caused by a failure to meet a warranty are our responsibility, to the extent these terms don't exclude them.</li>
+        <li>We, not Apple, are responsible for handling any claims by you or anyone else relating to Scrolled or your use of it, including product liability claims, claims that Scrolled fails to meet a legal or regulatory requirement, and claims under consumer protection, privacy or similar laws.</li>
+        <li>If anyone claims that Scrolled or your use of it infringes their intellectual property rights, we, not Apple, are solely responsible for investigating, defending, settling and discharging that claim.</li>
+        <li>You confirm that you are not located in a country that is subject to a US Government embargo or that the US Government has designated as a &#8220;terrorist supporting&#8221; country, and that you are not on any US Government list of prohibited or restricted parties.</li>
+        <li>You must comply with any third-party terms that apply when you use Scrolled, such as your mobile carrier's terms and the terms of the services you open in Scrolled.</li>
+        <li>Apple and its subsidiaries are third-party beneficiaries of these terms, and once you accept them, Apple has the right (and is deemed to have accepted the right) to enforce them against you as a third-party beneficiary.</li>
+      </ul>
+      <p>Questions, complaints or claims about Scrolled should be sent to us, using the details below.</p>
+      <h2>18. General</h2>
+      <p>If any part of these terms can't be enforced, the rest still applies. If we don't enforce something straight away, we haven't given up our right to do so later. You may not transfer your rights under these terms. We may transfer ours to someone who takes over Scrolled, as long as your rights aren't reduced. These terms, the Apple EULA and our Privacy Policy are the whole agreement between you and us about Scrolled.</p>
+      <h2>19. Contact</h2>
+      <ul>
+        <li>Email: <a href="mailto:scrolledhelp@gmail.com">scrolledhelp@gmail.com</a></li>
+      </ul>
     </article>
-
-    <div class="doc-links">
-      <a href="/scrolled/privacy">privacy policy</a>
-      <a href="/project/scrolled">about scrolled</a>
-    </div>
   </main>
 
-  <script>
-    // theme: same key as the rest of the site so the toggle carries across pages
-    (function () {
-      const root = document.documentElement;
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', next);
-        try { localStorage.setItem('mb_theme', next); } catch (_) { }
-      });
-    })();
-  </script>
-  <script src="/site.js"></script>
+  <footer>
+    <nav class="foot" aria-label="Scrolled legal">
+      <a href="/scrolled/privacy">Privacy Policy</a>
+      <a href="/scrolled/terms" aria-current="page">Terms of Use</a>
+      <a href="mailto:scrolledhelp@gmail.com">scrolledhelp@gmail.com</a>
+    </nav>
+  </footer>
 </body>
 
 </html>

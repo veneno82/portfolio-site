@@ -160,6 +160,19 @@
     } catch (_) { /* network/decode failure: keep the static GIF link */ }
   }
 
+  // ── Redo on cmd/ctrl+y ────────────────────────────────────────────────────
+  // Browsers on a mac only redo with cmd+shift+z (cmd+y opens history in
+  // Chrome, ctrl+y yanks), so text fields and editable areas take y as well.
+  // Handlers with their own stack (the todo list) run first and win.
+  document.addEventListener('keydown', e => {
+    if (e.defaultPrevented || !(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+    if (e.key.toLowerCase() !== 'y') return;
+    const t = e.target;
+    if (!t || !(t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+    document.execCommand('redo');
+  });
+
   // Boot
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => { initTerminal(); initFavicon(); });
