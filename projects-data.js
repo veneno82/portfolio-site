@@ -1,7 +1,47 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
+window.PROJECT_ORDER = ['scrolled', 'gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
 
 window.PROJECTS = {
+  // An app, not a board: no `pcb`, so the card shows `previewImg` and the
+  // detail page shows `screens` (a row of phone screenshots) instead of a 3D model.
+  scrolled: {
+    name: 'Scrolled',
+    previewImg: 'project%20media/scrolled%20preview.png',
+    previewFit: 'contain',
+    meta: 'Swift, SwiftUI, Screen Time API · Summer 2026, ongoing',
+    desc: 'An iPhone app that gives your endless feeds an ending.',
+    longDesc: [
+      "Scrolled is an iPhone app that makes short form feeds actually end. Movies and books have an ending, short video feeds don't. In Scrolled you open Instagram, TikTok, YouTube, X, Reddit or Facebook in a built in browser that counts every clip you get through against a daily allowance you pick during setup. Once it's spent, the feed stops on an \"all caught up\" screen and that's it for the day.",
+      "By default the allowance is shared between all of them on purpose, so running out on Instagram can't just send you over to TikTok. After the first week you can lower it whenever you want but only raise it once a week, since the moment you want more clips is right after your feed runs out.",
+      "So you can't just open the real apps instead, Scrolled can also block them with Apple's Screen Time API (you pick which ones). The real app gets a custom block screen that points you back to Scrolled. You can unlock it for 1 to 5 minutes when you actually need it, and there's an optional hard mode where turning blocking off takes 24 hours.",
+      "The onboarding ended up being the biggest part of the app, more than a third of all the Swift. It's around 20 screens, and most of them run on your own numbers: you scroll a little feed that actually has a bottom, put in your real Screen Time hours, and see how much of your free time they eat up on a \"your life in weeks\" calendar. Near the end you make a pinky promise by holding down a pad, and the paywall right after it is built out of your own answers instead of testimonials or countdown timers.",
+      "Some other stuff in it:",
+      [
+        'A streak for opening the app every day, with nine tiers from spark to celestial, each with its own animated scene drawn in code',
+        'A stats page that only shows what the app actually measured, plus how much time you kept for yourself',
+        'Four themes, including an adaptive one with an animated Metal shader background in the colors of whatever feed you pick, plus a grayscale mode that turns the whole app, feeds included, black and white',
+        'Home screen widgets that show how many clips you have left',
+        'A Shortcuts and Siri action that opens a feed in Scrolled'
+      ],
+      "It started in July as an Expo/React Native prototype, and in August I ported the whole thing to native Swift. It's built in SwiftUI (with UIKit only where it has to bridge, like the web view) with zero third party packages, and it's split into the app plus 7 extensions (Screen Time, widgets and the share sheet among them). Scrolled has no servers or analytics of its own, and nothing you do in it gets sent to me. It's not on the App Store yet.",
+      "Scrolled isn't affiliated with or endorsed by any of the apps it works with. Their names and logos belong to their owners."
+    ],
+    screens: [
+      { kind: 'image', src: 'project%20media/scrolled%20home.jpg',      name: 'Home',                 caption: "today's clips on the ring." },
+      { kind: 'video', src: 'project%20media/scrolled%20streak.mp4',    name: 'Streak',               caption: 'every tier has its own scene, drawn in code.', poster: 'project%20media/scrolled%20streak%20poster.jpg' },
+      { kind: 'image', src: 'project%20media/scrolled%20welcome.jpg',   name: 'First screen',         caption: 'where the onboarding starts.' },
+      { kind: 'image', src: 'project%20media/scrolled%20when.jpg',      name: 'When does it get you', caption: 'six rooms, one for each part of the day.' },
+      { kind: 'image', src: 'project%20media/scrolled%20calendar.jpg',  name: 'Your life in weeks',   caption: 'one dot per week, one row per year.' },
+      { kind: 'image', src: 'project%20media/scrolled%20allowance.jpg', name: 'How much is a day',    caption: 'picking the daily allowance.' },
+      { kind: 'image', src: 'project%20media/scrolled%20promise.jpg',   name: 'Pinky promise',        caption: 'hold the pad to make it.' },
+      { kind: 'image', src: 'project%20media/scrolled%20caught%20up.jpg', name: 'The ending',         caption: 'the paywall shows how a feed ends.' }
+    ],
+    legal: [
+      { label: 'Terms of Use',   href: '/scrolled/terms',   caption: 'coming before launch.' },
+      { label: 'Privacy Policy', href: '/scrolled/privacy', caption: 'coming before launch.' }
+    ]
+  },
+
   dime: {
     name: 'Dime (Inverted Pendulum)',
     previewImg: 'project%20media/dimepic.png',
