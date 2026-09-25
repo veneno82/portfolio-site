@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Use | Scrolled</title>
+  <meta name="description" content="Terms of use for Scrolled, the iOS app by Mauro Brito.">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <base href="/">
+  <script>
+    try { if (localStorage.getItem('mb_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (_) { }
+  </script>
+  <style>
+    :root {
+      --fg: #141414;
+      --fg2: #4a4a50;
+      --border: rgba(0, 0, 0, 0.10);
+      --surface: rgba(0, 0, 0, 0.04);
+      --nav-bg: rgba(255, 255, 255, 0.78);
+      --paper: #fdfdfb;
+    }
+
+    [data-theme="dark"] {
+      --fg: #f0f0f2;
+      --fg2: #b8b8bc;
+      --border: rgba(255, 255, 255, 0.10);
+      --surface: rgba(255, 255, 255, 0.04);
+      --nav-bg: rgba(5, 5, 5, 0.80);
+      --paper: #0e0e10;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--fg);
+      background: var(--paper);
+      font-size: 15px;
+      line-height: 1.65;
+      transition: background 0.35s, color 0.35s;
+      min-height: 100vh;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 36px;
+      height: 52px;
+      background: var(--nav-bg);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.35s, border-color 0.35s;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-center { display: flex; align-items: center; gap: 22px; justify-content: center; }
+    .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+
+    .nav-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: var(--fg2);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.15s;
+    }
+
+    .nav-link:hover { color: var(--fg); }
+
+    .pill-toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.25s, border-color 0.25s;
+      flex-shrink: 0;
+    }
+
+    .pill-toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--fg2);
+      top: 3px;
+      left: 3px;
+      transition: transform 0.25s, background 0.25s;
+    }
+
+    [data-theme="dark"] .pill-toggle::after {
+      transform: translateX(24px);
+      background: var(--fg);
+    }
+
+    .pill-toggle:hover::after { background: var(--fg); }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 96px 44px 100px;
+    }
+
+    .breadcrumb {
+      font-size: 12px;
+      color: var(--fg2);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+
+    .breadcrumb a {
+      color: var(--fg2);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--fg);
+      border-color: var(--fg2);
+    }
+
+    .doc-title {
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .doc-meta {
+      font-size: 13px;
+      color: var(--fg2);
+      margin-bottom: 36px;
+    }
+
+    /* the pasted document: headings, paragraphs and lists */
+    .doc-body h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 36px 0 10px;
+    }
+
+    .doc-body h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+    }
+
+    .doc-body p,
+    .doc-body li {
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    .doc-body p { margin-bottom: 14px; }
+    .doc-body ul,
+    .doc-body ol { margin: 0 0 14px 20px; }
+    .doc-body a { color: var(--fg); }
+    .doc-body strong { font-weight: 600; }
+
+    .doc-placeholder {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--fg2);
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    .doc-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 48px;
+    }
+
+    .doc-links a {
+      display: inline-block;
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 13px;
+      transition: border-color 0.15s;
+    }
+
+    .doc-links a:hover { border-color: var(--fg2); }
+
+    @media (max-width: 700px) {
+      nav { padding: 0 16px; }
+      main { padding: 84px 22px 80px; }
+      .doc-title { font-size: 24px; }
+    }
+
+    @media (max-width: 520px) {
+      main { padding: 76px 16px 60px; }
+      .doc-title { font-size: 22px; }
+      .doc-body p,
+      .doc-body li { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-name" href="/">mauro brito</a>
+    </div>
+    <div class="nav-center">
+      <a class="nav-link" href="/project/scrolled">&larr; scrolled</a>
+    </div>
+    <div class="nav-right">
+      <button class="pill-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="/#projects">projects</a> &nbsp;/&nbsp; <a href="/project/scrolled">scrolled</a> &nbsp;/&nbsp; <span>terms of use</span>
+    </div>
+    <h1 class="doc-title">Terms of Use</h1>
+    <!-- set the date when the terms go up, e.g. "last updated October 1, 2026" -->
+    <div class="doc-meta">Scrolled for iOS · last updated: not yet</div>
+
+    <article class="doc-body">
+      <!-- ================================================================
+           SCROLLED TERMS OF USE: the full text goes here, replacing the
+           placeholder div below. Use <h2> for sections, <p> for paragraphs
+           and <ul>/<li> for lists; the styles above already cover them.
+           ================================================================ -->
+      <div class="doc-placeholder">the terms of use go here. they'll be up before scrolled launches.</div>
+    </article>
+
+    <div class="doc-links">
+      <a href="/scrolled/privacy">privacy policy</a>
+      <a href="/project/scrolled">about scrolled</a>
+    </div>
+  </main>
+
+  <script>
+    // theme: same key as the rest of the site so the toggle carries across pages
+    (function () {
+      const root = document.documentElement;
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('mb_theme', next); } catch (_) { }
+      });
+    })();
+  </script>
+  <script src="/site.js"></script>
+</body>
+
+</html>

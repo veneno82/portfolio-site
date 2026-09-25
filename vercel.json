@@ -5,13 +5,18 @@
     { "source": "/tool/notes", "destination": "/notes.html" },
     { "source": "/archive", "destination": "/archive.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/project/:id", "destination": "/project.html?id=:id" }
+    { "source": "/project/:id", "destination": "/project.html?id=:id" },
+    { "source": "/scrolled/privacy", "destination": "/scrolled-privacy.html" },
+    { "source": "/scrolled/terms", "destination": "/scrolled-terms.html" }
   ],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": false },
     { "source": "/notes.html", "destination": "/tool/notes", "permanent": true },
     { "source": "/archive.html", "destination": "/archive", "permanent": false },
-    { "source": "/login.html", "destination": "/login", "permanent": false }
+    { "source": "/login.html", "destination": "/login", "permanent": false },
+    { "source": "/scrolled-privacy.html", "destination": "/scrolled/privacy", "permanent": false },
+    { "source": "/scrolled-terms.html", "destination": "/scrolled/terms", "permanent": false },
+    { "source": "/scrolled", "destination": "/project/scrolled", "permanent": false }
   ],
   "headers": [
     {

@@ -233,6 +233,138 @@
       cursor: grabbing;
     }
 
+    /* ── App screens row (stands in for the 3d viewer on app projects) ──── */
+    .screens-wrap {
+      position: relative;
+      /* bleed past main's side padding so the row scrolls edge to edge */
+      margin: 0 -44px;
+    }
+
+    .screens-strip {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding: 0 44px;
+      padding: 4px 44px 16px;
+      scrollbar-width: none;
+      outline: none;
+    }
+
+    .screens-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .screen-item {
+      flex: 0 0 auto;
+      width: 196px;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: zoom-in;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .screen-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1170 / 2532;
+      margin-bottom: 9px;
+      border-radius: 26px;
+      overflow: hidden;
+      background: #131315;
+      border: 1px solid var(--border);
+      box-shadow: 0 14px 32px -22px rgba(0, 0, 0, 0.55);
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    }
+
+    .screen-item:hover .screen-frame,
+    .screen-item:focus-visible .screen-frame {
+      transform: translateY(-3px);
+      border-color: var(--fg2);
+      box-shadow: 0 18px 36px -22px rgba(0, 0, 0, 0.6);
+    }
+
+    .screen-frame img,
+    .screen-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .screen-name {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      padding: 0 2px;
+    }
+
+    .screen-caption {
+      font-size: 12px;
+      color: var(--fg2);
+      line-height: 1.5;
+      padding: 0 2px;
+    }
+
+    .screens-nav {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 44px;
+    }
+
+    .screens-wrap.fits .screens-nav {
+      display: none;
+    }
+
+    .screens-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.15s, opacity 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .screens-btn:hover:not(:disabled) {
+      border-color: var(--fg2);
+    }
+
+    .screens-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    /* on a phone screen the tag sits where the notch is, clear of the app's own title */
+    .screen-frame .media-type-tag {
+      top: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+    }
+
+    .lightbox-media[data-type="screen"] {
+      border-radius: 22px;
+    }
+
     .section-label {
       font-family: 'Open Sauce Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
       font-size: 13px;
@@ -707,6 +839,11 @@
         height: 340px;
       }
 
+      .screens-wrap { margin: 0 -22px; }
+      .screens-strip { padding: 4px 22px 14px; scroll-padding: 0 22px; gap: 14px; }
+      .screens-nav { padding: 0 22px; }
+      .screen-item { width: 172px; }
+
       .proj-title {
         font-size: 24px;
       }
@@ -720,6 +857,12 @@
       .viewer-wrap {
         height: 260px;
       }
+
+      .screens-wrap { margin: 0 -16px; }
+      .screens-strip { padding: 4px 16px 14px; scroll-padding: 0 16px; gap: 12px; }
+      .screens-nav { display: none; }
+      .screen-item { width: 150px; }
+      .screen-frame { border-radius: 20px; }
 
       .proj-title {
         font-size: 20px;
@@ -922,7 +1065,6 @@
 
   <main id="main"></main>
 
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <script src="projects-data.js"></script>
   <script>
     // theme: persist + follow notes' key so toggling stays consistent across pages
@@ -989,171 +1131,274 @@
       head.querySelector('.proj-desc').textContent = proj.desc;
       main.appendChild(head);
 
-      // ---- interactive viewer (model-viewer) ----
-      const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-      const viewerWrap = document.createElement('div');
-      viewerWrap.className = 'viewer-wrap';
+      // images + videos go into one viewer queue, from the screens row and the media grid alike
+      const lightboxItems = [];
+      let openLightbox = () => {};
+      const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
 
-      const enterFsIcon = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/></svg>';
-      const exitFsIcon  = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1v4H1M13 5H9V1M9 13v-4h4M1 9h4v4"/></svg>';
+      // ---- app screens: a row of phone screenshots (and clips) in place of the 3d model ----
+      function renderScreens(list) {
+        const wrap = document.createElement('div');
+        wrap.className = 'screens-wrap';
+        wrap.innerHTML =
+          '<div class="screens-strip" role="group" aria-label="app screens"></div>' +
+          '<div class="screens-nav">' +
+          '<button class="screens-btn" data-dir="-1" aria-label="Previous screens">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L4 8l6 6"/></svg>' +
+          '</button>' +
+          '<button class="screens-btn" data-dir="1" aria-label="Next screens">' +
+          '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l6 6-6 6"/></svg>' +
+          '</button>' +
+          '</div>';
+        const strip = wrap.querySelector('.screens-strip');
 
-      viewerWrap.innerHTML =
-        '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
-        '<model-viewer id="mv" camera-controls shadow-intensity="0.8" exposure="1.05"' +
-        ' camera-orbit="' + (proj.pcb.mvCameraOrbit || '45deg 72deg auto') + '"' +
-        (proj.pcb.mvCameraTarget ? ' camera-target="' + proj.pcb.mvCameraTarget + '"' : '') +
-        (proj.pcb.mvMinOrbit ? ' min-camera-orbit="' + proj.pcb.mvMinOrbit + '"' : '') +
-        ' loading="eager"' +
-        ' style="width:100%;height:100%;background-color:transparent;">' +
-        '<div slot="progress-bar" style="display:none;"></div>' +
-        '</model-viewer>' +
-        '<div class="viewer-reticle" id="mvReticle"></div>' +
-        '<div class="viewer-coords" id="mvCoords"></div>' +
-        '<button class="viewer-fs-btn" id="mvFsBtn" title="Fullscreen" aria-label="Toggle fullscreen">' + enterFsIcon + '</button>' +
-        '<div class="mv-loader" id="mvLoader">' +
-        '<div class="mv-loader-ast"><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span></div>' +
-        '<div class="mv-loader-text">loading 3d model<span class="mv-loader-dots"></span></div>' +
-        '<div class="mv-loader-pct">0%</div>' +
-        '</div>';
+        list.forEach(s => {
+          const isVid = s.kind === 'video';
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'screen-item';
+          item.innerHTML = '<div class="screen-frame"></div><span class="screen-name"></span><span class="screen-caption"></span>';
+          item.querySelector('.screen-name').textContent = s.name || '';
+          item.querySelector('.screen-caption').textContent = s.caption || '';
+          const frame = item.querySelector('.screen-frame');
 
-      main.appendChild(viewerWrap);
-
-      const mv       = document.getElementById('mv');
-      const mvLoader = document.getElementById('mvLoader');
-      const mvPct    = mvLoader && mvLoader.querySelector('.mv-loader-pct');
-      const mvReticle = document.getElementById('mvReticle');
-      const mvCoords  = document.getElementById('mvCoords');
-      const mvFsBtn   = document.getElementById('mvFsBtn');
-
-      // Choose model source: mobile → draco&mobile GLB, desktop → full-quality GLB
-      const modelSrc = touchDevice
-        ? (proj.pcb.glbPath || '')
-        : (proj.pcb.glbPathFull || proj.pcb.glbPath || '');
-      if (modelSrc && mv) mv.setAttribute('src', modelSrc);
-
-      // Loading progress + hide loader on complete
-      if (mv && mvLoader) {
-        mv.addEventListener('progress', function (e) {
-          if (mvPct && e.detail && e.detail.totalProgress !== undefined) {
-            mvPct.textContent = Math.round(e.detail.totalProgress * 100) + '%';
+          if (isVid) {
+            // the poster in the row; a muted preview plays while it's hovered or focused
+            // (never on its own, and not at all with reduced motion); the lightbox gets controls
+            const v = document.createElement('video');
+            v.muted = true;
+            v.loop = true;
+            v.playsInline = true;
+            v.preload = 'none';
+            if (s.poster) v.poster = s.poster;
+            v.src = s.src;
+            if (!reduceMotion && canHover) {
+              const start = () => { v.play().catch(() => {}); };
+              const stop = () => { v.pause(); };
+              item.addEventListener('mouseenter', start);
+              item.addEventListener('focus', start);
+              item.addEventListener('mouseleave', stop);
+              item.addEventListener('blur', stop);
+            }
+            frame.appendChild(v);
+            const tag = document.createElement('span');
+            tag.className = 'media-type-tag';
+            tag.textContent = 'video';
+            frame.appendChild(tag);
+          } else {
+            const img = document.createElement('img');
+            img.src = s.src;
+            img.alt = '';
+            img.loading = 'lazy';
+            frame.appendChild(img);
           }
+
+          const idx = lightboxItems.length;
+          lightboxItems.push({
+            kind: isVid ? 'video' : 'image', src: s.src,
+            name: s.name, caption: s.caption, poster: s.poster,
+            type: 'screen'
+          });
+          item.addEventListener('click', () => openLightbox(idx));
+          strip.appendChild(item);
         });
-        function dismissLoader() {
-          mvLoader.classList.add('hidden');
-          setTimeout(function () { if (mvLoader.parentNode) mvLoader.parentNode.removeChild(mvLoader); }, 450);
+
+        // arrows page the row by roughly its visible width; hidden when it all fits
+        const btns = wrap.querySelectorAll('.screens-btn');
+        function syncBtns() {
+          const max = strip.scrollWidth - strip.clientWidth;
+          wrap.classList.toggle('fits', max <= 2);
+          const focused = document.activeElement;
+          btns[0].disabled = strip.scrollLeft <= 2;
+          btns[1].disabled = strip.scrollLeft >= max - 2;
+          if (focused === btns[0] && btns[0].disabled && !btns[1].disabled) btns[1].focus();
+          if (focused === btns[1] && btns[1].disabled && !btns[0].disabled) btns[0].focus();
         }
-        mv.addEventListener('load',  dismissLoader);
-        mv.addEventListener('error', dismissLoader);
+        btns.forEach(b => b.addEventListener('click', () => {
+          strip.scrollBy({ left: Number(b.dataset.dir) * strip.clientWidth * 0.8, behavior: reduceMotion ? 'auto' : 'smooth' });
+        }));
+        strip.addEventListener('scroll', syncBtns, { passive: true });
+        window.addEventListener('resize', syncBtns);
+        main.appendChild(wrap);
+        syncBtns();
       }
 
-      // Camera coordinates overlay (bottom-left): updates on every camera-change
-      if (mv && mvCoords) {
-        function updateCoords() {
-          try {
-            var o = mv.getCameraOrbit();
-            var t = mv.getCameraTarget();
-            var deg = function (r) { return (r * 180 / Math.PI).toFixed(1); };
-            mvCoords.textContent =
-              'θ ' + deg(o.theta) + '°  φ ' + deg(o.phi) + '°  r ' + o.radius.toFixed(2) + 'm\n' +
-              't  ' + t.x.toFixed(2) + '  ' + t.y.toFixed(2) + '  ' + t.z.toFixed(2);
-          } catch (_) {}
+      // ---- interactive viewer (model-viewer) for hardware, a row of screens for apps ----
+      const screens = Array.isArray(proj.screens) ? proj.screens : [];
+      if (proj.pcb) {
+        // model-viewer only loads for projects with a model; the element upgrades once it defines itself
+        const mvScript = document.createElement('script');
+        mvScript.type = 'module';
+        mvScript.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+        document.head.appendChild(mvScript);
+        const touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+        const viewerWrap = document.createElement('div');
+        viewerWrap.className = 'viewer-wrap';
+
+        const enterFsIcon = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/></svg>';
+        const exitFsIcon  = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1v4H1M13 5H9V1M9 13v-4h4M1 9h4v4"/></svg>';
+
+        viewerWrap.innerHTML =
+          '<div class="viewer-hint">drag to rotate · ' + (touchDevice ? 'pinch to zoom' : 'scroll to zoom') + '</div>' +
+          '<model-viewer id="mv" camera-controls shadow-intensity="0.8" exposure="1.05"' +
+          ' camera-orbit="' + (proj.pcb.mvCameraOrbit || '45deg 72deg auto') + '"' +
+          (proj.pcb.mvCameraTarget ? ' camera-target="' + proj.pcb.mvCameraTarget + '"' : '') +
+          (proj.pcb.mvMinOrbit ? ' min-camera-orbit="' + proj.pcb.mvMinOrbit + '"' : '') +
+          ' loading="eager"' +
+          ' style="width:100%;height:100%;background-color:transparent;">' +
+          '<div slot="progress-bar" style="display:none;"></div>' +
+          '</model-viewer>' +
+          '<div class="viewer-reticle" id="mvReticle"></div>' +
+          '<div class="viewer-coords" id="mvCoords"></div>' +
+          '<button class="viewer-fs-btn" id="mvFsBtn" title="Fullscreen" aria-label="Toggle fullscreen">' + enterFsIcon + '</button>' +
+          '<div class="mv-loader" id="mvLoader">' +
+          '<div class="mv-loader-ast"><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span><span class="mv-loader-arm"></span></div>' +
+          '<div class="mv-loader-text">loading 3d model<span class="mv-loader-dots"></span></div>' +
+          '<div class="mv-loader-pct">0%</div>' +
+          '</div>';
+
+        main.appendChild(viewerWrap);
+
+        const mv       = document.getElementById('mv');
+        const mvLoader = document.getElementById('mvLoader');
+        const mvPct    = mvLoader && mvLoader.querySelector('.mv-loader-pct');
+        const mvReticle = document.getElementById('mvReticle');
+        const mvCoords  = document.getElementById('mvCoords');
+        const mvFsBtn   = document.getElementById('mvFsBtn');
+
+        // Choose model source: mobile → draco&mobile GLB, desktop → full-quality GLB
+        const modelSrc = touchDevice
+          ? (proj.pcb.glbPath || '')
+          : (proj.pcb.glbPathFull || proj.pcb.glbPath || '');
+        if (modelSrc && mv) mv.setAttribute('src', modelSrc);
+
+        // Loading progress + hide loader on complete
+        if (mv && mvLoader) {
+          mv.addEventListener('progress', function (e) {
+            if (mvPct && e.detail && e.detail.totalProgress !== undefined) {
+              mvPct.textContent = Math.round(e.detail.totalProgress * 100) + '%';
+            }
+          });
+          function dismissLoader() {
+            mvLoader.classList.add('hidden');
+            setTimeout(function () { if (mvLoader.parentNode) mvLoader.parentNode.removeChild(mvLoader); }, 450);
+          }
+          mv.addEventListener('load',  dismissLoader);
+          mv.addEventListener('error', dismissLoader);
         }
-        mv.addEventListener('camera-change', updateCoords);
-        mv.addEventListener('load', updateCoords);
-      }
 
-      // Pointer-tracking reticle (crosshair follows cursor inside viewer)
-      if (mvReticle) {
-        viewerWrap.addEventListener('pointermove', function (e) {
-          var rect = viewerWrap.getBoundingClientRect();
-          mvReticle.style.left = (e.clientX - rect.left) + 'px';
-          mvReticle.style.top  = (e.clientY - rect.top)  + 'px';
-          mvReticle.classList.add('visible');
-        });
-        viewerWrap.addEventListener('pointerleave', function () {
-          mvReticle.classList.remove('visible');
-        });
-      }
+        // Camera coordinates overlay (bottom-left): updates on every camera-change
+        if (mv && mvCoords) {
+          function updateCoords() {
+            try {
+              var o = mv.getCameraOrbit();
+              var t = mv.getCameraTarget();
+              var deg = function (r) { return (r * 180 / Math.PI).toFixed(1); };
+              mvCoords.textContent =
+                'θ ' + deg(o.theta) + '°  φ ' + deg(o.phi) + '°  r ' + o.radius.toFixed(2) + 'm\n' +
+                't  ' + t.x.toFixed(2) + '  ' + t.y.toFixed(2) + '  ' + t.z.toFixed(2);
+            } catch (_) {}
+          }
+          mv.addEventListener('camera-change', updateCoords);
+          mv.addEventListener('load', updateCoords);
+        }
 
-      // "Expand" toggle: overlay that fills the browser viewport instead of
-      // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
-      if (mvFsBtn) {
-        function setExpanded(on) {
-          // Mask the one-frame WebGL canvas resize lag: without this, model-viewer's
-          // drawing buffer is still at the old size when the wrapper jumps to/from
-          // fullscreen, so the scene briefly renders into a corner of the new box.
-          if (mv) mv.style.visibility = 'hidden';
-
-          viewerWrap.classList.toggle('expanded', on);
-          // Lock scroll on both <html> and <body> so the page scrollbar fully
-          // disappears (body alone leaves a gutter in some browsers).
-          document.documentElement.style.overflow = on ? 'hidden' : '';
-          document.body.style.overflow           = on ? 'hidden' : '';
-          mvFsBtn.innerHTML = on ? exitFsIcon : enterFsIcon;
-
-          // Two RAFs: first lets layout/ResizeObserver fire, second lets the
-          // renderer paint at the new size before we reveal.
-          requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-              if (mv) mv.style.visibility = '';
-            });
+        // Pointer-tracking reticle (crosshair follows cursor inside viewer)
+        if (mvReticle) {
+          viewerWrap.addEventListener('pointermove', function (e) {
+            var rect = viewerWrap.getBoundingClientRect();
+            mvReticle.style.left = (e.clientX - rect.left) + 'px';
+            mvReticle.style.top  = (e.clientY - rect.top)  + 'px';
+            mvReticle.classList.add('visible');
+          });
+          viewerWrap.addEventListener('pointerleave', function () {
+            mvReticle.classList.remove('visible');
           });
         }
-        mvFsBtn.addEventListener('click', function () {
-          setExpanded(!viewerWrap.classList.contains('expanded'));
-        });
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && viewerWrap.classList.contains('expanded')) {
-            setExpanded(false);
+
+        // "Expand" toggle: overlay that fills the browser viewport instead of
+        // triggering the OS-level Fullscreen API. Keeps Chrome's tabs/UI visible.
+        if (mvFsBtn) {
+          function setExpanded(on) {
+            // Mask the one-frame WebGL canvas resize lag: without this, model-viewer's
+            // drawing buffer is still at the old size when the wrapper jumps to/from
+            // fullscreen, so the scene briefly renders into a corner of the new box.
+            if (mv) mv.style.visibility = 'hidden';
+
+            viewerWrap.classList.toggle('expanded', on);
+            // Lock scroll on both <html> and <body> so the page scrollbar fully
+            // disappears (body alone leaves a gutter in some browsers).
+            document.documentElement.style.overflow = on ? 'hidden' : '';
+            document.body.style.overflow           = on ? 'hidden' : '';
+            mvFsBtn.innerHTML = on ? exitFsIcon : enterFsIcon;
+
+            // Two RAFs: first lets layout/ResizeObserver fire, second lets the
+            // renderer paint at the new size before we reveal.
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                if (mv) mv.style.visibility = '';
+              });
+            });
           }
-        });
-      }
-
-      // PCB-style rotation inertia: EMA velocity + 0.94 friction (from pcb.js)
-      if (mv) {
-        var _isDrag = false, _pTheta = null, _pPhi = null, _pTime = null;
-        var _vTheta = 0, _vPhi = 0;
-        var _oTheta, _oPhi, _oRad, _iRaf = null;
-
-        function _sync() {
-          try { var o = mv.getCameraOrbit(); _oTheta = o.theta; _oPhi = o.phi; _oRad = o.radius; } catch (_) {}
+          mvFsBtn.addEventListener('click', function () {
+            setExpanded(!viewerWrap.classList.contains('expanded'));
+          });
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && viewerWrap.classList.contains('expanded')) {
+              setExpanded(false);
+            }
+          });
         }
 
-        mv.addEventListener('load', _sync);
+        // PCB-style rotation inertia: EMA velocity + 0.94 friction (from pcb.js)
+        if (mv) {
+          var _isDrag = false, _pTheta = null, _pPhi = null, _pTime = null;
+          var _vTheta = 0, _vPhi = 0;
+          var _oTheta, _oPhi, _oRad, _iRaf = null;
 
-        mv.addEventListener('pointerdown', function () {
-          _isDrag = true; _vTheta = 0; _vPhi = 0; _pTheta = null;
-          if (_iRaf) { cancelAnimationFrame(_iRaf); _iRaf = null; }
-        });
-
-        mv.addEventListener('camera-change', function () {
-          _sync();
-          if (!_isDrag) return;
-          var now = performance.now();
-          if (_pTheta !== null) {
-            var dt = Math.max(1, now - _pTime);
-            _vTheta = _vTheta * 0.55 + ((_oTheta - _pTheta) / dt) * 0.45;
-            _vPhi   = _vPhi   * 0.55 + ((_oPhi   - _pPhi)   / dt) * 0.45;
+          function _sync() {
+            try { var o = mv.getCameraOrbit(); _oTheta = o.theta; _oPhi = o.phi; _oRad = o.radius; } catch (_) {}
           }
-          _pTheta = _oTheta; _pPhi = _oPhi; _pTime = now;
-        });
 
-        mv.addEventListener('pointerup', function () {
-          _isDrag = false; _sync();
-          var _last = performance.now();
-          (function _tick() {
-            var now = performance.now(), dt = Math.min(48, now - _last); _last = now;
-            var f = Math.pow(0.94, dt / 16);
-            _vTheta *= f; _vPhi *= f;
-            if (Math.abs(_vTheta) < 1e-7) _vTheta = 0;
-            if (Math.abs(_vPhi)   < 1e-7) _vPhi   = 0;
-            if (!_vTheta && !_vPhi) { _iRaf = null; return; }
-            _oTheta += _vTheta * dt;
-            _oPhi    = Math.max(0.01, Math.min(Math.PI - 0.01, _oPhi + _vPhi * dt));
-            try { mv.setAttribute('camera-orbit', _oTheta + 'rad ' + _oPhi + 'rad ' + _oRad + 'm'); } catch (_) {}
-            _iRaf = requestAnimationFrame(_tick);
-          })();
-        });
+          mv.addEventListener('load', _sync);
+
+          mv.addEventListener('pointerdown', function () {
+            _isDrag = true; _vTheta = 0; _vPhi = 0; _pTheta = null;
+            if (_iRaf) { cancelAnimationFrame(_iRaf); _iRaf = null; }
+          });
+
+          mv.addEventListener('camera-change', function () {
+            _sync();
+            if (!_isDrag) return;
+            var now = performance.now();
+            if (_pTheta !== null) {
+              var dt = Math.max(1, now - _pTime);
+              _vTheta = _vTheta * 0.55 + ((_oTheta - _pTheta) / dt) * 0.45;
+              _vPhi   = _vPhi   * 0.55 + ((_oPhi   - _pPhi)   / dt) * 0.45;
+            }
+            _pTheta = _oTheta; _pPhi = _oPhi; _pTime = now;
+          });
+
+          mv.addEventListener('pointerup', function () {
+            _isDrag = false; _sync();
+            var _last = performance.now();
+            (function _tick() {
+              var now = performance.now(), dt = Math.min(48, now - _last); _last = now;
+              var f = Math.pow(0.94, dt / 16);
+              _vTheta *= f; _vPhi *= f;
+              if (Math.abs(_vTheta) < 1e-7) _vTheta = 0;
+              if (Math.abs(_vPhi)   < 1e-7) _vPhi   = 0;
+              if (!_vTheta && !_vPhi) { _iRaf = null; return; }
+              _oTheta += _vTheta * dt;
+              _oPhi    = Math.max(0.01, Math.min(Math.PI - 0.01, _oPhi + _vPhi * dt));
+              try { mv.setAttribute('camera-orbit', _oTheta + 'rad ' + _oPhi + 'rad ' + _oRad + 'm'); } catch (_) {}
+              _iRaf = requestAnimationFrame(_tick);
+            })();
+          });
+        }
+      } else if (screens.length) {
+        renderScreens(screens);
       }
 
       // ---- about ----
@@ -1196,25 +1441,50 @@
       }
       main.appendChild(aboutBlock);
 
-      // ---- files & media ----
-      const filesLabel = document.createElement('div');
-      filesLabel.className = 'section-label';
-      filesLabel.textContent = 'files & media';
-      main.appendChild(filesLabel);
+      // ---- legal (an app's terms of use, privacy policy) ----
+      if (Array.isArray(proj.legal) && proj.legal.length) {
+        const legalLabel = document.createElement('div');
+        legalLabel.className = 'section-label';
+        legalLabel.textContent = 'legal';
+        main.appendChild(legalLabel);
 
+        const legalGrid = document.createElement('div');
+        legalGrid.className = 'files-grid';
+        proj.legal.forEach(l => {
+          const a = document.createElement('a');
+          a.className = 'file-card';
+          a.href = l.href;
+          a.innerHTML = '<span class="file-type"></span><span class="file-name"></span><span class="file-caption"></span>';
+          a.querySelector('.file-type').textContent = l.type || 'document';
+          a.querySelector('.file-name').textContent = l.label;
+          a.querySelector('.file-caption').textContent = l.caption || '';
+          legalGrid.appendChild(a);
+        });
+        main.appendChild(legalGrid);
+      }
+
+      // ---- files & media ----
+      // (an app whose screens row already shows everything skips the empty-state section)
       const media = Array.isArray(proj.media) ? proj.media : [];
+      if (media.length || !screens.length) {
+        const filesLabel = document.createElement('div');
+        filesLabel.className = 'section-label';
+        filesLabel.textContent = 'files & media';
+        main.appendChild(filesLabel);
+      }
+
       if (!media.length) {
-        const empty = document.createElement('div');
-        empty.className = 'files-empty';
-        empty.textContent = 'no files uploaded yet: schematics, photos, and demo clips coming soon.';
-        main.appendChild(empty);
+        if (!screens.length) {
+          const empty = document.createElement('div');
+          empty.className = 'files-empty';
+          empty.textContent = 'no files uploaded yet: schematics, photos, and demo clips coming soon.';
+          main.appendChild(empty);
+        }
       } else {
         const mediaGrid = document.createElement('div');
         mediaGrid.className = 'media-grid';
 
         const playSvg = '<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M5 3.5v11l9-5.5z"/></svg>';
-
-        const lightboxItems = []; // images + videos go into the viewer queue
 
         media.forEach(m => {
           const kind   = m.kind || (m.youtube ? 'video' : (m.src || m.url ? 'image' : 'file'));
@@ -1287,127 +1557,139 @@
         });
 
         main.appendChild(mediaGrid);
+      }
 
-        // ---- lightbox ----
-        let openLightbox = () => {};
-        if (lightboxItems.length) {
-          const lb = document.createElement('div');
-          lb.className = 'lightbox';
-          lb.innerHTML =
-            '<div class="lightbox-counter"></div>' +
-            '<button class="lightbox-btn lightbox-close" aria-label="Close">' +
-            '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>' +
-            '</button>' +
-            '<div class="lightbox-stage">' +
-            '<div class="lightbox-mediaWrap"></div>' +
-            '<div class="lightbox-caption"></div>' +
-            '</div>' +
-            '<button class="lightbox-btn lightbox-prev" aria-label="Previous">' +
-            '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L4 8l6 6"/></svg>' +
-            '</button>' +
-            '<button class="lightbox-btn lightbox-next" aria-label="Next">' +
-            '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l6 6-6 6"/></svg>' +
-            '</button>';
-          document.body.appendChild(lb);
+      // ---- lightbox ----
+      if (lightboxItems.length) {
+        const lb = document.createElement('div');
+        lb.className = 'lightbox';
+        lb.setAttribute('role', 'dialog');
+        lb.setAttribute('aria-modal', 'true');
+        lb.setAttribute('aria-label', 'media viewer');
+        lb.innerHTML =
+          '<div class="lightbox-counter"></div>' +
+          '<button class="lightbox-btn lightbox-close" aria-label="Close">' +
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>' +
+          '</button>' +
+          '<div class="lightbox-stage">' +
+          '<div class="lightbox-mediaWrap"></div>' +
+          '<div class="lightbox-caption"></div>' +
+          '</div>' +
+          '<button class="lightbox-btn lightbox-prev" aria-label="Previous">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L4 8l6 6"/></svg>' +
+          '</button>' +
+          '<button class="lightbox-btn lightbox-next" aria-label="Next">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l6 6-6 6"/></svg>' +
+          '</button>';
+        document.body.appendChild(lb);
 
-          const lbWrap    = lb.querySelector('.lightbox-mediaWrap');
-          const lbCap     = lb.querySelector('.lightbox-caption');
-          const lbCounter = lb.querySelector('.lightbox-counter');
-          const btnPrev   = lb.querySelector('.lightbox-prev');
-          const btnNext   = lb.querySelector('.lightbox-next');
-          const btnClose  = lb.querySelector('.lightbox-close');
-          let curIdx = 0;
+        const lbWrap    = lb.querySelector('.lightbox-mediaWrap');
+        const lbCap     = lb.querySelector('.lightbox-caption');
+        const lbCounter = lb.querySelector('.lightbox-counter');
+        const btnPrev   = lb.querySelector('.lightbox-prev');
+        const btnNext   = lb.querySelector('.lightbox-next');
+        const btnClose  = lb.querySelector('.lightbox-close');
+        let curIdx = 0;
 
-          function render(i) {
-            curIdx = (i + lightboxItems.length) % lightboxItems.length;
-            const it = lightboxItems[curIdx];
-            lbWrap.innerHTML = '';
-            let el;
-            if (it.kind === 'video') {
-              if (it.youtube) {
-                el = document.createElement('iframe');
-                el.src = 'https://www.youtube.com/embed/' + it.youtube + '?autoplay=1';
-                el.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-                el.setAttribute('allowfullscreen', '');
-                el.style.aspectRatio = '16 / 9';
-                el.style.width  = 'min(1400px, 90vw)';
-                el.style.height = 'auto';
-                el.style.maxHeight = 'calc(100vh - 160px)';
-                el.style.border = '0';
-                el.style.borderRadius = '6px';
-                el.style.background = '#000';
-              } else {
-                el = document.createElement('video');
-                el.controls    = true;
-                el.autoplay    = true;
-                el.playsInline = true;
-                if (it.poster) el.poster = it.poster;
-                el.src = it.src;
-              }
+        function render(i) {
+          curIdx = (i + lightboxItems.length) % lightboxItems.length;
+          const it = lightboxItems[curIdx];
+          lbWrap.innerHTML = '';
+          let el;
+          if (it.kind === 'video') {
+            if (it.youtube) {
+              el = document.createElement('iframe');
+              el.src = 'https://www.youtube.com/embed/' + it.youtube + '?autoplay=1';
+              el.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+              el.setAttribute('allowfullscreen', '');
+              el.style.aspectRatio = '16 / 9';
+              el.style.width  = 'min(1400px, 90vw)';
+              el.style.height = 'auto';
+              el.style.maxHeight = 'calc(100vh - 160px)';
+              el.style.border = '0';
+              el.style.borderRadius = '6px';
+              el.style.background = '#000';
             } else {
-              el = document.createElement('img');
+              el = document.createElement('video');
+              el.controls    = true;
+              el.autoplay    = true;
+              el.playsInline = true;
+              if (it.poster) el.poster = it.poster;
               el.src = it.src;
-              el.alt = it.name || '';
-              if (it.type) el.dataset.type = it.type;
             }
-            el.className = 'lightbox-media';
-            lbWrap.appendChild(el);
-            lbCap.innerHTML = '';
-            if (it.name)    { const s = document.createElement('strong'); s.textContent = it.name; lbCap.appendChild(s); }
-            if (it.caption) { lbCap.appendChild(document.createTextNode(it.caption)); }
-            lbCounter.textContent =
-              (curIdx + 1).toString().padStart(2, '0') + ' / ' +
-              lightboxItems.length.toString().padStart(2, '0');
-            const single = lightboxItems.length < 2;
-            btnPrev.style.display = single ? 'none' : '';
-            btnNext.style.display = single ? 'none' : '';
-            lbCounter.style.display = single ? 'none' : '';
-            // Position buttons at the vertical center of the media element,
-            // not the viewport, the image is rarely at exactly 50vh.
-            alignBtns(el);
+          } else {
+            el = document.createElement('img');
+            el.src = it.src;
+            el.alt = it.name || '';
           }
-
-          function alignBtns(el) {
-            function place() {
-              const r = el.getBoundingClientRect();
-              if (r.height === 0) return;
-              const mid = r.top + r.height / 2;
-              btnPrev.style.top = mid + 'px';
-              btnNext.style.top = mid + 'px';
-            }
-            if (el.tagName === 'IMG' && !el.complete) {
-              el.addEventListener('load', place, { once: true });
-            } else {
-              requestAnimationFrame(place);
-            }
-          }
-          window.addEventListener('resize', function () {
-            const el = lbWrap.querySelector('.lightbox-media');
-            if (el) alignBtns(el);
-          });
-
-          openLightbox = function (i) {
-            render(i);
-            lb.classList.add('open');
-            document.body.style.overflow = 'hidden';
-          };
-          function closeLightbox() {
-            lb.classList.remove('open');
-            lbWrap.innerHTML = '';
-            document.body.style.overflow = '';
-          }
-
-          btnPrev.addEventListener('click', e => { e.stopPropagation(); render(curIdx - 1); });
-          btnNext.addEventListener('click', e => { e.stopPropagation(); render(curIdx + 1); });
-          btnClose.addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
-          lb.addEventListener('click', e => { if (e.target === lb || e.target === lb.querySelector('.lightbox-stage')) closeLightbox(); });
-          document.addEventListener('keydown', e => {
-            if (!lb.classList.contains('open')) return;
-            if (e.key === 'Escape')           closeLightbox();
-            else if (e.key === 'ArrowLeft')   render(curIdx - 1);
-            else if (e.key === 'ArrowRight')  render(curIdx + 1);
-          });
+          el.className = 'lightbox-media';
+          if (it.type) el.dataset.type = it.type;
+          lbWrap.appendChild(el);
+          lbCap.innerHTML = '';
+          if (it.name)    { const s = document.createElement('strong'); s.textContent = it.name; lbCap.appendChild(s); }
+          if (it.caption) { lbCap.appendChild(document.createTextNode(it.caption)); }
+          lbCounter.textContent =
+            (curIdx + 1).toString().padStart(2, '0') + ' / ' +
+            lightboxItems.length.toString().padStart(2, '0');
+          const single = lightboxItems.length < 2;
+          btnPrev.style.display = single ? 'none' : '';
+          btnNext.style.display = single ? 'none' : '';
+          lbCounter.style.display = single ? 'none' : '';
+          // Position buttons at the vertical center of the media element,
+          // not the viewport, the image is rarely at exactly 50vh.
+          alignBtns(el);
         }
+
+        function alignBtns(el) {
+          function place() {
+            const r = el.getBoundingClientRect();
+            if (r.height === 0) return;
+            const mid = r.top + r.height / 2;
+            btnPrev.style.top = mid + 'px';
+            btnNext.style.top = mid + 'px';
+          }
+          if (el.tagName === 'IMG' && !el.complete) {
+            el.addEventListener('load', place, { once: true });
+          } else {
+            requestAnimationFrame(place);
+          }
+        }
+        window.addEventListener('resize', function () {
+          const el = lbWrap.querySelector('.lightbox-media');
+          if (el) alignBtns(el);
+        });
+
+        // the page behind goes inert while the viewer is open, and focus comes back to whatever opened it
+        const behind = [main, document.querySelector('nav')];
+        let opener = null;
+        openLightbox = function (i) {
+          opener = document.activeElement;
+          document.querySelectorAll('.screen-frame video').forEach(v => v.pause());
+          render(i);
+          lb.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          behind.forEach(n => { if (n) n.inert = true; });
+          btnClose.focus();
+        };
+        function closeLightbox() {
+          lb.classList.remove('open');
+          lbWrap.innerHTML = '';
+          document.body.style.overflow = '';
+          behind.forEach(n => { if (n) n.inert = false; });
+          if (opener && typeof opener.focus === 'function') opener.focus({ preventScroll: true });
+          opener = null;
+        }
+
+        btnPrev.addEventListener('click', e => { e.stopPropagation(); render(curIdx - 1); });
+        btnNext.addEventListener('click', e => { e.stopPropagation(); render(curIdx + 1); });
+        btnClose.addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
+        lb.addEventListener('click', e => { if (e.target === lb || e.target === lb.querySelector('.lightbox-stage')) closeLightbox(); });
+        document.addEventListener('keydown', e => {
+          if (!lb.classList.contains('open')) return;
+          if (e.key === 'Escape')           closeLightbox();
+          else if (e.key === 'ArrowLeft')   { e.preventDefault(); render(curIdx - 1); }
+          else if (e.key === 'ArrowRight')  { e.preventDefault(); render(curIdx + 1); }
+        });
       }
     })();
   </script>
