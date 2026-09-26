@@ -1,7 +1,9 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['scrolled', 'gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
+// Scrolled is hidden until the app is out: put 'scrolled' back at the front and uncomment its entry below.
+window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
 
 window.PROJECTS = {
+  /* Hidden until Scrolled launches (its terms and privacy pages stay up at /scrolled/terms and /scrolled/privacy).
   // An app, not a board: no `pcb`, so the card shows `previewImg` and the
   // detail page shows `screens` (a row of phone screenshots) instead of a 3D model.
   scrolled: {
@@ -41,6 +43,7 @@ window.PROJECTS = {
       { label: 'Privacy Policy', href: '/scrolled/privacy', caption: 'effective september 25, 2026.' }
     ]
   },
+  */
 
   dime: {
     name: 'Dime (Inverted Pendulum)',
