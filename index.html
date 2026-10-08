@@ -380,6 +380,12 @@
 
     .visit-counter.counted {
       cursor: default;
+      color: var(--fg);
+      background: var(--surface);
+    }
+
+    .visit-counter.counted:hover {
+      border-color: var(--border);
     }
 
     /* the hint under the pill: on hover/focus, and for a moment after counting */
@@ -410,6 +416,22 @@
       transform: translate(-50%, 0);
     }
 
+    nav:has(.visit-counter:hover, .visit-counter:focus-visible, .visit-counter.tip-on) .palette-hint {
+      opacity: 0;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .visit-plus {
       position: absolute;
       left: calc(100% + 5px);
@@ -434,12 +456,21 @@
       white-space: nowrap;
     }
 
-    /* phones: the nav links are hidden, so the center column is just the
-       asterisk; dropping its gaps leaves room for the name and the counter */
-    @media (max-width: 520px) {
+    /* narrow screens: the name, the counter and the links don't all fit, so the
+       links go (as on phones) and the center column is just the asterisk */
+    @media (max-width: 760px) {
+      .nav-links-group { display: none; }
       .nav-center { gap: 0; }
       .nav-left { gap: 8px; }
+    }
+
+    @media (max-width: 520px) {
       .visit-counter { padding: 0 8px 0 7px; gap: 4px; font-size: 11.5px; }
+      /* tip hangs from the pill's left edge so it can't run off the screen */
+      .visit-counter::after { left: 0; transform: translate(0, -3px); }
+      .visit-counter:hover::after,
+      .visit-counter:focus-visible::after,
+      .visit-counter.tip-on::after { transform: translate(0, 0); }
     }
 
     /* a four-digit count drops the icon on phones so the bar never crowds */
@@ -890,6 +921,7 @@
         </svg>
         <span class="visit-num" id="visitNum">0</span>
       </button>
+      <span class="visually-hidden" id="visitStatus" aria-live="polite"></span>
     </div>
     <div class="nav-center">
       <div class="nav-links-group">
@@ -1495,6 +1527,7 @@
         btn.classList.toggle('wide', d.count >= 1000);
         const you = d.you;
         btn.classList.toggle('counted', !!you);
+        if (you) btn.setAttribute('aria-disabled', 'true'); else btn.removeAttribute('aria-disabled');
         btn.dataset.tip = you ? "you're visitor #" + you.toLocaleString() : 'count me in';
         btn.setAttribute('aria-label', d.count.toLocaleString() + ' visitors. ' +
           (you ? "you're visitor #" + you.toLocaleString() : 'click to count yourself in'));
@@ -1528,7 +1561,9 @@
               btn.appendChild(plus);
               setTimeout(() => plus.remove(), 900);
             }
-            if (r.status === 429) btn.dataset.tip = 'this network already counted a lot of people today';
+            if (r.status === 429) btn.dataset.tip = "this wifi's maxed out today";
+            const status = document.getElementById('visitStatus');
+            if (status) status.textContent = btn.dataset.tip;
             flashTip();
           }
         } catch (_) { }
