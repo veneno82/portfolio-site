@@ -1,5 +1,5 @@
 // Project data shared by portfolio.html (preview cards) and project.html (detail view).
-window.PROJECT_ORDER = ['scrolled', 'gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'comingsoon'];
+window.PROJECT_ORDER = ['gd', 'motor', 'sensor', 'pihole', 'dime', 'heart', 'scrolled', 'comingsoon'];
 
 window.PROJECTS = {
   // An app, not a board: no `pcb`, so the card shows `previewImg` and the
