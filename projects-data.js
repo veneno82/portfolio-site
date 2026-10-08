@@ -31,15 +31,11 @@ window.PROJECTS = {
       { label: 'getscrolled.app', href: 'https://getscrolled.app' }
     ],
     screens: [
-      { kind: 'image', src: 'project%20media/scrolled%20home.jpg',      name: 'Home',                 caption: "today's clips on the ring." },
-      { kind: 'video', src: 'project%20media/scrolled%20streak.mp4',    name: 'Streak',               caption: 'every tier has its own scene, drawn in code.', poster: 'project%20media/scrolled%20streak%20poster.jpg' },
-      { kind: 'image', src: 'project%20media/scrolled%20stats.jpg',     name: 'Stats',                caption: 'only what it measured, plus the time you kept.' },
-      { kind: 'image', src: 'project%20media/scrolled%20blocked.jpg',   name: 'Blocking',             caption: 'the real apps, shut with Screen Time.' },
-      { kind: 'image', src: 'project%20media/scrolled%20widgets.jpg',   name: 'Widgets',              caption: 'one tap from the home screen.' },
-      { kind: 'image', src: 'project%20media/scrolled%20when.jpg',      name: 'When does it get you', caption: 'six rooms, one for each part of the day.' },
-      { kind: 'image', src: 'project%20media/scrolled%20calendar.jpg',  name: 'Your life in weeks',   caption: 'one dot per week, one row per year.' },
-      { kind: 'image', src: 'project%20media/scrolled%20promise.jpg',   name: 'Pinky promise',        caption: 'hold the pad to make it.' },
-      { kind: 'image', src: 'project%20media/scrolled%20caught%20up.jpg', name: 'The ending',         caption: 'the paywall shows how a feed ends.' }
+      { kind: 'image', src: 'project%20media/scrolled%20home.jpg',          name: 'Home',          caption: "today's clips on the ring." },
+      { kind: 'image', src: 'project%20media/scrolled%20notifications.jpg', name: 'Notifications', caption: "instagram's notifications, without its feed." },
+      { kind: 'image', src: 'project%20media/scrolled%20feeds.jpg',         name: 'Feed switches', caption: 'every feed gets its own settings.' },
+      { kind: 'image', src: 'project%20media/scrolled%20blocked.jpg',       name: 'Blocking',      caption: 'the real apps, shut with Screen Time.' },
+      { kind: 'image', src: 'project%20media/scrolled%20streak.jpg',        name: 'Streak',        caption: 'nine tiers, each one drawn in code.' }
     ],
     legal: [
       { label: 'Terms of Use',   href: 'https://getscrolled.app/terms',   caption: 'on getscrolled.app.' },
