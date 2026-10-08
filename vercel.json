@@ -5,19 +5,19 @@
     { "source": "/tool/notes", "destination": "/notes.html" },
     { "source": "/archive", "destination": "/archive.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/project/:id", "destination": "/project.html?id=:id" },
-    { "source": "/scrolled/privacy", "destination": "/scrolled-privacy.html" },
-    { "source": "/scrolled/terms", "destination": "/scrolled-terms.html" },
-    { "source": "/scrolled/support", "destination": "/scrolled-support.html" }
+    { "source": "/project/:id", "destination": "/project.html?id=:id" }
   ],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": false },
     { "source": "/notes.html", "destination": "/tool/notes", "permanent": true },
     { "source": "/archive.html", "destination": "/archive", "permanent": false },
     { "source": "/login.html", "destination": "/login", "permanent": false },
-    { "source": "/scrolled-privacy.html", "destination": "/scrolled/privacy", "permanent": false },
-    { "source": "/scrolled-terms.html", "destination": "/scrolled/terms", "permanent": false },
-    { "source": "/scrolled-support.html", "destination": "/scrolled/support", "permanent": false }
+    { "source": "/scrolled/privacy", "destination": "https://getscrolled.app/privacy", "permanent": true },
+    { "source": "/scrolled/terms", "destination": "https://getscrolled.app/terms", "permanent": true },
+    { "source": "/scrolled/support", "destination": "https://getscrolled.app/support", "permanent": true },
+    { "source": "/scrolled-privacy.html", "destination": "https://getscrolled.app/privacy", "permanent": true },
+    { "source": "/scrolled-terms.html", "destination": "https://getscrolled.app/terms", "permanent": true },
+    { "source": "/scrolled-support.html", "destination": "https://getscrolled.app/support", "permanent": true }
   ],
   "headers": [
     {
