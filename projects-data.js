@@ -17,7 +17,7 @@ window.PROJECTS = {
       "The onboarding ended up being the biggest part of the app, more than a third of all the Swift. It's around 20 screens, and most of them run on your own numbers: you scroll a little feed that actually has a bottom, put in your real Screen Time hours, and see how much of your free time they eat up on a \"your life in weeks\" calendar. Near the end you make a pinky promise by holding down a pad, and the paywall right after it is built out of your own answers instead of testimonials or countdown timers.",
       "Some other stuff in it:",
       [
-        'A streak for opening the app every day, with nine tiers from spark to celestial, each with its own animated scene drawn in code',
+        'A streak for opening the app every day that climbs through tiers, each with its own animated scene drawn in code. Only the next one is shown, the rest stay hidden until you get there',
         'A stats page that only shows what the app actually measured, plus how much time you kept for yourself',
         'Four themes, including an adaptive one with an animated Metal shader background in the colors of whatever feed you pick, plus a grayscale mode that turns the whole app, feeds included, black and white',
         'Home screen widgets that show how many clips you have left',
@@ -35,7 +35,7 @@ window.PROJECTS = {
       { kind: 'image', src: 'project%20media/scrolled%20notifications.jpg', name: 'Notifications', caption: "instagram's notifications, without its feed." },
       { kind: 'image', src: 'project%20media/scrolled%20feeds.jpg',         name: 'Feed switches', caption: 'every feed gets its own settings.' },
       { kind: 'image', src: 'project%20media/scrolled%20blocked.jpg',       name: 'Blocking',      caption: 'the real apps, shut with Screen Time.' },
-      { kind: 'image', src: 'project%20media/scrolled%20streak.jpg',        name: 'Streak',        caption: 'nine tiers, each one drawn in code.' }
+      { kind: 'image', src: 'project%20media/scrolled%20streak.jpg',        name: 'Streak',        caption: 'only the next tier shows. the rest are a surprise.' }
     ],
     legal: [
       { label: 'Terms of Use',   href: 'https://getscrolled.app/terms',   caption: 'on getscrolled.app.' },
