@@ -324,7 +324,6 @@
       .palette-hint svg { width: 36px; height: 28px; }
     }
 
-    .palette-hint.gone,
     .palette-pop.open + .palette-hint {
       opacity: 0;
     }
@@ -1272,14 +1271,6 @@
           syncIcon();
         });
       }
-      // the doodle only makes sense at the top of the page
-      const paletteHint = document.getElementById('paletteHint');
-      if (paletteHint) {
-        const updateHint = () => paletteHint.classList.toggle('gone', window.scrollY > 40);
-        window.addEventListener('scroll', updateHint, { passive: true });
-        updateHint();
-      }
-
       if (paletteBtn && palettePop) {
         paletteBtn.addEventListener('click', e => {
           e.stopPropagation();
