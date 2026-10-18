@@ -33,13 +33,13 @@ window.PROJECTS = {
 
   dime: {
     name: 'Dime (Inverted Pendulum)',
-    previewImg: 'project%20media/dimepic.png',
+    previewImg: 'project%20media/dime-in-box.jpg',
     meta: 'C++, Raspberry Pi, ODrive · Summer 2024',
     desc: 'A two wheeled robot that balances itself using model predictive control.',
     longDesc: [
       "Dime is a two wheeled robot that balances itself. Instead of the usual PID loop it uses model predictive control (MPC), which basically looks a little bit into the future and picks the best move. It also runs on brushless drone motors instead of cheap DC motors, which makes it a lot more agile.",
       "The Pi reads the IMU and the gamepad, runs the controller 200 times a second, and tells the ODrive how much current to send to each motor. Everything mounts on a piece of 2040 V-slot aluminum cut to 250mm, with 3D printed mounts for the electronics.",
-      "Getting MPC right took forever. For a while a plain PID was honestly balancing it better, but once it was dialed in it could take a solid shove and settle right back without overshooting. It still has a tiny wobble when it's standing still that more tuning should fix.",
+      "Getting MPC right took forever. For a while a plain PID was honestly balancing it better, but once it was dialed in it could take a solid shove and settle right back without overshooting. It's not fully complete yet though, it still wobbles and has some jitter issues on some surfaces.",
       "The main hardware:",
       [
         'Raspberry Pi 3B',
@@ -53,7 +53,7 @@ window.PROJECTS = {
       ]
     ],
     media: [
-      { kind: 'image', type: 'photo',   src: 'project%20media/dimepic.png',         name: 'Dime, assembled',       caption: 'the finished robot.' },
+      { kind: 'image', type: 'photo',   src: 'project%20media/dime-in-box.jpg',     name: 'Dime, packed up',       caption: 'all of Dime, packed in a box.' },
       { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Exploded view diagram', caption: 'every part of the robot, pulled apart.', span: 'wide' }
     ],
     pcb: {
