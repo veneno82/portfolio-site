@@ -185,7 +185,7 @@ window.PROJECTS = {
     meta: 'KiCad, TMC2209',
     desc: 'A linear BLDC motor driver.',
     longDesc: [
-      "This is a linear BLDC motor driver. It uses a TMC2209 to handle the rotation (although there's a BA6406F-E2 in its place right now), and 3 AON6982's for each of the motor's stages.",
+      "This is a linear BLDC motor driver. It uses a TMC2209 to handle the rotation (although there's a BA6406F-E2 in its place right now), and 3 AON6982's for each phase.",
       "The main goal for this project was originally to control a high speed projectile mechanism that was unfortunately never built. Maybe one day."
     ],
     media: [
