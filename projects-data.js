@@ -39,8 +39,8 @@ window.PROJECTS = {
     longDesc: [
       "Dime is a two wheeled robot that balances itself. Instead of the usual PID loop it uses model predictive control (MPC), which basically looks a little bit into the future and picks the best move. It also runs on brushless drone motors instead of cheap DC motors, which makes it a lot more agile.",
       "The Pi reads the IMU, runs the controller 200 times a second, and tells the ODrive how much current to send to each motor. Everything mounts on a piece of 2040 V-slot aluminum cut to 250mm, with 3D printed mounts for the electronics.",
-      "Getting MPC just to function took forever, and a plain PID still balances it better. There's definitely some work to be done, it still wobbles and has some jitter issues on some surfaces.",
-      "I got the idea from my cousin's husband (he tutored me in high school, and now he's a friend too), who built a similar robot called Penny. Nickel sounded weird, so I went with Dime. The design itself is heavily inspired by a Backyard Robotics blog post on inverted pendulum robots.",
+      "Getting MPC just to function took forever, and a plain PID still balances it better. There's definitely some work to be done, it still wobbles and has some jitter issues on some surfaces, however it can still take some Boston Dynamics style abuse and settle back without overshooting sometimes.",
+      "I got the idea from one of my friends and tutor, who built a similar robot called Penny. Nickel sounded weird, so I went with Dime. The design itself is heavily inspired by a Backyard Robotics blog post on inverted pendulum robots.",
       "The main hardware:",
       [
         'Raspberry Pi 3B',
