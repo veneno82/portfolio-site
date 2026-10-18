@@ -294,9 +294,8 @@ window.PROJECTS = {
     desc: 'A heart shaped PCB with 20 charlieplexed LEDs.',
     longDesc: [
       "Just a heart shaped PCB with 20 charlieplexed LEDs driven by an ATtiny45.",
-      "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors.",
-      "Here's the trick. An LED is a one way street: electricity only goes through it in one direction. So between any two pins you can put two LEDs facing opposite ways. Turn pin A on and pin B off and the first LED lights up. Flip them and the second one lights up instead. Every other pin gets switched to a \"not connected\" mode so it stays out of the way.",
-      "Do that for every pair of pins and 5 pins gets you 20 LEDs. Only one LED is ever actually on, but the chip flips between them so fast that your eyes see them all lit up at once. Pretty cool stuff."
+      "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors. An LED only lights up when current flows through it one way, so you can put two LEDs back to back between any two pins. To turn one on, I set one pin high, one pin low, and switch every other pin to an input so it basically disappears from the circuit.",
+      "With n pins you get n × (n - 1) LEDs, so 5 pins gets you all 20. Only one LED is actually on at any moment, but the ATtiny cycles through them so fast that your eyes see them all lit up at once. Pretty cool stuff."
     ],
     media: [
       { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Flashing the MCU', caption: "didn't have a flasher (or whatever they're called), so I had to solder 30 AWG wire to each individual pin. honestly harder than the project itself, but now I'm pretty good at soldering.", poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
