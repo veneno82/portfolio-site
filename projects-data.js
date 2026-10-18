@@ -9,22 +9,12 @@ window.PROJECTS = {
     previewImg: 'project%20media/scrolled%20preview.png',
     previewFit: 'contain',
     meta: 'Swift, SwiftUI, Screen Time API · Summer–Fall 2026',
-    desc: 'An iPhone app that gives your endless feeds an ending. Out now on the App Store.',
+    desc: 'An iPhone app that stops your feeds after a set number of clips. Out on the App Store.',
     longDesc: [
-      "Scrolled is an iPhone app that makes short form feeds actually end. Movies and books have an ending, short video feeds don't. In Scrolled you open Instagram, TikTok, YouTube, X, Reddit or Facebook in a built in browser that counts every clip you get through against a daily allowance you pick during setup. Once it's spent, the feed stops on an \"all caught up\" screen and that's it for the day.",
-      "By default the allowance is shared between all of them on purpose, so running out on Instagram can't just send you over to TikTok. After the first week you can lower it whenever you want but only raise it once a week, since the moment you want more clips is right after your feed runs out.",
-      "So you can't just open the real apps instead, Scrolled can also block them with Apple's Screen Time API (you pick which ones). The real app gets a custom block screen that points you back to Scrolled. You can unlock it for a few minutes when you actually need it, and there's an optional hard mode where turning blocking off takes 24 hours.",
-      "The onboarding ended up being the biggest part of the app, more than a third of all the Swift. It's around 20 screens, and most of them run on your own numbers: you scroll a little feed that actually has a bottom, put in your real Screen Time hours, and see how much of your free time they eat up on a \"your life in weeks\" calendar. Near the end you make a pinky promise by holding down a pad, and the paywall right after it is built out of your own answers instead of testimonials or countdown timers.",
-      "Some other stuff in it:",
-      [
-        'A streak for opening the app every day that climbs through tiers, each with its own animated scene drawn in code. Only the next one is shown, the rest stay hidden until you get there',
-        'A stats page that only shows what the app actually measured, plus how much time you kept for yourself',
-        'Four themes, including an adaptive one with an animated Metal shader background in the colors of whatever feed you pick, plus a grayscale mode that turns the whole app, feeds included, black and white',
-        'Home screen widgets that show how many clips you have left',
-        'A Shortcuts and Siri action that opens a feed in Scrolled'
-      ],
-      "It started in July as an Expo/React Native prototype, and in August I ported the whole thing to native Swift. It's built in SwiftUI (with UIKit only where it has to bridge, like the web view) with zero third party packages, and it's split into the app plus 7 extensions (Screen Time, widgets and the share sheet among them). Scrolled has no servers or analytics of its own, and nothing you do in it gets sent to me. It came out on the App Store on October 4, 2026.",
-      "Scrolled isn't affiliated with or endorsed by any of the apps it works with. Their names and logos belong to their owners."
+      "Scrolled is an iPhone app that makes social media feeds end. You open Instagram, TikTok, YouTube, X, Reddit or Facebook inside the app and pick how many clips you get a day. Once you hit that number the feed stops until tomorrow, but your DMs still work.",
+      "It can also block the real apps with Apple's Screen Time API so you can't just go around it. If you really need one, you can unlock it for a few minutes.",
+      "I started it in July as a React Native prototype and rewrote it in native Swift in August. It's all SwiftUI with no third party packages and no server, so nothing you do in it leaves your phone. It came out on the App Store on October 4, 2026.",
+      "Scrolled isn't affiliated with any of the apps it works with."
     ],
     links: [
       { label: 'get it on the app store', href: 'https://apps.apple.com/us/app/scrolled-limit-reels-tiktok/id6815860237' },
