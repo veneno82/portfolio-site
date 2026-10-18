@@ -104,7 +104,7 @@ window.PROJECTS = {
     media: [
       { kind: 'video', type: 'video', youtube: 'lGc8fcmo3Zs', name: 'Gameplay demo', caption: 'the showcase, plus a top 100 player beating my hardest level.', span: 'wide' },
       { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%20png.jpg', name: 'Gameplay on hardware', caption: 'a level running on the LCD.' },
-      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%202.jpg',   name: 'Showcase day',         caption: 'at the ECE319K showcase.' }
+      { kind: 'image', type: 'photo', src: 'project%20media/GD%20pic%202.jpg',   name: 'The setup',            caption: '' }
     ],
     pcb: {
       glbPath: 'models%20(draco%26mobile)/Gd%203D%20model(blended)glb.glb',
