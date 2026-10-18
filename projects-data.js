@@ -38,8 +38,9 @@ window.PROJECTS = {
     desc: 'A two wheeled robot that balances itself using model predictive control.',
     longDesc: [
       "Dime is a two wheeled robot that balances itself. Instead of the usual PID loop it uses model predictive control (MPC), which basically looks a little bit into the future and picks the best move. It also runs on brushless drone motors instead of cheap DC motors, which makes it a lot more agile.",
-      "The Pi reads the IMU and the gamepad, runs the controller 200 times a second, and tells the ODrive how much current to send to each motor. Everything mounts on a piece of 2040 V-slot aluminum cut to 250mm, with 3D printed mounts for the electronics.",
-      "Getting MPC right took forever. For a while a plain PID was honestly balancing it better, but once it was dialed in it could take some Boston Dynamics type abuse and settle right back without overshooting. It's not fully complete yet though, it still wobbles and has some jitter issues on some surfaces.",
+      "The Pi reads the IMU, runs the controller 200 times a second, and tells the ODrive how much current to send to each motor. Everything mounts on a piece of 2040 V-slot aluminum cut to 250mm, with 3D printed mounts for the electronics.",
+      "Getting MPC just to function took forever, and a plain PID still balances it better. There's definitely some work to be done, it still wobbles and has some jitter issues on some surfaces.",
+      "I got the idea from my cousin's husband (he tutored me in high school, and now he's a friend too), who built a similar robot called Penny. Nickel sounded weird, so I went with Dime. The design itself is heavily inspired by a Backyard Robotics blog post on inverted pendulum robots.",
       "The main hardware:",
       [
         'Raspberry Pi 3B',
@@ -47,13 +48,12 @@ window.PROJECTS = {
         'BMI160 IMU',
         '2x Tarot 4108 brushless motors',
         '2x CUI AMT102 encoders',
-        'Logitech F710 wireless gamepad',
         '5V 3A BEC to power the Pi',
         '2040 V-slot aluminum frame with 3D printed mounts'
       ]
     ],
     media: [
-      { kind: 'image', type: 'photo',   src: 'project%20media/dime-in-box.jpg',     name: 'Dime, packed up',       caption: 'all of Dime, packed in a box.' },
+      { kind: 'image', type: 'photo',   src: 'project%20media/dime-in-box.jpg',     name: 'Dime',                  caption: '' },
       { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Exploded view diagram', caption: 'every part of the robot, pulled apart.', span: 'wide' }
     ],
     pcb: {
@@ -294,14 +294,15 @@ window.PROJECTS = {
     desc: 'A heart shaped PCB with 20 charlieplexed LEDs.',
     longDesc: [
       "Just a heart shaped PCB with 20 charlieplexed LEDs driven by an ATtiny45.",
-      "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors. An LED only lights up when current flows through it one way, so you can put two LEDs back to back between any two pins. To turn one on, I set one pin high, one pin low, and switch every other pin to an input so it basically disappears from the circuit.",
-      "With n pins you get n × (n - 1) LEDs, so 5 pins gets you all 20. Only one LED is actually on at any moment, but the ATtiny cycles through them so fast that your eyes see them all lit up at once. Pretty cool stuff."
+      "Charlieplexing is a very clever way to control a large number of LEDs with very few MCU pins and resistors.",
+      "Here's the trick. An LED is a one way street: electricity only goes through it in one direction. So between any two pins you can put two LEDs facing opposite ways. Turn pin A on and pin B off and the first LED lights up. Flip them and the second one lights up instead. Every other pin gets switched to a \"not connected\" mode so it stays out of the way.",
+      "Do that for every pair of pins and 5 pins gets you 20 LEDs. Only one LED is ever actually on, but the chip flips between them so fast that your eyes see them all lit up at once. Pretty cool stuff."
     ],
     media: [
-      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Animation demo', caption: 'the board running.', poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
-      { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'Lit up',         caption: 'all 20 LEDs on.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render, front',  caption: 'KiCad render, front side.' },
-      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render, back',   caption: 'KiCad render, back side.' },
+      { kind: 'video', type: 'video',     src: 'project%20media/heartpcb%20vid.mp4',                    name: 'Flashing the MCU', caption: "didn't have a flasher (or whatever they're called), so I had to solder 30 AWG wire to each individual pin. honestly harder than the project itself, but now I'm pretty good at soldering.", poster: 'project%20media/heartpcb%20vid%20poster.jpg', span: 'wide' },
+      { kind: 'image', type: 'photo',     src: 'project%20media/heartpcb%20pic%20png.png',              name: 'PCB',            caption: 'all 20 LEDs on.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20IMAGE.png',         name: 'Render, front',  caption: 'Blender render, front side.' },
+      { kind: 'image', type: 'render',    src: 'project%20media/heartpcb%20render%20(back)%20IMAGE.png', name: 'Render, back',   caption: 'Blender render, back side.' },
       { kind: 'image', type: 'schematic', src: 'project%20media/heartpcb%20schematic.png',               name: 'Schematic',      caption: 'the full schematic.', span: 'wide' }
     ],
     pcb: {
