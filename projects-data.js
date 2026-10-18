@@ -13,8 +13,6 @@ window.PROJECTS = {
     longDesc: [
       "Scrolled is an iPhone app that makes social media feeds end. You open Instagram, TikTok, YouTube, X, Reddit or Facebook inside the app and pick how many clips you get a day. Once you hit that number the feed stops until tomorrow, but your DMs still work.",
       "It can also block the real apps with Apple's Screen Time API so you can't just go around it. If you really need one, you can unlock it for a few minutes.",
-      "I started it in July as a React Native prototype and rewrote it in native Swift in August. It's all SwiftUI with no third party packages and no server, so nothing you do in it leaves your phone. It came out on the App Store on October 4, 2026.",
-      "Scrolled isn't affiliated with any of the apps it works with."
     ],
     links: [
       { label: 'get it on the app store', href: 'https://apps.apple.com/us/app/scrolled-limit-reels-tiktok/id6815860237' },
@@ -185,9 +183,9 @@ window.PROJECTS = {
     previewImg: 'project%20media/bldc%20pic%20png.jpg',
     name: 'Motor Driver Board',
     meta: 'KiCad, TMC2209',
-    desc: 'A simple linear BLDC motor driver.',
+    desc: 'A linear BLDC motor driver.',
     longDesc: [
-      "This is a simple linear BLDC motor driver. It uses a TMC2209 to handle the rotation.",
+      "This is a linear BLDC motor driver. It uses a TMC2209 to handle the rotation (although there's a BA6406F-E2 in its place right now), and 3 AON6982's for each of the motor's stages.",
       "The main goal for this project was originally to control a high speed projectile mechanism that was unfortunately never built. Maybe one day."
     ],
     media: [
