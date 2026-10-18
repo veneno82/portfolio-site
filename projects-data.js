@@ -33,7 +33,7 @@ window.PROJECTS = {
 
   dime: {
     name: 'Dime (Inverted Pendulum)',
-    previewImg: 'project%20media/dime-in-box.jpg',
+    previewImg: 'project%20media/dime-boxed-up.jpg',
     meta: 'C++, Raspberry Pi, ODrive · Summer 2024',
     desc: 'A two wheeled robot that balances itself using model predictive control.',
     longDesc: [
@@ -53,7 +53,7 @@ window.PROJECTS = {
       ]
     ],
     media: [
-      { kind: 'image', type: 'photo',   src: 'project%20media/dime-in-box.jpg',     name: 'Dime',                  caption: '' },
+      { kind: 'image', type: 'photo',   src: 'project%20media/dime-boxed-up.jpg',     name: 'Dime',                  caption: '' },
       { kind: 'image', type: 'diagram', src: 'project%20media/dime%20diagram.jpeg', name: 'Exploded view diagram', caption: 'every part of the robot, pulled apart.', span: 'wide' }
     ],
     pcb: {
