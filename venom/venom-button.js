@@ -116,7 +116,6 @@ const cur = { x: -1e4, y: -1e4, vx: 0, vy: 0, lx: -1e4, ly: -1e4, present: false
 const btn = { cx: 0, cy: 0, hw: 150, hh: 30, lbw: 72, lbh: 18, top: 14, sink: 5, dome: 1.2, lift: 0, liftV: 0, press: 0, pressV: 0, pressTarget: 0, intro: reduced ? 1 : 0, introV: 0 };
 const pull = { x: 0, y: 0, amt: 0, v: 0 };
 const peak = { x: 0, y: 0, amt: 0, v: 0 };
-let darkAmt = document.documentElement.dataset.theme === 'dark' ? 1 : 0; // follows the site's theme toggle
 let time = reduced ? 3 : 0, lastSnap = -1, lastSpawn = -1, lastMicro = -1, nextProbe = 2.6, awareNow = 0;
 let labelAmt = 0, labelTarget = 0;
 let W = 1, H = 1, DPR = 1, quality = 1;
@@ -460,7 +459,6 @@ uniform float uLift;
 uniform vec4 uBtnP;   // button centre and half size, for the face's planar reflection
 uniform vec2 uWin;    // window reflection centre x and half width, in button half-widths
 uniform vec2 uBtnH;   // button top height and current lift, px (for its floor shadow)
-uniform float uDark;  // 0..1: the page is on its dark theme
 uniform sampler2D uHandCol;
 uniform sampler2D uArrowCol;
 uniform float uMorph;
@@ -763,16 +761,8 @@ vec3 floorBare(vec2 p) {
 // premultiplied: a cool near-black at the strength the shadows darken the white floor
 vec4 floorMatte(vec2 p) {
   const vec3 Y = vec3(0.299, 0.587, 0.114);
-  vec3 sh = toScreen(floorShade(p));
-  float a = clamp(1.0 - dot(sh, Y) / max(dot(toScreen(floorBare(p)), Y), 1e-3), 0.0, 1.0);
-  vec4 o = vec4(vec3(0.0, 0.006, 0.018) * a, a);
-  if (uDark > 0.001) {
-    // on the dark theme black goo vanishes into the page, so it sits in a soft pool of studio floor light
-    float d = max(sdPill(p - uBtnP.xy, uBtnP.zw), 0.0);
-    float pool = 0.5 * pow(1.0 - smoothstep(0.0, 200.0, d), 2.0);
-    o = mix(o, vec4(sh * pool, pool), uDark);
-  }
-  return o;
+  float a = clamp(1.0 - dot(toScreen(floorShade(p)), Y) / max(dot(toScreen(floorBare(p)), Y), 1e-3), 0.0, 1.0);
+  return vec4(vec3(0.0, 0.006, 0.018) * a, a);
 }
 
 void main() {
@@ -819,7 +809,7 @@ function program(fs, names) {
   return { prog, u };
 }
 const p1 = program(FRAG_SCENE, ['uArrowSDF', 'uMorph', 'uCoat', 'uNC', 'uCoil', 'uCBox', 'uHandSDF', 'uHand', 'uHand2', 'uRes', 'uDpr', 'uTime', 'uBtn', 'uBtnZ', 'uBtnZ2', 'uPull', 'uPeak', 'uNS', 'uPts', 'uBox', 'uAnc', 'uAncD', 'uNBr', 'uBr', 'uNB', 'uBlob', 'uBlobZ', 'uRip', 'uLabel', 'uLabelBox', 'uEmboss', 'uZTop', 'uK']);
-const p2 = program(FRAG_SHADE, ['uDark', 'uG', 'uLabel', 'uRes', 'uDpr', 'uTime', 'uLabelBox', 'uLabelAmt', 'uLabelLod', 'uIri', 'uZMax', 'uLift', 'uBtnP', 'uWin', 'uBtnH', 'uHandCol', 'uArrowCol', 'uMorph', 'uHand', 'uHand2']);
+const p2 = program(FRAG_SHADE, ['uG', 'uLabel', 'uRes', 'uDpr', 'uTime', 'uLabelBox', 'uLabelAmt', 'uLabelLod', 'uIri', 'uZMax', 'uLift', 'uBtnP', 'uWin', 'uBtnH', 'uHandCol', 'uArrowCol', 'uMorph', 'uHand', 'uHand2']);
 
 // ── icon textures (arrow + hand): colour (for shading) + signed distance field (for the 3D slab)
 const handColTex = gl.createTexture(), handSdfTex = gl.createTexture();
@@ -1650,7 +1640,6 @@ function render() {
   gl.uniform1f(u2.uIri, P.sheen);
   gl.uniform1f(u2.uZMax, zTop);
   gl.uniform1f(u2.uLift, btn.lift);
-  gl.uniform1f(u2.uDark, darkAmt);
   gl.uniform4f(u2.uBtnP, g.cx, g.cy, g.hw, g.hh);
   const inkHalf = (labelInkW * LABEL_CSS) / LABEL_PX / 2;
   gl.uniform2f(u2.uWin, -(inkHalf + 16) / g.hw, 15 / g.hw); // soft ~30px reflection in the left padding
@@ -1717,7 +1706,6 @@ function frame(now) {
   let n = 0;
   while (acc >= SUB && n < 40 && !window.VenomButton?._debug.paused) { step(SUB); acc -= SUB; n++; }
   if (n === 40) acc = 0;
-  darkAmt += ((document.documentElement.dataset.theme === 'dark' ? 1 : 0) - darkAmt) * (1 - Math.exp(-dt * 5));
   render();
   // adaptive resolution if the GPU struggles
   if (frameEma > 1 / 40 && dt < 0.09 && document.visibilityState === 'visible') slowFor += dt; else slowFor = 0;
