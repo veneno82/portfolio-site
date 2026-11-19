@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Open+Sauce+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter+Tight:wght@700&family=Open+Sauce+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <style>
     :root {
@@ -755,6 +755,125 @@
       gap: 0 18px;
     }
 
+    /* "let's collaborate": glossy black pill. collab-button.js ties a little
+       hand to it with a bundle of wires when you hover it */
+    .collab-wrap {
+      margin: 6px 0 34px;
+    }
+
+    .collab-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 66px;
+      padding: 0 30px 2px;
+      border-radius: 999px;
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1;
+      white-space: nowrap;
+      color: #e6e6e8;
+      text-decoration: none;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+      background:
+        radial-gradient(90% 140% at 100% 100%, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 45%),
+        linear-gradient(180deg, #1d1d20 0%, #0c0c0d 48%, #040405 100%);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.24),
+        inset 1.5px 0 1px rgba(255, 255, 255, 0.06),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.85),
+        0 2px 0 #000,
+        0 9px 14px -6px rgba(0, 0, 0, 0.45),
+        0 22px 36px -14px rgba(0, 0, 0, 0.38);
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    /* soft reflection across the top, brightest on the left */
+    .collab-btn::before {
+      content: '';
+      position: absolute;
+      left: 4%;
+      right: 16%;
+      top: 7%;
+      height: 50%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(205, 214, 235, 0.42) 0%, rgba(205, 214, 235, 0.12) 55%, rgba(205, 214, 235, 0) 100%);
+      -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 35%, transparent 100%);
+      mask-image: linear-gradient(90deg, #000 0%, #000 35%, transparent 100%);
+      filter: blur(1.5px);
+      pointer-events: none;
+    }
+
+    .collab-btn span {
+      position: relative;
+    }
+
+    .collab-btn:active {
+      transform: translateY(1px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.2),
+        inset 1.5px 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.85),
+        0 1px 0 #000,
+        0 6px 10px -6px rgba(0, 0, 0, 0.45),
+        0 16px 28px -14px rgba(0, 0, 0, 0.38);
+    }
+
+    .collab-btn:focus {
+      outline: none;
+    }
+
+    .collab-btn:focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 4px;
+    }
+
+    [data-theme="dark"] .collab-btn {
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.28),
+        inset 1.5px 0 1px rgba(255, 255, 255, 0.07),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.09),
+        0 2px 0 #000,
+        0 16px 34px -12px rgba(0, 0, 0, 0.85);
+    }
+
+    @media (max-width: 520px) {
+      .collab-btn {
+        height: 58px;
+        padding: 0 26px 2px;
+        font-size: 21px;
+      }
+    }
+
+    /* the wires + hand are drawn on this, above everything, never clickable */
+    .collab-wires {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 10000;
+      pointer-events: none;
+      display: none;
+    }
+
+    .collab-wires.on {
+      display: block;
+    }
+
+    /* while the hand is your cursor, hide the real one */
+    html.collab-grab,
+    html.collab-grab * {
+      cursor: none !important;
+    }
+
     .contact-links a {
       font-size: 13px;
       color: var(--fg2);
@@ -1033,6 +1152,10 @@
     <div class="label">Contact</div>
     <p class="contact-blurb">open to internships and research positions, or if you just wanna talk I'm around. shoot me a
       message!</p>
+    <div class="collab-wrap">
+      <a class="collab-btn" id="collabBtn" href="mailto:mauroghhcc2@gmail.com?subject=Let's%20collaborate"
+        draggable="false"><span>let’s collaborate</span></a>
+    </div>
     <div class="contact-links">
       <a href="https://github.com/veneno82" target="_blank">github</a>
       <a href="https://www.linkedin.com/in/britomauro" target="_blank">linkedin</a>
@@ -1571,6 +1694,7 @@
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
+  <script src="/collab-button.js"></script>
   <script src="/site.js"></script>
 </body>
 
